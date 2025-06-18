@@ -22,12 +22,30 @@ model User {
   ads      Ad[]
 }
 
+// prisma/schema.prisma
 model Ad {
   id          Int      @id @default(autoincrement())
   title       String
   description String
   price       Int
+  year        Int
+  mileage     Int
+  location    String
   createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      Int
+  updatedAt   DateTime @updatedAt
+
+  // User
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  // Fotky (přidáme později)
+  photos Photo[]
+
+  // Značka / model (přidáme později)
+}
+model Photo {
+  id     Int    @id @default(autoincrement())
+  url    String
+  adId   Int
+  ad     Ad     @relation(fields: [adId], references: [id])
 }
