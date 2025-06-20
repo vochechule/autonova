@@ -21,17 +21,65 @@ export class AdService {
     }
   }
 
+  async findWithFilters(query: any) {
+    const {
+      title,
+      priceFrom,
+      priceTo,
+      mileage,
+      yearFrom,
+      yearTo,
+      fuel,
+      body,
+      color,
+      powerFrom,
+      powerTo,
+      transmission,
+      drive,
+      doors,
+      seats,
+    } = query;
+
+    return this.prisma.ad.findMany({
+      where: {
+        title: title ? { contains: title, mode: 'insensitive' } : undefined,
+        price: {
+          gte: priceFrom ? Number(priceFrom) : undefined,
+          lte: priceTo ? Number(priceTo) : undefined,
+        },
+        mileage: mileage ? { lte: Number(mileage) } : undefined,
+        year: {
+          gte: yearFrom ? Number(yearFrom) : undefined,
+          lte: yearTo ? Number(yearTo) : undefined,
+        },
+        power: {
+          gte: powerFrom ? Number(powerFrom) : undefined,
+          lte: powerTo ? Number(powerTo) : undefined,
+        },
+        fuel: fuel || undefined,
+        body: body || undefined,
+        color: color || undefined,
+        transmission: transmission || undefined,
+        drive: drive || undefined,
+        doors: doors ? Number(doors) : undefined,
+        seats: seats ? Number(seats) : undefined,
+      },
+      orderBy: { createdAt: 'desc' },
+      include: { photos: true, user: true },
+    });
+  }
+
   findAll() {
     return this.prisma.ad.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { user: true, photos: true },  // přidáno photos
+      include: { user: true, photos: true },
     });
   }
 
   findOne(id: number) {
     return this.prisma.ad.findUnique({
       where: { id },
-      include: { photos: true },  // přidáno photos
+      include: { photos: true },
     });
   }
 
@@ -47,8 +95,6 @@ export class AdService {
   }
 
   async createPhoto(data: { url: string; adId: number }) {
-    return this.prisma.photo.create({
-      data,
-    });
+    return this.prisma.photo.create({ data });
   }
 }

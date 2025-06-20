@@ -28,21 +28,31 @@ model Ad {
   title       String
   description String
   price       Int
-  year        Int
   mileage     Int
-  location    String
+  year        Int
+  fuel        String?
+  body        String?
+  color       String?
+  vin         String?
+  transmission String?
+  power       Int?     // kW
+  engineSize  Float?   // litry
+  doors       Int?
+  seats       Int?
+  drive       String?  // např. "FWD", "AWD", "RWD"
+  country     String?  // země původu
+  condition   String?  // např. "jako nové", "bourané", "opotřebované"
+  location   String?  // město nebo region
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // User
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
 
-  // Fotky (přidáme později)
-  photos Photo[]
-
-  // Značka / model (přidáme později)
+  photos      Photo[]
 }
+
 model Photo {
   id     Int    @id @default(autoincrement())
   url    String

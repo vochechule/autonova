@@ -1,9 +1,17 @@
-// app/page.tsx
+import Header from './components/Header'
+import './styles/HomePage.scss'
+import AdFilter from './components/AdFilter'
+
 export default function Home() {
   return (
-    <main className="p-6">
-      <h1 className="text-2xl font-bold">Vítej v AutoBazar!</h1>
-      <p className="text-gray-600">Začni kliknutím na /ads pro zobrazení inzerátů</p>
-    </main>
+    <>
+      <Header />
+      <main className="home-page">
+        <AdFilter />
+        <h1 className="home-page__title">Vítej v AutoBazar!</h1>
+        <p className="home-page__subtitle">Začni kliknutím na <code>/ads</code> pro zobrazení inzerátů</p>
+        <a href="/ads" className="home-page__link">/ads</a>
+      </main>
+    </>
   )
 }

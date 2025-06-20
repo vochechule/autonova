@@ -11,6 +11,7 @@ import {
   UploadedFiles,
   UseInterceptors,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
@@ -33,9 +34,13 @@ export class AdController {
     return this.adService.create(req.user.userId, dto);
   }
 
+  // ✅ Sloučeno filtrování i bez filtrů do jednoho GET
   @Get()
-  findAll() {
-    return this.adService.findAll();
+  findAll(@Query() query: any) {
+    if (Object.keys(query).length === 0) {
+      return this.adService.findAll();
+    }
+    return this.adService.findWithFilters(query);
   }
 
   @Get(':id')
@@ -53,7 +58,6 @@ export class AdController {
     return this.adService.remove(+id);
   }
 
-  // Endpoint pro upload fotek
   @UseGuards(JwtAuthGuard)
   @Post(':id/photos')
   @UseInterceptors(FilesInterceptor('photos', 10, { storage: memoryStorage }))
@@ -76,7 +80,7 @@ export class AdController {
       const fileExt = file.originalname.split('.').pop();
       const fileName = `ads/${adId}/${uuidv4()}.${fileExt}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('photos')
         .upload(fileName, file.buffer, {
           contentType: file.mimetype,
@@ -85,7 +89,7 @@ export class AdController {
 
       if (error) {
         console.error('Supabase upload error:', error);
-       throw new BadRequestException(error.message || 'Chyba při uploadu fotek');
+        throw new BadRequestException(error.message || 'Chyba při uploadu fotek');
       }
 
       const { data: publicUrlData } = supabase.storage
