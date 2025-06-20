@@ -24,12 +24,15 @@ export class AdService {
   findAll() {
     return this.prisma.ad.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { user: true },
+      include: { user: true, photos: true },  // přidáno photos
     });
   }
 
   findOne(id: number) {
-    return this.prisma.ad.findUnique({ where: { id } });
+    return this.prisma.ad.findUnique({
+      where: { id },
+      include: { photos: true },  // přidáno photos
+    });
   }
 
   update(id: number, dto: UpdateAdDto) {
@@ -41,5 +44,11 @@ export class AdService {
 
   remove(id: number) {
     return this.prisma.ad.delete({ where: { id } });
+  }
+
+  async createPhoto(data: { url: string; adId: number }) {
+    return this.prisma.photo.create({
+      data,
+    });
   }
 }
