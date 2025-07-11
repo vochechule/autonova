@@ -45,17 +45,17 @@ export class AdController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.adService.findOne(+id);
+    return this.adService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateAdDto) {
-    return this.adService.update(+id, dto);
+    return this.adService.update(id, dto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.adService.remove(+id);
+    return this.adService.remove(id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -100,12 +100,20 @@ export class AdController {
 
       const photo = await this.adService.createPhoto({
         url: publicURL,
-        adId: adId,
+        adId: id, // použij přímo id, protože je typu string
       });
 
       uploadedPhotos.push(photo);
     }
 
     return { photos: uploadedPhotos };
+  }
+
+  @Post(':adId/photos')
+  async addPhoto(@Param('adId') adId: string, @Body('url') url: string) {
+    return this.adService.createPhoto({
+      url,
+      adId: adId.toString(),
+    });
   }
 }

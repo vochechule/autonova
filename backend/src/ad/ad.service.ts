@@ -7,13 +7,23 @@ import { PrismaService } from '../../prisma/prisma.service'; // uprav cestu podl
 export class AdService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: number, dto: CreateAdDto) {
+  async create(userId: string, dto: CreateAdDto) {
     try {
+      // Pokud jsou features pole stringů, musíš je převést na relace CarFeature
+      const { features, ...adData } = dto;
+      const data: any = {
+        ...adData,
+        userId,
+        features: features
+          ? {
+              connect: features.map((name) => ({ name })),
+            }
+          : undefined,
+      };
+
       return await this.prisma.ad.create({
-        data: {
-          ...dto,
-          userId,
-        },
+        data,
+        include: { images: true, user: true, features: true },
       });
     } catch (error) {
       console.error('Chyba při vytváření inzerátu:', error);
@@ -30,14 +40,14 @@ export class AdService {
       yearFrom,
       yearTo,
       fuel,
-      body,
+      bodyType,
       color,
       powerFrom,
       powerTo,
       transmission,
-      drive,
-      doors,
-      seats,
+      drivetrain,
+      doorCount,
+      seatCount,
     } = query;
 
     return this.prisma.ad.findMany({
@@ -57,44 +67,57 @@ export class AdService {
           lte: powerTo ? Number(powerTo) : undefined,
         },
         fuel: fuel || undefined,
-        body: body || undefined,
+        bodyType: bodyType || undefined,
         color: color || undefined,
         transmission: transmission || undefined,
-        drive: drive || undefined,
-        doors: doors ? Number(doors) : undefined,
-        seats: seats ? Number(seats) : undefined,
+        drivetrain: drivetrain || undefined,
+        doorCount: doorCount ? Number(doorCount) : undefined,
+        seatCount: seatCount ? Number(seatCount) : undefined,
       },
       orderBy: { createdAt: 'desc' },
-      include: { photos: true, user: true },
+      include: { images: true, user: true, features: true },
     });
   }
 
   findAll() {
     return this.prisma.ad.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { user: true, photos: true },
+      include: { user: true, images: true, features: true },
     });
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.prisma.ad.findUnique({
       where: { id },
-      include: { photos: true },
+      include: { images: true, features: true, user: true },
     });
   }
 
-  update(id: number, dto: UpdateAdDto) {
+  async update(id: string, dto: UpdateAdDto) {
+    // Pokud jsou features pole stringů, musíš je převést na relace CarFeature
+    const { features, ...adData } = dto;
+    const data: any = {
+      ...adData,
+      features: features
+        ? {
+            set: [],
+            connect: features.map((name) => ({ name })),
+          }
+        : undefined,
+    };
+
     return this.prisma.ad.update({
       where: { id },
-      data: dto,
+      data,
+      include: { images: true, features: true, user: true },
     });
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.prisma.ad.delete({ where: { id } });
   }
 
-  async createPhoto(data: { url: string; adId: number }) {
-    return this.prisma.photo.create({ data });
+  async createPhoto(data: { url: string; adId: string }) {
+    return this.prisma.image.create({ data });
   }
 }

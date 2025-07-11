@@ -1,4 +1,13 @@
-import { IsInt, IsString, IsOptional, IsNumber, Min, Max } from 'class-validator'
+import {
+  BodyType,
+  AirConditioning,
+  FuelType,
+  Transmission,
+  Drivetrain,
+  EmissionClass,
+  CarCondition,
+} from '../enums/ad.enums'
+import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray } from 'class-validator'
 
 export class CreateAdDto {
   @IsString()
@@ -8,64 +17,101 @@ export class CreateAdDto {
   description: string
 
   @IsInt()
-  @Min(0)
   price: number
 
   @IsInt()
-  @Min(0)
-  mileage: number;
-
-  @IsInt()
-  year: number
-
-  @IsString()
-  fuel: string
-
-  @IsString()
-  body: string
-
-  @IsOptional()
-  @IsString()
-  color?: string
-
-  @IsOptional()
-  @IsString()
-  vin?: string
-
-  @IsOptional()
-  @IsString()
-  transmission?: string
+  mileage: number
 
   @IsOptional()
   @IsInt()
-  power?: number
-
-  @IsOptional()
-  @IsNumber()
-  engineSize?: number
+  year?: number
 
   @IsOptional()
   @IsInt()
-  doors?: number
+  firstRegistration?: number
+
+  @IsEnum(BodyType)
+  bodyType: BodyType
+
+  @IsInt()
+  doorCount: number
+
+  @IsInt()
+  seatCount: number
+
+  @IsString()
+  color: string
+
+  @IsOptional()
+  @IsString()
+  colorFinish?: string
+
+  @IsInt()
+  airbagCount: number
+
+  @IsEnum(AirConditioning)
+  airConditioning: AirConditioning
+
+  @IsEnum(FuelType)
+  fuel: FuelType
+
+  @IsInt()
+  engineVolume: number
+
+  @IsInt()
+  power: number
 
   @IsOptional()
   @IsInt()
-  seats?: number
+  avgConsumption?: number
+
+  @IsEnum(Transmission)
+  transmission: Transmission
+
+  @IsOptional()
+  @IsInt()
+  gearCount?: number
+
+  @IsEnum(Drivetrain)
+  drivetrain: Drivetrain
+
+  @IsEnum(CarCondition)
+  condition: CarCondition
+
+  @IsOptional()
+  @IsDateString()
+  technicalCheckUntil?: string
+
+  @IsString()
+  countryOfOrigin: string
+
+  @IsEnum(EmissionClass)
+  euroStandard: EmissionClass
+
+  @IsBoolean()
+  ecoTaxPaid: boolean
+
+  @IsBoolean()
+  isFirstOwner: boolean
+
+  @IsBoolean()
+  isDisabledAdapted: boolean
+
+  @IsBoolean()
+  wasCrashed: boolean
+
+  @IsBoolean()
+  hasServiceBook: boolean
+
+  @IsOptional()
+  @IsDateString()
+  warrantyUntil?: string
 
   @IsOptional()
   @IsString()
-  drive?: string
+  windowNote?: string
 
   @IsOptional()
-  @IsString()
-  country?: string
-
-  @IsOptional()
-  @IsString()
-  condition?: string
-
-  //add optional location
-  @IsOptional()
-  @IsString()
-  location?: string
+  @IsArray()
+  features?: string[]
 }

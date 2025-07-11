@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,48 +8,141 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  password String
-  name     String
-  createdAt DateTime @default(now())
-  ads      Ad[]
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password         String
+  isDealer         Boolean   @default(false)
+  ads              Ad[]
+  reviewsWritten   Review[]
+  reviewsReceived  Review[]  @relation("TargetReviews")
+  createdAt        DateTime  @default(now())
 }
 
-// prisma/schema.prisma
 model Ad {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  price       Int
-  mileage     Int
-  year        Int
-  fuel        String?
-  body        String?
-  color       String?
-  vin         String?
-  transmission String?
-  power       Int?     // kW
-  engineSize  Float?   // litry
-  doors       Int?
-  seats       Int?
-  drive       String?  // např. "FWD", "AWD", "RWD"
-  country     String?  // země původu
-  condition   String?  // např. "jako nové", "bourané", "opotřebované"
-  location   String?  // město nebo region
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id])
-  userId      Int
-
-  photos      Photo[]
+  id                  String         @id @default(uuid())
+  title               String
+  description         String
+  price               Int
+  mileage             Int
+  year                Int?
+  firstRegistration   Int?
+  bodyType            BodyType
+  doorCount           Int
+  seatCount           Int
+  color               String
+  colorFinish         String?
+  airbagCount         Int
+  airConditioning     AirConditioning
+  fuel                FuelType
+  engineVolume        Int
+  power               Int
+  avgConsumption      Float?
+  transmission        Transmission
+  gearCount           Int?
+  drivetrain          Drivetrain
+  condition           CarCondition
+  technicalCheckUntil DateTime?
+  countryOfOrigin     String
+  euroStandard        EmissionClass
+  ecoTaxPaid          Boolean
+  isFirstOwner        Boolean
+  isDisabledAdapted   Boolean
+  wasCrashed          Boolean
+  hasServiceBook      Boolean
+  warrantyUntil       DateTime?
+  windowNote          String?
+  features            CarFeature[]   @relation("AdFeatures")
+  images              Image[]
+  user                User           @relation(fields: [userId], references: [id])
+  userId              String
+  createdAt           DateTime       @default(now())
+  expiresAt           DateTime?
+  isVisible           Boolean        @default(true)
+  views               Int            @default(0)
 }
 
-model Photo {
-  id     Int    @id @default(autoincrement())
-  url    String
-  adId   Int
-  ad     Ad     @relation(fields: [adId], references: [id])
+model CarFeature {
+  id    String @id @default(uuid())
+  name  String @unique
+  ads   Ad[]   @relation("AdFeatures")
+}
+
+model Image {
+  id    String @id @default(uuid())
+  url   String
+  ad    Ad     @relation(fields: [adId], references: [id])
+  adId  String
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      // 1–5
+  comment   String?
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  target    User     @relation("TargetReviews", fields: [targetId], references: [id])
+  targetId  String
+  createdAt DateTime @default(now())
+}
+
+// ---------- ENUMS ----------
+
+enum BodyType {
+  hatchback
+  sedan
+  kombi
+  suv
+  coupe
+  cabrio
+  mpv
+  pickup
+  van
+  jiné
+}
+
+enum AirConditioning {
+  none
+  manual
+  automatic
+  two_zone
+  three_zone
+}
+
+enum FuelType {
+  petrol
+  diesel
+  hybrid
+  electric
+  lpg
+  cng
+}
+
+enum Transmission {
+  manual
+  automatic
+  semi_automatic
+}
+
+enum Drivetrain {
+  fwd
+  rwd
+  awd
+  four_x_four
+}
+
+enum EmissionClass {
+  euro1
+  euro2
+  euro3
+  euro4
+  euro5
+  euro6
+  euro6d
+}
+
+enum CarCondition {
+  new
+  used
+  crashed
+  demo
 }
