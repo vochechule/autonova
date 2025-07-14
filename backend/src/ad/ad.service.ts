@@ -21,6 +21,11 @@ export class AdService {
           : undefined,
       };
 
+      if (data.technicalCheckUntil)
+        data.technicalCheckUntil = new Date(data.technicalCheckUntil).toISOString();
+      if (data.warrantyUntil)
+        data.warrantyUntil = new Date(data.warrantyUntil).toISOString();
+
       return await this.prisma.ad.create({
         data,
         include: { images: true, user: true, features: true },

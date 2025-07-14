@@ -1,0 +1,77 @@
+.ad-create-form {
+  background: #f9f9f9;
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  padding: 2rem;
+  max-width: 600px;
+  margin: 2rem auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 0.7rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #fff;
+    transition: border 0.2s;
+    &:focus {
+      border-color: #1a8917;
+      outline: none;
+    }
+  }
+
+  textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.98rem;
+    margin-bottom: 0.2rem;
+  }
+
+  button[type="submit"] {
+    background: #1a8917;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.9rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background 0.2s;
+    &:hover {
+      background: #166e13;
+    }
+    &:disabled {
+      background: #b7e1c2;
+      cursor: not-allowed;
+    }
+  }
+
+  [style*="color: red"] {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 1rem;
+  }
+  [style*="color: green"] {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 1rem;
+  }
+}
