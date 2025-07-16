@@ -11,6 +11,7 @@ model User {
   id               String    @id @default(uuid())
   email            String    @unique
   password         String
+  name             String
   isDealer         Boolean   @default(false)
   ads              Ad[]
   reviewsWritten   Review[]
@@ -59,6 +60,7 @@ model Ad {
   expiresAt           DateTime?
   isVisible           Boolean        @default(true)
   views               Int            @default(0)
+  image_url           String?
 }
 
 model CarFeature {

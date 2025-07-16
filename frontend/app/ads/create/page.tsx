@@ -1,11 +1,10 @@
-'use client'
-import { useState } from 'react'
-import AdCreateWizard from './AdCreateWizard'
+import AdCreateForm from '../../components/AdCreateForm'
 
 export default function CreateAdPage() {
   return (
-    <main className="min-h-screen bg-gray-50 py-10">
-      <AdCreateWizard />
+    <main className="create-ad-page">
+      <h1 className="create-ad-page__heading">Vytvořit inzerát</h1>
+      <AdCreateForm />
     </main>
   )
 }

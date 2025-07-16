@@ -2,6 +2,7 @@
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import AdFilter from '../components/AdFilter'
+import Link from 'next/link'
 import '../styles/AdsPage.scss'
 
 type Ad = {
@@ -29,11 +30,16 @@ export default function AdsPage() {
       <AdFilter />
       <div className="ads-page__grid">
         {ads.map(ad => (
-          <div key={ad.id} className="ads-page__card">
+          <Link
+            key={ad.id}
+            href={`/ads/${ad.id}`}
+            className="ads-page__card"
+          >
             <img src={ad.image_url} alt={ad.title} className="ads-page__image" />
-            <h2 className="ads-page__title">{ad.title}</h2>
-            <p className="ads-page__price">{ad.price} Kč</p>
-          </div>
+            <div className="ads-page__title">{ad.title}</div>
+            <div className="ads-page__price">{ad.price} Kč</div>
+            <div className="ads-page__mileage">{ad.mileage} km</div>
+          </Link>
         ))}
       </div>
     </main>

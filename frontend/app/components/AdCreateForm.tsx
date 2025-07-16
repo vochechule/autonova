@@ -6,74 +6,121 @@ export default function AdCreateForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [image, setImage] = useState<File | null>(null)
+  const [images, setImages] = useState<File[]>([])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    setSuccess(false)
-
+    
     const form = e.currentTarget
-    const formData = new FormData(form)
-    const data: any = {}
-    formData.forEach((value, key) => {
-      data[key] = value
-    })
-
-    // Převod číselných hodnot
-    data.price = Number(data.price)
-    data.mileage = Number(data.mileage)
-    data.doorCount = Number(data.doorCount)
-    data.seatCount = Number(data.seatCount)
-    data.airbagCount = Number(data.airbagCount)
-    data.engineVolume = Number(data.engineVolume)
-    data.power = Number(data.power)
-    if (data.year) data.year = Number(data.year)
-    if (data.firstRegistration) data.firstRegistration = Number(data.firstRegistration)
-    if (data.avgConsumption) data.avgConsumption = Number(data.avgConsumption)
-    if (data.gearCount) data.gearCount = Number(data.gearCount)
-
-    // Převod boolean hodnot
-    data.ecoTaxPaid = !!data.ecoTaxPaid
-    data.isFirstOwner = !!data.isFirstOwner
-    data.isDisabledAdapted = !!data.isDisabledAdapted
-    data.wasCrashed = !!data.wasCrashed
-    data.hasServiceBook = !!data.hasServiceBook
-
-    // Features jako pole
-    if (data.features) {
-      data.features = data.features.split(',').map((f: string) => f.trim())
+    const formData = new FormData()
+    
+    // Přidej pole formuláře
+    for (const el of form.elements) {
+      if (!(el instanceof HTMLInputElement || el instanceof HTMLSelectElement)) continue
+      if (el.name && el.value && el.type !== 'file') {
+        formData.append(el.name, el.value)
+      }
     }
-
+    
+    // Přidej obrázky
+    if (images.length > 0) {
+      images.forEach(img => {
+        formData.append('images', img) // Musí se shodovat s 'images' v interceptoru
+      })
+    }
+    
+    // Převod datumů
+    if (form.technicalCheckUntil?.value) {
+      const date = new Date(form.technicalCheckUntil.value)
+      formData.set('technicalCheckUntil', date.toISOString())
+    }
+    if (form.warrantyUntil?.value) {
+      const date = new Date(form.warrantyUntil.value)
+      formData.set('warrantyUntil', date.toISOString())
+    }
+    
+    // DŮLEŽITÉ: NEPOSÍLEJ Content-Type header při použití FormData!
+    const token = localStorage.getItem('token')
     try {
-      const token = localStorage.getItem('token')
       const res = await fetch('http://localhost:3000/ad', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          // BEZ Content-Type! Browser nastaví automaticky s boundary
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: JSON.stringify(data),
-        credentials: 'include',
+        body: formData,
+        credentials: 'include'
       })
+      
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
         throw new Error(errData.message || errData.error || 'Chyba při ukládání inzerátu')
       }
+      
       setSuccess(true)
       form.reset()
-    } catch (err: any) {
-      setError(err.message)
-      // Also log the error for debugging
-      console.error('Ad create error:', err)
+      setImage(null)
+      setImages([])
+    } catch (err) {
+      if (err instanceof Error) setError(err.message)
+      else setError('Neznámá chyba')
+      console.error('Upload error:', err)
     } finally {
       setLoading(false)
     }
   }
 
+  function fillTestData(form: HTMLFormElement) {
+    form.title.value = 'Testovací auto'
+    form.description.value = 'Popis testovacího auta'
+    form.price.value = '123456'
+    form.mileage.value = '150000'
+    form.year.value = '2018'
+    form.firstRegistration.value = '2018'
+    form.bodyType.value = 'sedan'
+    form.doorCount.value = '4'
+    form.seatCount.value = '5'
+    form.color.value = 'Stříbrná'
+    form.colorFinish.value = 'Metalíza'
+    form.airbagCount.value = '6'
+    form.airConditioning.value = 'automatic'
+    form.fuel.value = 'diesel'
+    form.engineVolume.value = '1968'
+    form.power.value = '110'
+    form.avgConsumption.value = '5.2'
+    form.transmission.value = 'automatic'
+    form.gearCount.value = '6'
+    form.drivetrain.value = 'fwd'
+    form.condition.value = 'used'
+    form.technicalCheckUntil.value = '2025-12-31'
+    form.countryOfOrigin.value = 'ČR'
+    form.euroStandard.value = 'euro6'
+    form.ecoTaxPaid.checked = true
+    form.isFirstOwner.checked = false
+    form.isDisabledAdapted.checked = false
+    form.wasCrashed.checked = false
+    form.hasServiceBook.checked = true
+    form.warrantyUntil.value = '2026-01-01'
+    form.windowNote.value = 'Test poznámka'
+    form.features.value = 'klimatizace, ABS, ESP'
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="ad-create-form">
+    <form onSubmit={handleSubmit} className="ad-create-form" id="ad-create-form">
       <h2>Přidat inzerát</h2>
+      <button
+        type="button"
+        style={{ marginBottom: 12 }}
+        onClick={() => {
+          const form = document.getElementById('ad-create-form') as HTMLFormElement
+          if (form) fillTestData(form)
+        }}
+      >
+        Vyplnit testovací data
+      </button>
       <input name="title" required placeholder="Název" />
       <textarea name="description" required placeholder="Popis" />
       <input name="price" type="number" required placeholder="Cena" />
@@ -182,6 +229,15 @@ export default function AdCreateForm() {
       <input name="warrantyUntil" type="date" placeholder="Záruka do" />
       <input name="windowNote" placeholder="Poznámka na okno" />
       <input name="features" placeholder="Výbava (čárkou oddělené)" />
+
+      
+      <input
+        type="file"
+        name="images"
+        accept="image/*"
+        multiple
+        onChange={e => setImages(Array.from(e.target.files || []))}
+      />
 
       <button type="submit" disabled={loading}>
         {loading ? 'Ukládám...' : 'Přidat inzerát'}

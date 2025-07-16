@@ -9,7 +9,7 @@ export class AuthService {
 
   async register(email: string, password: string, name: string) {
     const hashed = await bcrypt.hash(password, 10);
-    return this.userService.create(email, hashed);
+    return this.userService.create(email, hashed, name);
   }
 
   async login(email: string, password: string) {

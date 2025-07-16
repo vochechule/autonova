@@ -7,33 +7,105 @@ import { PrismaService } from '../../prisma/prisma.service'; // uprav cestu podl
 export class AdService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreateAdDto) {
-    try {
-      // Pokud jsou features pole stringů, musíš je převést na relace CarFeature
-      const { features, ...adData } = dto;
-      const data: any = {
-        ...adData,
-        userId,
-        features: features
-          ? {
-              connect: features.map((name) => ({ name })),
-            }
-          : undefined,
-      };
-
-      if (data.technicalCheckUntil)
-        data.technicalCheckUntil = new Date(data.technicalCheckUntil).toISOString();
-      if (data.warrantyUntil)
-        data.warrantyUntil = new Date(data.warrantyUntil).toISOString();
-
-      return await this.prisma.ad.create({
-        data,
-        include: { images: true, user: true, features: true },
-      });
-    } catch (error) {
-      console.error('Chyba při vytváření inzerátu:', error);
-      throw error;
+  async create(dto: any, userId: string, files?: Express.Multer.File[]) {
+    // Kontrola userId
+    if (!userId) {
+      throw new Error('User ID is required');
     }
+
+    // Import fs a path pro práci se soubory
+    const fs = require('fs');
+    const path = require('path');
+
+    // Odstraň features ze základních dat, zpracuji je zvlášť
+    const { features, ...adBaseData } = dto;
+    
+    // Převeď stringy na správné typy
+    const data = {
+      ...adBaseData,
+      // Numerické hodnoty
+      price: dto.price ? Number(dto.price) : undefined,
+      mileage: dto.mileage ? Number(dto.mileage) : undefined, 
+      year: dto.year ? Number(dto.year) : undefined,
+      firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
+      doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
+      seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
+      airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined,
+      engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
+      power: dto.power ? Number(dto.power) : undefined,
+      avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
+      gearCount: dto.gearCount ? Number(dto.gearCount) : undefined,
+      
+      // Boolean hodnoty
+      ecoTaxPaid: dto.ecoTaxPaid === 'on' || dto.ecoTaxPaid === 'true' || dto.ecoTaxPaid === true,
+      isFirstOwner: dto.isFirstOwner === 'on' || dto.isFirstOwner === 'true' || dto.isFirstOwner === true,
+      isDisabledAdapted: dto.isDisabledAdapted === 'on' || dto.isDisabledAdapted === 'true' || dto.isDisabledAdapted === true,
+      wasCrashed: dto.wasCrashed === 'on' || dto.wasCrashed === 'true' || dto.wasCrashed === true,
+      hasServiceBook: dto.hasServiceBook === 'on' || dto.hasServiceBook === 'true' || dto.hasServiceBook === true,
+      
+      // Datumy
+      technicalCheckUntil: dto.technicalCheckUntil ? new Date(dto.technicalCheckUntil).toISOString() : undefined,
+      warrantyUntil: dto.warrantyUntil ? new Date(dto.warrantyUntil).toISOString() : undefined,
+      
+      // Ujisti se, že description existuje (je povinné)
+      description: dto.description || 'Bez popisu',
+      
+      // Místo userId použij user.connect
+      user: {
+        connect: { id: userId }
+      }
+    };
+
+    // Vytvořit inzerát BEZ features a bez duplicity user connect
+    const ad = await this.prisma.ad.create({
+      data,
+      include: { images: true, user: true, features: true },
+    });
+
+    // Zpracovat features, pokud existují
+    if (features && typeof features === 'string') {
+      const featureNames = features.split(',').map(f => f.trim()).filter(Boolean);
+      
+      for (const featureName of featureNames) {
+        // Vytvoř vlastnost, pokud neexistuje, a připoj ji k inzerátu
+        await this.prisma.carFeature.upsert({
+          where: { name: featureName },
+          create: { 
+            name: featureName,
+            ads: { connect: { id: ad.id } }
+          },
+          update: { 
+            ads: { connect: { id: ad.id } }
+          },
+        });
+      }
+    }
+
+    // Zpracovat obrázky, pokud existují
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const filename = `${Date.now()}_${file.originalname}`;
+        const uploadsDir = './uploads';
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        const filepath = path.join(uploadsDir, filename);
+        fs.writeFileSync(filepath, file.buffer);
+        
+        await this.prisma.image.create({
+          data: {
+            url: `/uploads/${filename}`,
+            adId: ad.id,
+          },
+        });
+      }
+    }
+
+    // Vrátit inzerát s obrázky a features
+    return this.prisma.ad.findUnique({
+      where: { id: ad.id },
+      include: { images: true, user: true, features: true },
+    });
   }
 
   async findWithFilters(query: any) {
@@ -99,19 +171,22 @@ export class AdService {
   }
 
   async update(id: string, dto: UpdateAdDto) {
-    // Pokud jsou features pole stringů, musíš je převést na relace CarFeature
     const { features, ...adData } = dto;
     const data: any = {
       ...adData,
-      features: features
-        ? {
-            set: [],
-            connect: features.map((name) => ({ name })),
-          }
-        : undefined,
+      // userId: userId, // ODEBER nebo definuj userId, pokud je potřeba
     };
 
-    return this.prisma.ad.update({
+    Object.keys(data).forEach(key => {
+      if (data[key] === undefined) delete data[key];
+    });
+
+    if (data.technicalCheckUntil)
+      data.technicalCheckUntil = new Date(data.technicalCheckUntil).toISOString();
+    if (data.warrantyUntil)
+      data.warrantyUntil = new Date(data.warrantyUntil).toISOString();
+
+    return await this.prisma.ad.update({
       where: { id },
       data,
       include: { images: true, features: true, user: true },

@@ -12,12 +12,14 @@ import {
   UseInterceptors,
   BadRequestException,
   Query,
+  UploadedFile,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import multer from 'multer';
 import { supabase } from '../supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,8 +32,18 @@ export class AdController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Req() req, @Body() dto: CreateAdDto) {
-    return this.adService.create(req.user.userId, dto);
+  @UseInterceptors(FilesInterceptor('images'))
+  async createAd(
+    @Body() dto: CreateAdDto,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Req() req,
+  ) {
+    // Přidej kontrolu a logování
+    console.log('User data:', req.user);
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException('User not authenticated properly');
+    }
+    return this.adService.create(dto, req.user.id, files);
   }
 
   // ✅ Sloučeno filtrování i bez filtrů do jednoho GET

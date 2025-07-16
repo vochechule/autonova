@@ -1,0 +1,136 @@
+.ad-detail-page {
+  background: #f7f9fb;
+  min-height: 100vh;
+  padding-bottom: 5rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 1.2rem 0 0.5rem 0;
+    background: #f7f9fb;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  &__back {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    margin-right: 1rem;
+    color: #222;
+    cursor: pointer;
+    padding: 0 0.5rem;
+  }
+  &__title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    flex: 1;
+    text-align: center;
+    letter-spacing: 0.01em;
+  }
+  &__image-wrap {
+    width: 100vw;
+    max-width: 100%;
+    overflow: hidden;
+    margin: 0 -16px 1.2rem -16px;
+    display: flex;
+    justify-content: center;
+    background: #eaeaea;
+  }
+  &__image {
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 0.7rem;
+    margin: 0 auto;
+    display: block;
+  }
+  &__maininfo {
+    padding: 0 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  &__carname {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  &__summary {
+    color: #555;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+  &__specs {
+    background: #fff;
+    border-radius: 1.2rem;
+    margin: 0 1.2rem 1.2rem 1.2rem;
+    padding: 1.2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  &__specs h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  &__specgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.1rem 1.5rem;
+  }
+  &__spec-label {
+    color: #7a8ca3;
+    font-size: 0.98rem;
+    display: block;
+    margin-bottom: 0.1rem;
+  }
+  &__spec-value {
+    color: #222;
+    font-size: 1.08rem;
+    font-weight: 500;
+  }
+  &__seller {
+    background: #fff;
+    border-radius: 1.2rem;
+    margin: 0 1.2rem 1.2rem 1.2rem;
+    padding: 1.2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  &__seller-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+  &__seller-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #e0e7ef;
+    display: inline-block;
+  }
+  &__seller-name {
+    font-weight: 600;
+    font-size: 1.08rem;
+  }
+  &__seller-location {
+    color: #7a8ca3;
+    font-size: 0.98rem;
+  }
+  &__contact-btn {
+    width: 100%;
+    background: #007aff;
+    color: #fff;
+    border: none;
+    border-radius: 0.7rem;
+    padding: 1rem 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.2s;
+    &:hover {
+      background: #005ecb;
+    }
+  }
+}

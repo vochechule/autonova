@@ -1,0 +1,40 @@
+.bottom-navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  background: #fff;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  padding: 0.5rem 0;
+
+  &__item {
+    flex: 1 1 0;
+    text-align: center;
+    color: #333;
+    text-decoration: none;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    transition: background 0.2s, color 0.2s;
+
+    &.active {
+      color: #1a8917;
+      font-weight: 600;
+      background: #f3f7f3;
+    }
+  }
+
+  &__icon {
+    display: block;
+    font-size: 1.4rem;
+    margin-bottom: 0.1rem;
+  }
+
+  &__label {
+    font-size: 0.95rem;
+    display: block;
+  }
+}
