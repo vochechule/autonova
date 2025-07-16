@@ -12,9 +12,10 @@ export default function AdDetailPage() {
     fetch(`http://localhost:3000/ad/${id}`)
       .then(res => res.json())
       .then(data => {
-        setAd(data)
-        setLoading(false)
-      })
+        console.log('Ad data:', data); // Zkontroluj, zda data obsahují images
+        setAd(data);
+        setLoading(false);
+      });
   }, [id])
 
   if (loading) return <main className="ad-detail-page">Načítám...</main>
@@ -27,7 +28,20 @@ export default function AdDetailPage() {
         <h1 className="ad-detail-page__title">Car Details</h1>
       </header>
       <div className="ad-detail-page__image-wrap">
-        <img src={ad.image_url} alt={ad.title} className="ad-detail-page__image" />
+        {ad.images && ad.images.length > 0 ? (
+          <div className="ad-detail-page__image-carousel">
+            {/* Implementuj carousel nebo zobraz první obrázek */}
+            <img 
+              src={ad.images[0].url} 
+              alt={ad.title} 
+              className="ad-detail-page__image" 
+            />
+          </div>
+        ) : (
+          <div className="ad-detail-page__no-image">
+            <p>Žádné obrázky</p>
+          </div>
+        )}
       </div>
       <section className="ad-detail-page__maininfo">
         <h2 className="ad-detail-page__carname">{ad.title}</h2>

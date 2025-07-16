@@ -14,6 +14,7 @@ import {
   Query,
   UploadedFile,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
@@ -56,8 +57,15 @@ export class AdController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.adService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const ad = await this.adService.findOne(id);
+
+    if (!ad) {
+      throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
+    }
+
+    console.log('Returning ad with images:', ad.images || []);
+    return ad;
   }
 
   @Patch(':id')

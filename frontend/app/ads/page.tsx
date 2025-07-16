@@ -10,7 +10,7 @@ type Ad = {
   title: string
   price: number
   mileage: number
-  image_url: string
+  images: { url: string }[] // OPRAVA: pole obrázků
 }
 
 export default function AdsPage() {
@@ -35,7 +35,11 @@ export default function AdsPage() {
             href={`/ads/${ad.id}`}
             className="ads-page__card"
           >
-            <img src={ad.image_url} alt={ad.title} className="ads-page__image" />
+            <img
+              src={ad.images?.[0]?.url || '/no-image.png'}
+              alt={ad.title}
+              className="ads-page__image"
+            />
             <div className="ads-page__title">{ad.title}</div>
             <div className="ads-page__price">{ad.price} Kč</div>
             <div className="ads-page__mileage">{ad.mileage} km</div>

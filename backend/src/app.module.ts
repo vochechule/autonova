@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { AdModule } from './ad/ad.module';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaModule } from './prisma/prisma.module'; // OPRAVA: importuj modul, ne službu!
 import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
@@ -12,12 +12,12 @@ import { MulterModule } from '@nestjs/platform-express';
     AuthModule,
     UserModule,
     AdModule,
+    PrismaModule, // OPRAVA: přidej do imports!
     MulterModule.register({
       dest: './uploads',
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
-  exports: [PrismaService],
+  providers: [AppService], // ODEBER PrismaService odsud!
 })
 export class AppModule {}

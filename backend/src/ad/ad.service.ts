@@ -1,21 +1,30 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAdDto } from './dto/create-ad.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import * as fs from 'fs';
+import * as path from 'path';
+import { createClient } from '@supabase/supabase-js';
 import { UpdateAdDto } from './dto/update-ad.dto';
-import { PrismaService } from '../../prisma/prisma.service'; // uprav cestu podle projektu
 
 @Injectable()
 export class AdService {
-  constructor(private prisma: PrismaService) {}
+  private supabase;
+
+  constructor(private prisma: PrismaService) {
+    // Inicializace Supabase klienta
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+    this.supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Log pro kontrolu inicializace
+    console.log('Supabase URL:', process.env.SUPABASE_URL);
+    console.log('Supabase initialized:', !!this.supabase);
+  }
 
   async create(dto: any, userId: string, files?: Express.Multer.File[]) {
     // Kontrola userId
     if (!userId) {
       throw new Error('User ID is required');
     }
-
-    // Import fs a path pro práci se soubory
-    const fs = require('fs');
-    const path = require('path');
 
     // Odstraň features ze základních dat, zpracuji je zvlášť
     const { features, ...adBaseData } = dto;
@@ -56,52 +65,53 @@ export class AdService {
       }
     };
 
-    // Vytvořit inzerát BEZ features a bez duplicity user connect
+    // Vytvořit inzerát
     const ad = await this.prisma.ad.create({
       data,
       include: { images: true, user: true, features: true },
     });
-
-    // Zpracovat features, pokud existují
-    if (features && typeof features === 'string') {
-      const featureNames = features.split(',').map(f => f.trim()).filter(Boolean);
-      
-      for (const featureName of featureNames) {
-        // Vytvoř vlastnost, pokud neexistuje, a připoj ji k inzerátu
-        await this.prisma.carFeature.upsert({
-          where: { name: featureName },
-          create: { 
-            name: featureName,
-            ads: { connect: { id: ad.id } }
-          },
-          update: { 
-            ads: { connect: { id: ad.id } }
-          },
-        });
-      }
-    }
-
-    // Zpracovat obrázky, pokud existují
+    
+    // Zpracovat obrázky
     if (files && files.length > 0) {
       for (const file of files) {
-        const filename = `${Date.now()}_${file.originalname}`;
-        const uploadsDir = './uploads';
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-        const filepath = path.join(uploadsDir, filename);
-        fs.writeFileSync(filepath, file.buffer);
-        
-        await this.prisma.image.create({
-          data: {
-            url: `/uploads/${filename}`,
-            adId: ad.id,
-          },
-        });
-      }
-    }
+        try {
+          const filename = `${Date.now()}_${file.originalname}`;
+          
+          console.log('Uploading to Supabase:', filename);
+          const { data, error } = await this.supabase
+            .storage
+            .from('photos') // správný bucket!
+            .upload(filename, file.buffer, {
+              contentType: file.mimetype,
+              upsert: true
+            });
 
-    // Vrátit inzerát s obrázky a features
+          const { data: urlData } = this.supabase
+            .storage
+            .from('photos') // správný bucket!
+            .getPublicUrl(filename);
+
+          await this.prisma.image.create({
+            data: {
+              url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
+              adId: ad.id,
+            },
+          });
+        } catch (err) {
+          console.error('File upload error:', err);
+        }
+      }
+    } else {
+      // Defaultní obrázek
+      await this.prisma.image.create({
+        data: {
+          url: 'https://via.placeholder.com/800x600?text=No+Image+Available',
+          adId: ad.id,
+        },
+      });
+    }
+    
+    // Vrátit inzerát s obrázky
     return this.prisma.ad.findUnique({
       where: { id: ad.id },
       include: { images: true, user: true, features: true },
@@ -163,11 +173,33 @@ export class AdService {
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.ad.findUnique({
+  async findOne(id: string) {
+    const ad = await this.prisma.ad.findUnique({
       where: { id },
-      include: { images: true, features: true, user: true },
+      include: { 
+        images: true, 
+        user: true, 
+        features: true 
+      },
     });
+    
+    if (!ad) {
+      throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
+    }
+    
+    // Pokud inzerát nemá žádné obrázky, přidej defaultní
+    if (!ad.images || ad.images.length === 0) {
+      const defaultImage = await this.prisma.image.create({
+        data: {
+          url: 'https://via.placeholder.com/800x600?text=No+Image+Available',
+          adId: ad.id,
+        },
+      });
+      
+      ad.images = [defaultImage];
+    }
+    
+    return ad;
   }
 
   async update(id: string, dto: UpdateAdDto) {
