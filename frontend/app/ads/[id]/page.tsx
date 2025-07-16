@@ -54,7 +54,7 @@ export default function AdDetailPage() {
         <div className="ad-detail-page__specgrid">
           <div>
             <span className="ad-detail-page__spec-label">Make</span>
-            <span className="ad-detail-page__spec-value">{ad.make ?? '-'}</span>
+            <span className="ad-detail-page__spec-value">{ad.brand ?? '-'}</span>
           </div>
           <div>
             <span className="ad-detail-page__spec-label">Model</span>

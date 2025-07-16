@@ -10,6 +10,12 @@ import {
 import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray } from 'class-validator'
 
 export class CreateAdDto {
+   @IsString()
+  brand: string;
+
+  @IsString()
+  model: string;
+
   @IsString()
   title: string
 

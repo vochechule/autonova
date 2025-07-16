@@ -22,6 +22,8 @@ model User {
 model Ad {
   id                  String         @id @default(uuid())
   title               String
+  brand               String         // <-- přidej toto
+  model               String
   description         String
   price               Int
   mileage             Int
