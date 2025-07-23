@@ -1,6 +1,7 @@
 import Header from './components/Header'
 import './styles/HomePage.scss'
 import AdFilter from './components/AdFilter'
+import QuickCategories from './components/QuickCategories'
 
 export default function Home() {
   return (
@@ -8,9 +9,8 @@ export default function Home() {
       <Header />
       <main className="home-page">
         <AdFilter />
-        <h1 className="home-page__title">Vítej v AutoBazar!</h1>
-        <p className="home-page__subtitle">Začni kliknutím na <code>/ads</code> pro zobrazení inzerátů</p>
-        <a href="/ads" className="home-page__link">/ads</a>
+        <QuickCategories />
+       
       </main>
     </>
   )

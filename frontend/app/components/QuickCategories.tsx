@@ -1,0 +1,57 @@
+'use client'
+import { useRouter } from 'next/navigation'
+import '../styles/QuickCategories.scss'
+
+const quickCategories = [
+  {
+    label: 'Auta do 50 000 Kč',
+    image: '/quick-50k.png',
+    query: { priceTo: 50000, condition: 'used' }
+  },
+  {
+    label: 'Elektromobily',
+    image: '/quick-electric.png',
+    query: { fuel: 'electric' }
+  },
+  {
+    label: 'Rodinné',
+    image: '/quick-family.png',
+    query: {  bodytype: 'kombi', seatCountFrom: 5 }
+  },
+  {
+    label: 'Luxusní',
+    image: '/quick-luxury.png',
+    query: { priceFrom: 800000 }
+  }
+];
+
+export default function QuickCategories() {
+  const router = useRouter();
+
+  function handleQuickFilter(query: Record<string, any>) {
+    const params = new URLSearchParams();
+    Object.entries(query).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach(v => params.append('bodyType', v));
+      } else {
+        params.append(key, String(value));
+      }
+    });
+    router.push(`/ads?${params.toString()}`);
+  }
+
+  return (
+    <div className="home-page__quick-categories">
+      {quickCategories.map(cat => (
+        <button
+          key={cat.label}
+          className="home-page__quick-btn"
+          onClick={() => handleQuickFilter(cat.query)}
+        >
+          <img src={cat.image} alt={cat.label} className="home-page__quick-img" />
+          <span>{cat.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}

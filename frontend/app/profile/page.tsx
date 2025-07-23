@@ -63,7 +63,18 @@ export default function ProfilePage() {
         </div>
         <div>
           <h1 className="profile-page__name">{user.name}</h1>
-          <div className="profile-page__email">{user.email}</div>
+          <div className="profile-page__email">
+            {(() => {
+              const email = user.email || '';
+              const [name, domain] = email.split('@');
+              if (!name || !domain) return 'Přihlášen jako -';
+              const masked =
+                name.length > 1
+                  ? `${name[0]}***${name[name.length - 1]}`
+                  : `${name[0]}***`;
+              return `Přihlášen jako ${masked}@${domain}`;
+            })()}
+          </div>
           <div className="profile-page__meta">
             {user.type === 'private' ? 'Private Person' : 'Dealer'} &middot; Joined in {user.joinedYear || 'N/A'}
           </div>
