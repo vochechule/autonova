@@ -1,52 +1,63 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import '../styles/LoginForm.scss'
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setLoading(true)
     setError(null)
-    setSuccess(false)
-    const res = await fetch('http://localhost:3000/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ email, password }),
-    })
-    if (res.ok) {
+    const form = e.currentTarget
+    const email = form.email.value
+    const password = form.password.value
+
+    try {
+      const res = await fetch('http://localhost:3000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      if (!res.ok) throw new Error('Přihlášení se nezdařilo')
       const data = await res.json()
-      // Store JWT in localStorage or cookie
       localStorage.setItem('token', data.access_token)
       setSuccess(true)
-    } else {
-      setError('Přihlášení se nezdařilo')
+      setLoading(false)
+      setTimeout(() => router.push('/'), 1000) // Počkej 1s a přesměruj
+    } catch (err: any) {
+      setError(err.message)
+      setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '2rem auto' }}>
+    <form className="login-form" onSubmit={handleSubmit}>
       <h2>Přihlášení</h2>
-      <input
-        type="email"
-        placeholder="E-mail"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Heslo"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Přihlásit</button>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-      {success && <div style={{ color: 'green' }}>Přihlášení úspěšné!</div>}
+      <label htmlFor="email">Email</label>
+      <input name="email" id="email" type="email" required placeholder="Email" />
+      <label htmlFor="password">Heslo</label>
+      <input name="password" id="password" type="password" required placeholder="Heslo" />
+      <button type="submit" disabled={loading || success}>
+        {loading ? 'Přihlašuji...' : 'Přihlásit se'}
+      </button>
+      {error && <div className="login-form__error">{error}</div>}
+      {success && (
+        <div className="login-form__success">
+          Přihlášení úspěšné, probíhá přesměrování…
+          <div className="login-form__bar">
+            <div className="login-form__bar-inner" style={{ animationDuration: '1s' }} />
+          </div>
+        </div>
+      )}
+      <div className="login-form__switch">
+        Nemáte účet? <Link href="/register">Zaregistrujte se zde</Link>
+      </div>
     </form>
   )
 }

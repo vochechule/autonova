@@ -56,6 +56,17 @@ export class AdController {
     return this.adService.findWithFilters(query);
   }
 
+  @Get('test')
+  test() {
+    return { ok: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my')
+  async getMyAds(@Req() req) {
+    return this.adService.findByUser(req.user.id);
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const ad = await this.adService.findOne(id);

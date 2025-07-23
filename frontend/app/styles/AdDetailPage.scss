@@ -1,136 +1,266 @@
 .ad-detail-page {
-  background: #f7f9fb;
+  background: #f7f8fa;
   min-height: 100vh;
-  padding-bottom: 5rem;
+  font-family: 'Inter', Arial, sans-serif;
+}
 
-  &__header {
-    display: flex;
-    align-items: center;
-    padding: 1.2rem 0 0.5rem 0;
-    background: #f7f9fb;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+.ad-detail-page__carousel {
+  position: relative;
+  width: 100%;
+  max-width: 80vw;
+  margin: 32px auto 24px auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  height: 500px; // fix height for all images
+  background: #f7f8fa; // pleasant background for empty space
+}
+
+.ad-detail-page__carousel-img {
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain; // show whole image, keep aspect ratio
+  border-radius: 16px;
+  transition: box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  background: transparent;
+  display: block;
+  margin: 0 auto;
+}
+
+.ad-detail-page__carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #fff;
+  border: none;
+  font-size: 1.7rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 0.2s, box-shadow 0.2s;
+  color: #0070f3;
+  outline: none;
+}
+.ad-detail-page__carousel-btn.left { left: 18px; }
+.ad-detail-page__carousel-btn.right { right: 18px; }
+.ad-detail-page__carousel-btn:hover,
+.ad-detail-page__carousel-btn:focus {
+  background: #f0f4fa;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  color: #0059c9;
+}
+
+.ad-detail-page__carousel-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+.ad-detail-page__carousel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ccc;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ad-detail-page__carousel-dot.active {
+  background: #0070f3;
+}
+
+.ad-detail-page__title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 16px auto 0 auto;
+  text-align: left;
+  max-width: 800px;
+  color: #222;
+}
+.ad-detail-page__subtitle {
+  color: #666;
+  margin: 4px auto 24px auto;
+  text-align: left;
+  max-width: 800px;
+  font-size: 1.1rem;
+}
+
+.ad-detail-page__specs {
+  max-width: 800px;
+  margin: 0 auto 24px auto;
+}
+.ad-detail-page__specs h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #222;
+}
+.ad-detail-page__specgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 32px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 16px 0;
+}
+.ad-detail-page__spec-label {
+  display: block;
+  font-size: 0.97rem;
+  color: #888;
+  margin-bottom: 2px;
+}
+.ad-detail-page__spec-value {
+  display: block;
+  font-size: 1.05rem;
+  color: #222;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.ad-detail-page__description {
+  max-width: 800px;
+  margin: 0 auto 24px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 16px;
+}
+.ad-detail-page__description h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #222;
+}
+.ad-detail-page__description p {
+  font-size: 1rem;
+  color: #333;
+  margin: 0;
+}
+
+.ad-detail-page__seller {
+  max-width: 800px;
+  margin: 0 auto 32px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 16px;
+}
+.ad-detail-page__seller h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #222;
+}
+.ad-detail-page__seller-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.ad-detail-page__seller-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ad-detail-page__seller-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ad-detail-page__seller-name {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #222;
+}
+.ad-detail-page__seller-location {
+  font-size: 0.97rem;
+  color: #666;
+}
+.ad-detail-page__contact-btn {
+  background: #0070f3;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 8px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.ad-detail-page__contact-btn:hover {
+  background: #0059c9;
+}
+
+.ad-detail-page__no-image {
+  width: 100%;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-size: 1.1rem;
+  background: #f2f2f2;
+  border-radius: 16px;
+}
+
+.ad-detail-page__carousel,
+.ad-detail-page__title,
+.ad-detail-page__subtitle,
+.ad-detail-page__specs,
+.ad-detail-page__description,
+.ad-detail-page__seller {
+  max-width: 80vw;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 600px) {
+  .ad-detail-page__carousel {
+    max-width: 98vw;
+    min-height: 140px;
   }
-  &__back {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    margin-right: 1rem;
-    color: #222;
-    cursor: pointer;
-    padding: 0 0.5rem;
+  .ad-detail-page__carousel-img {
+    max-height: 140px;
   }
-  &__title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin: 0;
-    flex: 1;
-    text-align: center;
-    letter-spacing: 0.01em;
+  .ad-detail-page__title,
+  .ad-detail-page__subtitle,
+  .ad-detail-page__specs,
+  .ad-detail-page__description,
+  .ad-detail-page__seller {
+    max-width: 98vw;
+    font-size: 1rem;
+    padding: 8px;
   }
-  &__image-wrap {
-    width: 100vw;
-    max-width: 100%;
-    overflow: hidden;
-    margin: 0 -16px 1.2rem -16px;
-    display: flex;
-    justify-content: center;
-    background: #eaeaea;
+  .ad-detail-page__specgrid {
+    grid-template-columns: 1fr;
+    gap: 0 0;
+    padding: 8px 0;
   }
-  &__image {
-    width: 100%;
-    max-width: 600px;
-    aspect-ratio: 16/9;
-    object-fit: cover;
-    border-radius: 0.7rem;
-    margin: 0 auto;
-    display: block;
-  }
-  &__maininfo {
-    padding: 0 1.2rem;
-    margin-bottom: 1.2rem;
-  }
-  &__carname {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 0.3rem;
-  }
-  &__summary {
-    color: #555;
-    font-size: 1.05rem;
-    margin-bottom: 0.5rem;
-  }
-  &__specs {
-    background: #fff;
-    border-radius: 1.2rem;
-    margin: 0 1.2rem 1.2rem 1.2rem;
-    padding: 1.2rem;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  }
-  &__specs h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-  }
-  &__specgrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.1rem 1.5rem;
-  }
-  &__spec-label {
-    color: #7a8ca3;
-    font-size: 0.98rem;
-    display: block;
-    margin-bottom: 0.1rem;
-  }
-  &__spec-value {
-    color: #222;
-    font-size: 1.08rem;
-    font-weight: 500;
-  }
-  &__seller {
-    background: #fff;
-    border-radius: 1.2rem;
-    margin: 0 1.2rem 1.2rem 1.2rem;
-    padding: 1.2rem;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  }
-  &__seller-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.2rem;
-  }
-  &__seller-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #e0e7ef;
-    display: inline-block;
-  }
-  &__seller-name {
-    font-weight: 600;
-    font-size: 1.08rem;
-  }
-  &__seller-location {
-    color: #7a8ca3;
-    font-size: 0.98rem;
-  }
-  &__contact-btn {
-    width: 100%;
-    background: #007aff;
-    color: #fff;
-    border: none;
-    border-radius: 0.7rem;
-    padding: 1rem 0;
-    font-size: 1.15rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 0.5rem;
-    transition: background 0.2s;
-    &:hover {
-      background: #005ecb;
-    }
+  .ad-detail-page__seller-avatar {
+    width: 36px;
+    height: 36px;
   }
 }

@@ -1,56 +1,86 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { useSwipeable } from 'react-swipeable'
 import '../../styles/AdDetailPage.scss'
 
 export default function AdDetailPage() {
   const { id } = useParams()
   const [ad, setAd] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [imgIndex, setImgIndex] = useState(0)
 
   useEffect(() => {
     fetch(`http://localhost:3000/ad/${id}`)
       .then(res => res.json())
       .then(data => {
-        console.log('Ad data:', data); // Zkontroluj, zda data obsahují images
         setAd(data);
         setLoading(false);
       });
   }, [id])
+
+  const handlePrev = () => {
+    if (!ad?.images) return
+    setImgIndex((prev) => prev === 0 ? ad.images.length - 1 : prev - 1)
+  }
+  const handleNext = () => {
+    if (!ad?.images) return
+    setImgIndex((prev) => prev === ad.images.length - 1 ? 0 : prev + 1)
+  }
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleNext(),
+    onSwipedRight: () => handlePrev(),
+    trackMouse: true,
+  })
 
   if (loading) return <main className="ad-detail-page">Načítám...</main>
   if (!ad) return <main className="ad-detail-page">Inzerát nebyl nalezen.</main>
 
   return (
     <main className="ad-detail-page">
-      <header className="ad-detail-page__header">
-        <button className="ad-detail-page__back" onClick={() => window.history.back()}>&larr;</button>
-        <h1 className="ad-detail-page__title">Car Details</h1>
-      </header>
-      <div className="ad-detail-page__image-wrap">
+      {/* Carousel obrázků */}
+      <div className="ad-detail-page__carousel" {...swipeHandlers}>
         {ad.images && ad.images.length > 0 ? (
-          <div className="ad-detail-page__image-carousel">
-            {/* Implementuj carousel nebo zobraz první obrázek */}
-            <img 
-              src={ad.images[0].url} 
-              alt={ad.title} 
-              className="ad-detail-page__image" 
+          <>
+            <img
+              src={ad.images[imgIndex].url}
+              alt={ad.title}
+              className="ad-detail-page__carousel-img"
             />
-          </div>
+            <button className="ad-detail-page__carousel-btn left" onClick={handlePrev} aria-label="Předchozí obrázek">
+              {'<'}
+            </button>
+            <button className="ad-detail-page__carousel-btn right" onClick={handleNext} aria-label="Další obrázek">
+              {'>'}
+            </button>
+            <div className="ad-detail-page__carousel-dots">
+              {ad.images.map((img: any, i: number) => (
+                <button
+                  key={img.id || i}
+                  className={`ad-detail-page__carousel-dot${i === imgIndex ? ' active' : ''}`}
+                  onClick={() => setImgIndex(i)}
+                  aria-label={`Obrázek ${i + 1}`}
+                />
+              ))}
+            </div>
+          </>
         ) : (
-          <div className="ad-detail-page__no-image">
-            <p>Žádné obrázky</p>
-          </div>
+          <div className="ad-detail-page__no-image">Žádné obrázky</div>
         )}
       </div>
-      <section className="ad-detail-page__maininfo">
-        <h2 className="ad-detail-page__carname">{ad.title}</h2>
-        <div className="ad-detail-page__summary">
-          {ad.year} &nbsp;|&nbsp; {ad.mileage?.toLocaleString()} km &nbsp;|&nbsp; {ad.fuel}
-        </div>
-      </section>
+
+      {/* Název a základní info */}
+      <h1 className="ad-detail-page__title">
+        {ad.year} {ad.brand} {ad.model} {ad.engineVolume ? `${(ad.engineVolume/1000).toFixed(1)} ${ad.fuel}` : ''}
+      </h1>
+      <div className="ad-detail-page__subtitle">
+        {ad.bodyType} &bull; {ad.mileage?.toLocaleString()} km &bull; {ad.fuel} &bull; {ad.transmission}
+      </div>
+
+      {/* Specifikace v gridu */}
       <section className="ad-detail-page__specs">
-        <h3>Specifications</h3>
+        <h2>Overview</h2>
         <div className="ad-detail-page__specgrid">
           <div>
             <span className="ad-detail-page__spec-label">Make</span>
@@ -182,10 +212,22 @@ export default function AdDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* Popis */}
+      <section className="ad-detail-page__description">
+        <h3>Description</h3>
+        <p>{ad.description}</p>
+      </section>
+
+      {/* Informace o prodejci */}
       <section className="ad-detail-page__seller">
         <h3>Seller Information</h3>
         <div className="ad-detail-page__seller-info">
-          <div className="ad-detail-page__seller-avatar"></div>
+          <div className="ad-detail-page__seller-avatar">
+            {ad.user?.avatar
+              ? <img src={ad.user.avatar} alt="avatar" />
+              : <span style={{ background: '#eee', borderRadius: '50%', width: 48, height: 48, display: 'inline-block' }} />}
+          </div>
           <div>
             <div className="ad-detail-page__seller-name">{ad.user?.name ?? 'Neznámý uživatel'}</div>
             <div className="ad-detail-page__seller-location">{ad.user?.location ?? ''}</div>

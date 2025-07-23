@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';  // Přidej tento import
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from '../user/user.module';
 import { JwtStrategy } from './jwt.strategy';
@@ -12,6 +13,7 @@ import { JwtStrategy } from './jwt.strategy';
     }),
     UserModule,
   ],
+  controllers: [AuthController],  // Přidej toto pole!
   providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })

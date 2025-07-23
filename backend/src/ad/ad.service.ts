@@ -120,6 +120,7 @@ export class AdService {
 
   async findWithFilters(query: any) {
     const {
+      search, // <-- přidej search
       title,
       priceFrom,
       priceTo,
@@ -137,30 +138,43 @@ export class AdService {
       seatCount,
     } = query;
 
-    return this.prisma.ad.findMany({
-      where: {
-        title: title ? { contains: title, mode: 'insensitive' } : undefined,
-        price: {
-          gte: priceFrom ? Number(priceFrom) : undefined,
-          lte: priceTo ? Number(priceTo) : undefined,
-        },
-        mileage: mileage ? { lte: Number(mileage) } : undefined,
-        year: {
-          gte: yearFrom ? Number(yearFrom) : undefined,
-          lte: yearTo ? Number(yearTo) : undefined,
-        },
-        power: {
-          gte: powerFrom ? Number(powerFrom) : undefined,
-          lte: powerTo ? Number(powerTo) : undefined,
-        },
-        fuel: fuel || undefined,
-        bodyType: bodyType || undefined,
-        color: color || undefined,
-        transmission: transmission || undefined,
-        drivetrain: drivetrain || undefined,
-        doorCount: doorCount ? Number(doorCount) : undefined,
-        seatCount: seatCount ? Number(seatCount) : undefined,
+    const where: any = {
+      // ...ostatní filtry...
+      title: title ? { contains: title, mode: 'insensitive' } : undefined,
+      price: {
+        gte: priceFrom ? Number(priceFrom) : undefined,
+        lte: priceTo ? Number(priceTo) : undefined,
       },
+      mileage: mileage ? { lte: Number(mileage) } : undefined,
+      year: {
+        gte: yearFrom ? Number(yearFrom) : undefined,
+        lte: yearTo ? Number(yearTo) : undefined,
+      },
+      power: {
+        gte: powerFrom ? Number(powerFrom) : undefined,
+        lte: powerTo ? Number(powerTo) : undefined,
+      },
+      fuel: fuel || undefined,
+      bodyType: bodyType || undefined,
+      color: color || undefined,
+      transmission: transmission || undefined,
+      drivetrain: drivetrain || undefined,
+      doorCount: doorCount ? Number(doorCount) : undefined,
+      seatCount: seatCount ? Number(seatCount) : undefined,
+    };
+
+    // Přidej fulltextové vyhledávání
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { brand: { contains: search, mode: 'insensitive' } },
+        { model: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    return this.prisma.ad.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
       include: { images: true, user: true, features: true },
     });
@@ -225,11 +239,22 @@ export class AdService {
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    // Nejprve smaž obrázky patřící k inzerátu
+    await this.prisma.image.deleteMany({ where: { adId: id } });
+    // Pak smaž samotný inzerát
     return this.prisma.ad.delete({ where: { id } });
   }
 
   async createPhoto(data: { url: string; adId: string }) {
     return this.prisma.image.create({ data });
+  }
+
+  async findByUser(userId: string) {
+    return this.prisma.ad.findMany({
+      where: { userId }, // OPRAVA: použij přímo userId
+      include: { images: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }
