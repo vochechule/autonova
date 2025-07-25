@@ -39,8 +39,10 @@ export class AdController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req,
   ) {
-    // Přidej kontrolu a logování
-    console.log('User data:', req.user);
+    // Přidej kontrolu počtu obrázků
+    if (!files || files.length < 2) {
+      throw new BadRequestException('Musíte přidat alespoň dva obrázky.');
+    }
     if (!req.user || !req.user.id) {
       throw new UnauthorizedException('User not authenticated properly');
     }
@@ -67,17 +69,7 @@ export class AdController {
     return this.adService.findByUser(req.user.id);
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const ad = await this.adService.findOne(id);
-
-    if (!ad) {
-      throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
-    }
-
-    console.log('Returning ad with images:', ad.images || []);
-    return ad;
-  }
+  
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateAdDto) {
@@ -100,16 +92,11 @@ export class AdController {
       throw new BadRequestException('Žádné soubory nebyly přiloženy');
     }
 
-    const adId = Number(id);
-    if (isNaN(adId)) {
-      throw new BadRequestException('Neplatné ID inzerátu');
-    }
-
     const uploadedPhotos: any[] = [];
 
     for (const file of files) {
       const fileExt = file.originalname.split('.').pop();
-      const fileName = `ads/${adId}/${uuidv4()}.${fileExt}`;
+      const fileName = `ads/${id}/${uuidv4()}.${fileExt}`;
 
       const { error } = await supabase.storage
         .from('photos')
@@ -131,7 +118,7 @@ export class AdController {
 
       const photo = await this.adService.createPhoto({
         url: publicURL,
-        adId: id, // použij přímo id, protože je typu string
+        adId: id, // použij přímo id (string)
       });
 
       uploadedPhotos.push(photo);
@@ -146,5 +133,24 @@ export class AdController {
       url,
       adId: adId.toString(),
     });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/photos/:photoId')
+  async deletePhoto(@Param('id') id: string, @Param('photoId') photoId: string) {
+    await this.adService.deletePhoto(photoId);
+    return { ok: true };
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    const ad = await this.adService.findOne(id);
+
+    if (!ad) {
+      throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
+    }
+
+    console.log('Returning ad with images:', ad.images || []);
+    return ad;
   }
 }

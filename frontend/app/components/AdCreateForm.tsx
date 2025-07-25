@@ -7,15 +7,25 @@ export default function AdCreateForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [images, setImages] = useState<File[]>([])
+  const [imageError, setImageError] = useState<string | null>(null) // přidáno
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    
+
+    // validace počtu obrázků
+    if (images.length < 2) {
+      setImageError('Přidejte alespoň dva obrázky.')
+      setLoading(false)
+      return
+    } else {
+      setImageError(null)
+    }
+
     const form = e.currentTarget
     const formData = new FormData()
-    
+
     for (const el of form.elements) {
       if (!(el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement)) continue
       if (el.name && el.value && el.type !== 'file') {
@@ -269,15 +279,25 @@ export default function AdCreateForm() {
       <label htmlFor="features">Výbava (čárkou oddělené)</label>
       <input name="features" id="features" placeholder="Výbava (čárkou oddělené)" />
 
-      <label htmlFor="images">Obrázky</label>
+      <label htmlFor="images">Obrázky (min. 2)</label>
       <input
         type="file"
         name="images"
         id="images"
         accept="image/*"
         multiple
-        onChange={e => setImages(Array.from(e.target.files || []))}
+        onChange={e => {
+          const files = Array.from(e.target.files || [])
+          setImages(files)
+          if (files.length < 2) {
+            setImageError('Přidejte alespoň dva obrázky.')
+          } else {
+            setImageError(null)
+          }
+        }}
+        required
       />
+      {imageError && <div style={{ color: 'red', marginBottom: 8 }}>{imageError}</div>}
 
       <button type="submit" disabled={loading}>
         {loading ? 'Ukládám...' : 'Přidat inzerát'}
@@ -285,4 +305,5 @@ export default function AdCreateForm() {
       {error && <div style={{ color: 'red' }}>{error}</div>}
       {success && <div style={{ color: 'green' }}>Inzerát byl úspěšně přidán!</div>}
     </form>
-  )}
+  )
+}

@@ -133,6 +133,89 @@ export default function EditAdPage() {
         {success && <div style={{ color: 'green' }}>Uloženo! Přesměrování…</div>}
         {error && <div style={{ color: 'red' }}>{error}</div>}
       </form>
+
+      {/* Sekce obrázků */}
+      {ad.images && ad.images.length > 0 && (
+        <div className="edit-ad-form__images">
+          {ad.images.map((img: any) => (
+            <div key={img.id} className="edit-ad-form__image-item">
+              <img src={img.url} alt="ad" />
+              <button
+                type="button"
+                disabled={ad.images.length <= 2}
+                title={ad.images.length <= 2 ? "Musí zůstat alespoň 2 obrázky" : ""}
+                className={ad.images.length <= 2 ? "edit-ad-form__image-btn--disabled" : ""}
+                onClick={async () => {
+                  if (ad.images.length <= 2) return;
+                  const token = localStorage.getItem('token');
+                  const res = await fetch(`http://localhost:3000/ad/${adId}/photos/${img.id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+                  if (res.ok) {
+                    setAd((prev: any) => ({
+                      ...prev,
+                      images: prev.images.filter((i: any) => i.id !== img.id)
+                    }));
+                  }
+                }}
+              >
+                Smazat
+              </button>
+              {ad.images.length <= 2 && (
+                <div className="edit-ad-form__image-warning">
+                  Inzerát musí mít alespoň dva obrázky
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Input pro přidání obrázků - vždy viditelný */}
+      <label className="edit-ad-form__upload-label">
+        <span>Přidat nové obrázky</span>
+        <span style={{ fontSize: '0.97rem', color: '#6b7280', marginTop: 4 }}>
+          Vyberte nebo přetáhněte obrázky (max. 10)
+        </span>
+        <input
+          type="file"
+          name="photos"
+          multiple
+          accept="image/*"
+          onChange={async (e) => {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+              formData.append('photos', files[i]);
+            }
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:3000/ad/${adId}/photos`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${token}` },
+              body: formData,
+            });
+            if (res.ok) {
+              const data = await res.json();
+              const newImages = data.photos ?? [];
+              setAd((prev: any) => ({
+                ...prev,
+                images: [...prev.images, ...newImages]
+              }));
+            }
+          }}
+        />
+        <span>
+          <button
+            type="button"
+            className="edit-ad-form__upload-btn"
+            onClick={() => document.querySelector<HTMLInputElement>('.edit-ad-form__upload-label input[type="file"]')?.click()}
+          >
+            Vybrat obrázky
+          </button>
+        </span>
+      </label>
     </main>
   )
 }

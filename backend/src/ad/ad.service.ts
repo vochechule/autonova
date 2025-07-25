@@ -257,4 +257,8 @@ export class AdService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async deletePhoto(photoId: string) {
+    return this.prisma.image.delete({ where: { id: photoId } });
+  }
 }

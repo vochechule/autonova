@@ -5,23 +5,27 @@ import '../styles/QuickCategories.scss'
 const quickCategories = [
   {
     label: 'Auta do 50 000 Kč',
-    image: '/quick-50k.png',
-    query: { priceTo: 50000, condition: 'used' }
+    image: '/quick-50k.webp',
+    query: { priceTo: 50000, condition: 'used' },
+    loading: "lazy"
   },
   {
     label: 'Elektromobily',
-    image: '/quick-electric.png',
-    query: { fuel: 'electric' }
+    image: '/quick-electric.webp',
+    query: { fuel: 'electric' },
+    loading: "lazy"
   },
   {
     label: 'Rodinné',
-    image: '/quick-family.png',
-    query: {  bodytype: 'kombi', seatCountFrom: 5 }
+    image: '/quick-family.webp',
+    query: {  bodytype: 'kombi', seatCountFrom: 5 },
+    loading: "lazy"
   },
   {
     label: 'Luxusní',
-    image: '/quick-luxury.png',
-    query: { priceFrom: 800000 }
+    image: '/quick-luxury.webp',
+    query: { priceFrom: 800000 },
+    loading: "lazy"
   }
 ];
 
