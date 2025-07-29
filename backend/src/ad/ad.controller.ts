@@ -52,6 +52,19 @@ export class AdController {
   // ✅ Sloučeno filtrování i bez filtrů do jednoho GET
   @Get()
   findAll(@Query() query: any) {
+    // Log příchozích query parametrů pro debugging
+    console.log('Received query params:', JSON.stringify(query, null, 2));
+    
+    // Normalizuj multi-select filtry - ensure they are arrays
+    const multiSelectFields = ['fuel', 'bodyType', 'transmission', 'drivetrain', 'condition'];
+    multiSelectFields.forEach(field => {
+      if (query[field] && typeof query[field] === 'string') {
+        query[field] = [query[field]]; // Convert single string to array
+      }
+    });
+    
+    console.log('Normalized query params:', JSON.stringify(query, null, 2));
+    
     if (Object.keys(query).length === 0) {
       return this.adService.findAll();
     }

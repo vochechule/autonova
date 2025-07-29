@@ -120,7 +120,7 @@ export class AdService {
 
   async findWithFilters(query: any) {
     const {
-      search, // <-- přidej search
+      search,
       title,
       priceFrom,
       priceTo,
@@ -136,10 +136,10 @@ export class AdService {
       drivetrain,
       doorCount,
       seatCount,
+      condition,
     } = query;
 
     const where: any = {
-      // ...ostatní filtry...
       title: title ? { contains: title, mode: 'insensitive' } : undefined,
       price: {
         gte: priceFrom ? Number(priceFrom) : undefined,
@@ -154,14 +154,48 @@ export class AdService {
         gte: powerFrom ? Number(powerFrom) : undefined,
         lte: powerTo ? Number(powerTo) : undefined,
       },
-      fuel: fuel || undefined,
-      bodyType: bodyType || undefined,
-      color: color || undefined,
-      transmission: transmission || undefined,
-      drivetrain: drivetrain || undefined,
       doorCount: doorCount ? Number(doorCount) : undefined,
       seatCount: seatCount ? Number(seatCount) : undefined,
     };
+
+    // Helper funkce pro zpracování multi-select filtrů
+    const addMultiSelectFilter = (field: string, values: string | string[]) => {
+      if (!values) return;
+      
+      let valuesArray: string[];
+      
+      // Pokud už je to pole, použij ho přímo
+      if (Array.isArray(values)) {
+        valuesArray = values.filter(v => v && v.trim()); // Remove empty values
+      } else if (typeof values === 'string') {
+        // Pokud je to string, může to být buď jednotlivá hodnota nebo JSON array
+        try {
+          const parsed = JSON.parse(values);
+          valuesArray = Array.isArray(parsed) ? parsed : [values];
+        } catch {
+          // Není to JSON, tak je to prostě string - rozdělíme čárkami pro jistotu
+          valuesArray = values.split(',').map(v => v.trim()).filter(v => v);
+        }
+      } else {
+        return; // Neznámý typ
+      }
+      
+      if (valuesArray.length > 0) {
+        where[field] = { in: valuesArray };
+      }
+    };
+
+    // Aplikuj multi-select filtry
+    addMultiSelectFilter('fuel', fuel);
+    addMultiSelectFilter('bodyType', bodyType);
+    addMultiSelectFilter('transmission', transmission);
+    addMultiSelectFilter('drivetrain', drivetrain);
+    addMultiSelectFilter('condition', condition);
+
+    // Jednoduchý filtr pro barvu (zatím zůstává single-select)
+    if (color) {
+      where.color = color;
+    }
 
     // Přidej fulltextové vyhledávání
     if (search) {
@@ -172,6 +206,15 @@ export class AdService {
         { model: { contains: search, mode: 'insensitive' } },
       ];
     }
+
+    // Odstraň undefined hodnoty
+    Object.keys(where).forEach(key => {
+      if (where[key] === undefined) {
+        delete where[key];
+      }
+    });
+
+    console.log('Filter where clause:', JSON.stringify(where, null, 2));
 
     return this.prisma.ad.findMany({
       where,

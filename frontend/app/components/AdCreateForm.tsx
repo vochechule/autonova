@@ -7,7 +7,51 @@ export default function AdCreateForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [images, setImages] = useState<File[]>([])
-  const [imageError, setImageError] = useState<string | null>(null) // přidáno
+  const [imageError, setImageError] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
+
+  const handleImageAdd = (newFiles: File[]) => {
+    const validFiles = newFiles.filter(file => file.type.startsWith('image/'))
+    setImages(prev => [...prev, ...validFiles])
+    
+    if (images.length + validFiles.length < 2) {
+      setImageError('Přidejte alespoň dva obrázky.')
+    } else {
+      setImageError(null)
+    }
+  }
+
+  const handleImageRemove = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index)
+    setImages(newImages)
+    
+    if (newImages.length < 2) {
+      setImageError('Přidejte alespoň dva obrázky.')
+    } else {
+      setImageError(null)
+    }
+  }
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true)
+    } else if (e.type === 'dragleave') {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const files = Array.from(e.dataTransfer.files)
+      handleImageAdd(files)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -73,40 +117,53 @@ export default function AdCreateForm() {
   }
 
   function fillTestData(form: HTMLFormElement) {
-    form.title.value = 'Testovací auto'
-    form.brand.value = 'Škoda'
-    form.model.value = 'Octavia'
-    form.description.value = 'Popis testovacího auta'
-    form.price.value = '123456'
-    form.mileage.value = '150000'
-    form.year.value = '2018'
-    form.firstRegistration.value = '2018'
-    form.bodyType.value = 'sedan'
-    form.doorCount.value = '4'
-    form.seatCount.value = '5'
-    form.color.value = 'Stříbrná'
-    form.colorFinish.value = 'Metalíza'
-    form.airbagCount.value = '6'
-    form.airConditioning.value = 'automatic'
-    form.fuel.value = 'diesel'
-    form.engineVolume.value = '1968'
-    form.power.value = '110'
-    form.avgConsumption.value = '5.2'
-    form.transmission.value = 'automatic'
-    form.gearCount.value = '6'
-    form.drivetrain.value = 'fwd'
-    form.condition.value = 'used'
-    form.technicalCheckUntil.value = '2025-12-31'
-    form.countryOfOrigin.value = 'ČR'
-    form.euroStandard.value = 'euro6'
-    form.ecoTaxPaid.checked = true
-    form.isFirstOwner.checked = false
-    form.isDisabledAdapted.checked = false
-    form.wasCrashed.checked = false
-    form.hasServiceBook.checked = true
-    form.warrantyUntil.value = '2026-01-01'
-    form.windowNote.value = 'Test poznámka'
-    form.features.value = 'klimatizace, ABS, ESP'
+    const getValue = (name: string): HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null => 
+      form.querySelector(`[name="${name}"]`)
+    
+    const setInputValue = (name: string, value: string) => {
+      const element = getValue(name)
+      if (element) (element as any).value = value
+    }
+    
+    const setCheckboxValue = (name: string, checked: boolean) => {
+      const element = getValue(name) as HTMLInputElement
+      if (element) element.checked = checked
+    }
+
+    setInputValue('title', 'Testovací auto')
+    setInputValue('brand', 'Škoda')
+    setInputValue('model', 'Octavia')
+    setInputValue('description', 'Popis testovacího auta')
+    setInputValue('price', '123456')
+    setInputValue('mileage', '150000')
+    setInputValue('year', '2018')
+    setInputValue('firstRegistration', '2018')
+    setInputValue('bodyType', 'sedan')
+    setInputValue('doorCount', '4')
+    setInputValue('seatCount', '5')
+    setInputValue('color', 'Stříbrná')
+    setInputValue('colorFinish', 'Metalíza')
+    setInputValue('airbagCount', '6')
+    setInputValue('airConditioning', 'automatic')
+    setInputValue('fuel', 'diesel')
+    setInputValue('engineVolume', '1968')
+    setInputValue('power', '110')
+    setInputValue('avgConsumption', '5.2')
+    setInputValue('transmission', 'automatic')
+    setInputValue('gearCount', '6')
+    setInputValue('drivetrain', 'fwd')
+    setInputValue('condition', 'used')
+    setInputValue('technicalCheckUntil', '2025-12-31')
+    setInputValue('countryOfOrigin', 'ČR')
+    setInputValue('euroStandard', 'euro6')
+    setCheckboxValue('ecoTaxPaid', true)
+    setCheckboxValue('isFirstOwner', false)
+    setCheckboxValue('isDisabledAdapted', false)
+    setCheckboxValue('wasCrashed', false)
+    setCheckboxValue('hasServiceBook', true)
+    setInputValue('warrantyUntil', '2026-01-01')
+    setInputValue('windowNote', 'Test poznámka')
+    setInputValue('features', 'klimatizace, ABS, ESP')
   }
 
   return (
@@ -279,25 +336,80 @@ export default function AdCreateForm() {
       <label htmlFor="features">Výbava (čárkou oddělené)</label>
       <input name="features" id="features" placeholder="Výbava (čárkou oddělené)" />
 
-      <label htmlFor="images">Obrázky (min. 2)</label>
-      <input
-        type="file"
-        name="images"
-        id="images"
-        accept="image/*"
-        multiple
-        onChange={e => {
-          const files = Array.from(e.target.files || [])
-          setImages(files)
-          if (files.length < 2) {
-            setImageError('Přidejte alespoň dva obrázky.')
-          } else {
-            setImageError(null)
-          }
-        }}
-        required
-      />
-      {imageError && <div style={{ color: 'red', marginBottom: 8 }}>{imageError}</div>}
+      {/* Image Upload Section */}
+      <div className="image-upload-section">
+        <h3>Obrázky inzerátu</h3>
+        <p className="image-requirement">Přidejte alespoň 2 obrázky vašeho vozidla</p>
+        
+        {/* Image Gallery */}
+        {images.length > 0 && (
+          <div className="image-gallery">
+            {images.map((image, index) => (
+              <div key={index} className="image-preview">
+                <img 
+                  src={URL.createObjectURL(image)} 
+                  alt={`Náhled ${index + 1}`}
+                  onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+                />
+                <button
+                  type="button"
+                  className="remove-image-btn"
+                  onClick={() => handleImageRemove(index)}
+                  title="Odstranit obrázek"
+                >
+                  ×
+                </button>
+                <div className="image-info">
+                  <span className="image-name">{image.name}</span>
+                  <span className="image-size">{(image.size / 1024 / 1024).toFixed(1)} MB</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Drop Zone */}
+        <div 
+          className={`drop-zone ${dragActive ? 'active' : ''}`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <div className="drop-zone-content">
+            <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p className="drop-text">
+              Přetáhněte obrázky sem nebo 
+              <label htmlFor="images" className="file-input-label"> vyberte soubory</label>
+            </p>
+            <p className="drop-subtext">Podporované formáty: JPG, PNG, WEBP</p>
+          </div>
+          
+          <input
+            type="file"
+            name="images"
+            id="images"
+            accept="image/*"
+            multiple
+            onChange={e => {
+              const files = Array.from(e.target.files || [])
+              handleImageAdd(files)
+            }}
+            style={{ display: 'none' }}
+          />
+        </div>
+
+        {/* Image Counter */}
+        <div className="image-counter">
+          <span className={`counter ${images.length >= 2 ? 'valid' : 'invalid'}`}>
+            {images.length} / min. 2 obrázků
+          </span>
+        </div>
+
+        {imageError && <div className="error">{imageError}</div>}
+      </div>
 
       <button type="submit" disabled={loading}>
         {loading ? 'Ukládám...' : 'Přidat inzerát'}
