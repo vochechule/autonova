@@ -1,6 +1,9 @@
 'use client'
 import { useState } from 'react'
 import '../styles/components/AdCreateForm.scss'
+import { carBrands, getBrandsList, getModelsList, getBrandsGroupedByLetter } from '../data/carData';
+import BrandSelect from './BrandSelect';
+import ModelSelect from './ModelSelect';
 
 export default function AdCreateForm() {
   const [loading, setLoading] = useState(false)
@@ -9,6 +12,19 @@ export default function AdCreateForm() {
   const [images, setImages] = useState<File[]>([])
   const [imageError, setImageError] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
+  const [selectedBrand, setSelectedBrand] = useState<string>('')
+  const [selectedModel, setSelectedModel] = useState<string>('')
+
+  const modelsList = getModelsList(selectedBrand)
+
+  const handleBrandChange = (brandValue: string) => {
+    setSelectedBrand(brandValue)
+    setSelectedModel('') // Reset model when brand changes
+  }
+
+  const handleModelChange = (modelValue: string) => {
+    setSelectedModel(modelValue)
+  }
 
   const handleImageAdd = (newFiles: File[]) => {
     const validFiles = newFiles.filter(file => file.type.startsWith('image/'))
@@ -131,8 +147,8 @@ export default function AdCreateForm() {
     }
 
     setInputValue('title', 'Testovací auto')
-    setInputValue('brand', 'Škoda')
-    setInputValue('model', 'Octavia')
+    setSelectedBrand('skoda')
+    setSelectedModel('octavia')
     setInputValue('description', 'Popis testovacího auta')
     setInputValue('price', '123456')
     setInputValue('mileage', '150000')
@@ -195,12 +211,22 @@ export default function AdCreateForm() {
               
               <div className="form-group">
                 <label htmlFor="brand">Značka</label>
-                <input name="brand" id="brand" required placeholder="Škoda" />
+                <BrandSelect
+                  value={selectedBrand}
+                  onChange={handleBrandChange}
+                  required
+                />
               </div>
               
               <div className="form-group">
                 <label htmlFor="model">Model</label>
-                <input name="model" id="model" required placeholder="Octavia" />
+                <ModelSelect
+                  value={selectedModel}
+                  onChange={handleModelChange}
+                  models={modelsList}
+                  disabled={!selectedBrand}
+                  required
+                />
               </div>
               
               <div className="form-group form-group--full-width">
