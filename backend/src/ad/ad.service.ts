@@ -122,9 +122,13 @@ export class AdService {
     const {
       search,
       title,
+      brand,
+      model,
       priceFrom,
       priceTo,
       mileage,
+      mileageFrom,
+      mileageTo,
       yearFrom,
       yearTo,
       fuel,
@@ -141,11 +145,16 @@ export class AdService {
 
     const where: any = {
       title: title ? { contains: title, mode: 'insensitive' } : undefined,
+      brand: brand ? { contains: brand, mode: 'insensitive' } : undefined,
+      model: model ? { contains: model, mode: 'insensitive' } : undefined,
       price: {
         gte: priceFrom ? Number(priceFrom) : undefined,
         lte: priceTo ? Number(priceTo) : undefined,
       },
-      mileage: mileage ? { lte: Number(mileage) } : undefined,
+      mileage: {
+        gte: mileageFrom ? Number(mileageFrom) : (mileage ? undefined : undefined),
+        lte: mileageTo ? Number(mileageTo) : (mileage ? Number(mileage) : undefined),
+      },
       year: {
         gte: yearFrom ? Number(yearFrom) : undefined,
         lte: yearTo ? Number(yearTo) : undefined,

@@ -1,10 +1,9 @@
 .ad-filter {
-  background: var(--background, white);
+  background: white;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
-  border: 1px solid transparent;
 
   &__form {
     display: flex;
@@ -21,7 +20,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    background: var(--background, #f8f9fa);
+    background: #f8f9fa;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     padding: 0 1rem;
@@ -45,7 +44,7 @@
     border: none;
     background: transparent;
     font-size: 1rem;
-    color: var(--foreground, #333);
+    color: #333;
     outline: none;
 
     &::placeholder {
@@ -74,7 +73,7 @@
   &__label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--foreground, #333);
+    color: #333;
     margin-bottom: 0.25rem;
   }
 
@@ -162,9 +161,9 @@
     padding: 0.6rem 0.75rem;
     border: 1px solid #d0d0d0;
     border-radius: 4px;
-    background: var(--background, white);
+    background: white;
     font-size: 0.95rem;
-    color: var(--foreground, #333);
+    color: #333;
     transition: border-color 0.2s ease;
 
     &:focus {
@@ -223,39 +222,54 @@
   }
 }
 
-// Dark mode support - enhanced via CSS custom properties and specific overrides
-[data-theme="dark"] .ad-filter {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-  border-color: #333;
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .ad-filter {
+    background: #1a1a1a;
+    border: 1px solid #333;
 
-  &__search-container {
-    background: #2a2a2a;
-    border-color: #444;
-  }
-
-  &__select,
-  &__input {
-    background: #2a2a2a;
-    border-color: #444;
-
-    &:focus {
-      border-color: #007AFF;
+    &__search-container {
+      background: #2a2a2a;
+      border-color: #444;
     }
-  }
 
-  &__all-filters-toggle {
-    color: #aaa;
-    border-color: #444;
+    &__search-input {
+      color: #fff;
 
-    &:hover {
-      color: #007AFF;
-      border-color: #007AFF;
+      &::placeholder {
+        color: #aaa;
+      }
     }
-  }
 
-  &__no-results {
-    background: #2a2a2a;
-    border-color: #444;
-    color: #aaa;
+    &__label {
+      color: #fff;
+    }
+
+    &__select,
+    &__input {
+      background: #2a2a2a;
+      border-color: #444;
+      color: #fff;
+
+      &:focus {
+        border-color: #007AFF;
+      }
+    }
+
+    &__all-filters-toggle {
+      color: #aaa;
+      border-color: #444;
+
+      &:hover {
+        color: #007AFF;
+        border-color: #007AFF;
+      }
+    }
+
+    &__no-results {
+      background: #2a2a2a;
+      border-color: #444;
+      color: #aaa;
+    }
   }
 }

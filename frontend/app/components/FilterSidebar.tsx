@@ -1,6 +1,10 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { getModelsList } from '../data/carData'
+import BrandSelect from './BrandSelect'
+import ModelSelect from './ModelSelect'
+import RangeFilter from './RangeFilter'
 import '../styles/components/FilterSidebar.scss'
 
 interface FilterSidebarProps {
@@ -15,6 +19,94 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
   const [loading, setLoading] = useState(false)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
   const lastFetchedParams = useRef<string>('')
+
+  // State pro brand/model filtry
+  const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || '')
+  const [selectedModel, setSelectedModel] = useState(searchParams.get('model') || '')
+  
+  // State pro range filtry
+  const [priceFrom, setPriceFrom] = useState(parseInt(searchParams.get('priceFrom') || '0') || 0)
+  const [priceTo, setPriceTo] = useState(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
+  const [mileageFrom, setMileageFrom] = useState(parseInt(searchParams.get('mileageFrom') || '0') || 0)
+  const [mileageTo, setMileageTo] = useState(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
+
+  const modelsList = getModelsList(selectedBrand)
+
+  // Handlery pro změny v komponentách
+  const handleBrandChange = (brandValue: string) => {
+    setSelectedBrand(brandValue)
+    setSelectedModel('') // Reset model when brand changes
+    // Trigger immediate filter update
+    setTimeout(() => {
+      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
+      if (form) {
+        const params = buildParams(form)
+        const newParamsString = params.toString()
+        const currentParamsString = searchParams.toString()
+        
+        if (currentParamsString !== newParamsString) {
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          fetchAds(params)
+        }
+      }
+    }, 0)
+  }
+
+  const handleModelChange = (modelValue: string) => {
+    setSelectedModel(modelValue)
+    // Trigger immediate filter update
+    setTimeout(() => {
+      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
+      if (form) {
+        const params = buildParams(form)
+        const newParamsString = params.toString()
+        const currentParamsString = searchParams.toString()
+        
+        if (currentParamsString !== newParamsString) {
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          fetchAds(params)
+        }
+      }
+    }, 0)
+  }
+
+  const handlePriceChange = (from: number, to: number) => {
+    setPriceFrom(from)
+    setPriceTo(to)
+    // Trigger immediate filter update
+    setTimeout(() => {
+      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
+      if (form) {
+        const params = buildParams(form)
+        const newParamsString = params.toString()
+        const currentParamsString = searchParams.toString()
+        
+        if (currentParamsString !== newParamsString) {
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          fetchAds(params)
+        }
+      }
+    }, 0)
+  }
+
+  const handleMileageChange = (from: number, to: number) => {
+    setMileageFrom(from)
+    setMileageTo(to)
+    // Trigger immediate filter update
+    setTimeout(() => {
+      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
+      if (form) {
+        const params = buildParams(form)
+        const newParamsString = params.toString()
+        const currentParamsString = searchParams.toString()
+        
+        if (currentParamsString !== newParamsString) {
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          fetchAds(params)
+        }
+      }
+    }, 0)
+  }
 
   // Fetch ads with current params - only if params changed
   const fetchAds = useCallback(async (params: URLSearchParams) => {
@@ -61,8 +153,20 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
       }
     }
 
+    // Přidat brand/model z state (přepsat případné form hodnoty)
+    if (selectedBrand) params.set('brand', selectedBrand)
+    if (selectedModel) params.set('model', selectedModel)
+    
+    // Přidat price range z state
+    if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
+    if (priceTo < 2000000) params.set('priceTo', priceTo.toString())
+    
+    // Přidat mileage range z state
+    if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
+    if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
+
     return params
-  }, [])
+  }, [selectedBrand, selectedModel, priceFrom, priceTo, mileageFrom, mileageTo])
 
   // Handle checkbox changes (immediate)
   const handleCheckboxChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,6 +220,16 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
     fetchAds(params)
   }, []) // Removed dependencies to prevent infinite loop
 
+  // Synchronizace state s URL parametry
+  useEffect(() => {
+    setSelectedBrand(searchParams.get('brand') || '')
+    setSelectedModel(searchParams.get('model') || '')
+    setPriceFrom(parseInt(searchParams.get('priceFrom') || '0') || 0)
+    setPriceTo(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
+    setMileageFrom(parseInt(searchParams.get('mileageFrom') || '0') || 0)
+    setMileageTo(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
+  }, [searchParams])
+
   return (
     <aside className={`filter-sidebar ${isVisible ? 'filter-sidebar--visible' : ''}`}>
       <div className="filter-sidebar__header">
@@ -148,77 +262,53 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
 
         {/* Brand & Model */}
         <div className="filter-sidebar__group">
-          <label htmlFor="brand" className="filter-sidebar__label">Značka</label>
-          <input
-            type="text"
-            id="brand"
-            name="brand"
-            className="filter-sidebar__input"
-            placeholder="Např. Škoda"
-            defaultValue={searchParams.get('brand') || ''}
-            onChange={handleTextInputChange}
+          <label className="filter-sidebar__label">Značka</label>
+          <BrandSelect
+            value={selectedBrand}
+            onChange={handleBrandChange}
           />
         </div>
 
         <div className="filter-sidebar__group">
-          <label htmlFor="model" className="filter-sidebar__label">Model</label>
-          <input
-            type="text"
-            id="model"
-            name="model"
-            className="filter-sidebar__input"
-            placeholder="Např. Octavia"
-            defaultValue={searchParams.get('model') || ''}
-            onChange={handleTextInputChange}
+          <label className="filter-sidebar__label">Model</label>
+          <ModelSelect
+            value={selectedModel}
+            onChange={handleModelChange}
+            models={modelsList}
+            disabled={!selectedBrand}
           />
         </div>
 
         {/* Price Range */}
         <div className="filter-sidebar__group">
           <label className="filter-sidebar__label">Cena</label>
-          <div className="filter-sidebar__range">
-            <input
-              type="number"
-              name="priceFrom"
-              className="filter-sidebar__input filter-sidebar__input--small"
-              placeholder="Od"
-              defaultValue={searchParams.get('priceFrom') || ''}
-              onChange={handleTextInputChange}
-            />
-            <span className="filter-sidebar__range-separator">-</span>
-            <input
-              type="number"
-              name="priceTo"
-              className="filter-sidebar__input filter-sidebar__input--small"
-              placeholder="Do"
-              defaultValue={searchParams.get('priceTo') || ''}
-              onChange={handleTextInputChange}
-            />
-          </div>
+          <RangeFilter
+            label="Cena"
+            namePrefix="price"
+            min={0}
+            max={2000000}
+            step={10000}
+            valueFrom={priceFrom}
+            valueTo={priceTo}
+            formatValue={(value) => `${(value / 1000).toFixed(0)}k Kč`}
+            onValueChange={handlePriceChange}
+          />
         </div>
 
         {/* Mileage Range */}
         <div className="filter-sidebar__group">
-          <label className="filter-sidebar__label">Nájezd (km)</label>
-          <div className="filter-sidebar__range">
-            <input
-              type="number"
-              name="mileageFrom"
-              className="filter-sidebar__input filter-sidebar__input--small"
-              placeholder="Od"
-              defaultValue={searchParams.get('mileageFrom') || ''}
-              onChange={handleTextInputChange}
-            />
-            <span className="filter-sidebar__range-separator">-</span>
-            <input
-              type="number"
-              name="mileageTo"
-              className="filter-sidebar__input filter-sidebar__input--small"
-              placeholder="Do"
-              defaultValue={searchParams.get('mileageTo') || ''}
-              onChange={handleTextInputChange}
-            />
-          </div>
+          <label className="filter-sidebar__label">Nájezd</label>
+          <RangeFilter
+            label="Nájezd"
+            namePrefix="mileage"
+            min={0}
+            max={500000}
+            step={5000}
+            valueFrom={mileageFrom}
+            valueTo={mileageTo}
+            formatValue={(value) => `${(value / 1000).toFixed(0)}k km`}
+            onValueChange={handleMileageChange}
+          />
         </div>
 
         {/* Year Range */}

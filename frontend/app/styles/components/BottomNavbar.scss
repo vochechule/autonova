@@ -3,7 +3,7 @@
   bottom: 0;
   left: 0;
   width: 100vw;
-  background: #fff;
+  background: var(--background, #fff);
   border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
@@ -11,10 +11,15 @@
   z-index: 100;
   padding: 0.5rem 0;
 
+  // Hide on desktop, show only on mobile
+  @media (min-width: 769px) {
+    display: none;
+  }
+
   &__item {
     flex: 1 1 0;
     text-align: center;
-    color: #333;
+    color: var(--foreground, #333);
     text-decoration: none;
     padding: 0.5rem 0;
     font-size: 1rem;
@@ -36,5 +41,16 @@
   &__label {
     font-size: 0.95rem;
     display: block;
+  }
+}
+
+// Dark mode support
+[data-theme="dark"] .bottom-navbar {
+  border-top-color: #333;
+
+  &__item {
+    &.active {
+      background: #1a3a1a;
+    }
   }
 }

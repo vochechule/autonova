@@ -62,19 +62,9 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
       }
     }
 
-    // Přidat brand/model z state (přepsat hidden inputy)
+    // Přidat brand/model z state
     if (selectedBrand) params.set('brand', selectedBrand)
     if (selectedModel) params.set('model', selectedModel)
-    
-    // Přidat price range (přepsat hidden inputy)
-    if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
-    if (priceTo < 2000000) params.set('priceTo', priceTo.toString())
-    
-    // Přidat mileage range (přepsat hidden inputy) - správný název parametru
-    if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
-    if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
-
-    console.log('Odesílané parametry:', params.toString()) // Debug
 
     // Změna URL (kvůli sdílení/filtrování)
     router.push(`/ads?${params.toString()}`)
@@ -97,15 +87,6 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
 
   // Pro načtení výsledků při změně URL/searchParams
   useEffect(() => {
-    // Aktualizace state z URL parametrů
-    setSelectedBrand(searchParams.get('brand') || '')
-    setSelectedModel(searchParams.get('model') || '')
-    setPriceFrom(parseInt(searchParams.get('priceFrom') || '0') || 0)
-    setPriceTo(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
-    setMileageFrom(parseInt(searchParams.get('mileageFrom') || '0') || 0)
-    setMileageTo(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
-
-    // Fetch výsledků
     const params = searchParams.toString()
     setLoading(true)
     fetch(`http://localhost:3000/ad?${params}`)

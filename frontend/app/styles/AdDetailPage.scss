@@ -1,266 +1,618 @@
+// Moderní a responsivní styl pro detail inzerátu - světlé téma podle obrázku
 .ad-detail-page {
-  background: #f7f8fa;
+  background: #f8fafc;
   min-height: 100vh;
-  font-family: 'Inter', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  color: #1a202c;
 }
 
+.ad-detail-page__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  
+  @media (min-width: 768px) {
+    padding: 0 32px;
+  }
+}
+
+// Header s navigací a cenou - minimalistický styl
+.ad-detail-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 32px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  
+  @media (min-width: 768px) {
+    padding: 24px 0;
+    margin-bottom: 40px;
+  }
+}
+
+.ad-detail-page__back-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  font-size: 15px;
+  color: #4a5568;
+  cursor: pointer;
+  padding: 12px 20px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    color: #2d3748;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  svg {
+    transition: transform 0.2s;
+  }
+
+  &:hover svg {
+    transform: translateX(-3px);
+  }
+}
+
+.ad-detail-page__price {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  @media (min-width: 768px) {
+    font-size: 36px;
+  }
+}
+
+// Hlavní obsah - layout podle obrázku
+.ad-detail-page__main-content {
+  display: grid;
+  gap: 32px;
+  margin-bottom: 48px;
+  
+  @media (min-width: 1024px) {
+    grid-template-columns: 2.2fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+}
+
+// Carousel obrázků - podle stylu z obrázku
 .ad-detail-page__carousel {
   position: relative;
-  width: 100%;
-  max-width: 80vw;
-  margin: 32px auto 24px auto;
-  border-radius: 16px;
-  overflow: hidden;
   background: #fff;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  aspect-ratio: 16 / 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 260px;
-  height: 500px; // fix height for all images
-  background: #f7f8fa; // pleasant background for empty space
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  
+  @media (min-width: 768px) {
+    aspect-ratio: 4 / 3;
+    border-radius: 24px;
+  }
 }
 
 .ad-detail-page__carousel-img {
-  max-height: 100%;
-  max-width: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain; // show whole image, keep aspect ratio
-  border-radius: 16px;
-  transition: box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  background: transparent;
-  display: block;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
 }
 
 .ad-detail-page__carousel-btn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
   border: none;
-  font-size: 1.7rem;
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
   z-index: 2;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  transition: background 0.2s, box-shadow 0.2s;
-  color: #0070f3;
-  outline: none;
+  color: #4a5568;
+
+  &:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-50%) scale(1.1);
+    color: #2d3748;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  &.left {
+    left: 20px;
+  }
+  
+  &.right {
+    right: 20px;
+  }
 }
-.ad-detail-page__carousel-btn.left { left: 18px; }
-.ad-detail-page__carousel-btn.right { right: 18px; }
-.ad-detail-page__carousel-btn:hover,
-.ad-detail-page__carousel-btn:focus {
-  background: #f0f4fa;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-  color: #0059c9;
+
+.ad-detail-page__carousel-counter {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(12px);
 }
 
 .ad-detail-page__carousel-dots {
   position: absolute;
-  bottom: 12px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  max-width: 240px;
+  overflow-x: auto;
+  padding: 6px;
 }
+
 .ad-detail-page__carousel-dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #ccc;
+  background: rgba(255, 255, 255, 0.6);
   border: none;
   cursor: pointer;
-  transition: background 0.2s;
-}
-.ad-detail-page__carousel-dot.active {
-  background: #0070f3;
-}
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 
-.ad-detail-page__title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 16px auto 0 auto;
-  text-align: left;
-  max-width: 800px;
-  color: #222;
-}
-.ad-detail-page__subtitle {
-  color: #666;
-  margin: 4px auto 24px auto;
-  text-align: left;
-  max-width: 800px;
-  font-size: 1.1rem;
-}
-
-.ad-detail-page__specs {
-  max-width: 800px;
-  margin: 0 auto 24px auto;
-}
-.ad-detail-page__specs h2 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: #222;
-}
-.ad-detail-page__specgrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0 32px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 16px 0;
-}
-.ad-detail-page__spec-label {
-  display: block;
-  font-size: 0.97rem;
-  color: #888;
-  margin-bottom: 2px;
-}
-.ad-detail-page__spec-value {
-  display: block;
-  font-size: 1.05rem;
-  color: #222;
-  font-weight: 500;
-  margin-bottom: 10px;
-}
-
-.ad-detail-page__description {
-  max-width: 800px;
-  margin: 0 auto 24px auto;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 16px;
-}
-.ad-detail-page__description h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #222;
-}
-.ad-detail-page__description p {
-  font-size: 1rem;
-  color: #333;
-  margin: 0;
-}
-
-.ad-detail-page__seller {
-  max-width: 800px;
-  margin: 0 auto 32px auto;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 16px;
-}
-.ad-detail-page__seller h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #222;
-}
-.ad-detail-page__seller-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-.ad-detail-page__seller-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #eee;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.ad-detail-page__seller-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.ad-detail-page__seller-name {
-  font-weight: 600;
-  font-size: 1.05rem;
-  color: #222;
-}
-.ad-detail-page__seller-location {
-  font-size: 0.97rem;
-  color: #666;
-}
-.ad-detail-page__contact-btn {
-  background: #0070f3;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 24px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 8px;
-  font-weight: 500;
-  transition: background 0.2s;
-}
-.ad-detail-page__contact-btn:hover {
-  background: #0059c9;
+  &.active {
+    background: #fff;
+    transform: scale(1.4);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+  }
 }
 
 .ad-detail-page__no-image {
-  width: 100%;
-  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: #a0aec0;
+  min-height: 300px;
+
+  svg {
+    opacity: 0.5;
+  }
+
+  span {
+    font-size: 18px;
+    font-weight: 600;
+  }
+}
+
+// Základní informace - card style jako na obrázku
+.ad-detail-page__basic-info {
+  background: #fff;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  height: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ad-detail-page__title {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  color: #1a202c;
+  letter-spacing: -0.5px;
+  
+  @media (min-width: 768px) {
+    font-size: 36px;
+  }
+}
+
+.ad-detail-page__subtitle {
+  font-size: 17px;
+  color: #718096;
+  margin: 0 0 28px 0;
+  font-weight: 500;
+}
+
+// Klíčové specifikace - jako tagy
+.ad-detail-page__key-specs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+.ad-detail-page__key-spec {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.ad-detail-page__key-spec-icon {
+  font-size: 18px;
+  filter: grayscale(0.2);
+}
+
+// Kompaktní info o prodejci - card style
+.ad-detail-page__seller-compact {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.ad-detail-page__seller-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.ad-detail-page__seller-avatar-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
-  font-size: 1.1rem;
-  background: #f2f2f2;
-  border-radius: 16px;
+  font-weight: 700;
+  font-size: 20px;
+  color: #4a5568;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.ad-detail-page__carousel,
-.ad-detail-page__title,
-.ad-detail-page__subtitle,
-.ad-detail-page__specs,
-.ad-detail-page__description,
-.ad-detail-page__seller {
-  max-width: 80vw;
-  margin-left: auto;
-  margin-right: auto;
+.ad-detail-page__seller-details {
+  flex: 1;
 }
 
-@media (max-width: 600px) {
-  .ad-detail-page__carousel {
-    max-width: 98vw;
-    min-height: 140px;
+.ad-detail-page__seller-name {
+  font-weight: 700;
+  font-size: 17px;
+  color: #1a202c;
+  margin-bottom: 4px;
+}
+
+.ad-detail-page__seller-location {
+  font-size: 14px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.ad-detail-page__contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
   }
-  .ad-detail-page__carousel-img {
-    max-height: 140px;
+}
+
+// Sekce nadpisy
+.ad-detail-page__section-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 24px 0;
+  color: #1a202c;
+  letter-spacing: -0.5px;
+}
+
+// Specifikace - card grid podle obrázku
+.ad-detail-page__specs {
+  margin-bottom: 48px;
+}
+
+.ad-detail-page__specgrid {
+  display: grid;
+  gap: 28px;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .ad-detail-page__title,
-  .ad-detail-page__subtitle,
-  .ad-detail-page__specs,
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.ad-detail-page__spec-group {
+  background: #fff;
+  padding: 28px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    color: #2d3748;
+    border-bottom: 3px solid #edf2f7;
+    padding-bottom: 12px;
+    letter-spacing: -0.3px;
+  }
+}
+
+.ad-detail-page__spec-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f7fafc;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ad-detail-page__spec-label {
+  font-size: 15px;
+  color: #718096;
+  font-weight: 600;
+}
+
+.ad-detail-page__spec-value {
+  font-size: 15px;
+  color: #1a202c;
+  font-weight: 700;
+  text-align: right;
+}
+
+// Popis - card style
+.ad-detail-page__description {
+  background: #fff;
+  padding: 36px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  margin-bottom: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ad-detail-page__description-content {
+  p {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.8;
+    color: #4a5568;
+    font-weight: 500;
+  }
+}
+
+// Features - tag style podle obrázku
+.ad-detail-page__features {
+  background: #fff;
+  padding: 36px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  margin-bottom: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.ad-detail-page__features-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.ad-detail-page__feature-tag {
+  background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+  color: #4a5568;
+  padding: 12px 20px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+// Responzivní úpravy podle obrázku
+@media (max-width: 767px) {
+  .ad-detail-page__container {
+    padding: 0 16px;
+  }
+
+  .ad-detail-page__basic-info,
+  .ad-detail-page__spec-group,
   .ad-detail-page__description,
-  .ad-detail-page__seller {
-    max-width: 98vw;
-    font-size: 1rem;
-    padding: 8px;
+  .ad-detail-page__features {
+    padding: 24px;
   }
+
+  .ad-detail-page__seller-compact {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .ad-detail-page__key-specs {
+    grid-template-columns: 1fr;
+  }
+
   .ad-detail-page__specgrid {
     grid-template-columns: 1fr;
-    gap: 0 0;
-    padding: 8px 0;
   }
-  .ad-detail-page__seller-avatar {
-    width: 36px;
-    height: 36px;
+
+  .ad-detail-page__spec-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .ad-detail-page__spec-value {
+    text-align: left;
+  }
+
+  .ad-detail-page__price {
+    font-size: 24px;
+  }
+
+  .ad-detail-page__title {
+    font-size: 24px;
+  }
+}
+
+// Dark mode styly - přepínané pomocí data-theme="dark"
+[data-theme="dark"] {
+  .ad-detail-page {
+    background: #0f1419;
+    color: #e2e8f0;
+  }
+
+  .ad-detail-page__header {
+    background: rgba(26, 32, 44, 0.95);
+    border-bottom-color: #4a5568;
+  }
+
+  .ad-detail-page__back-btn {
+    background: #1a202c;
+    border-color: #4a5568;
+    color: #e2e8f0;
+
+    &:hover {
+      background: #2d3748;
+      border-color: #718096;
+    }
+  }
+
+  .ad-detail-page__basic-info,
+  .ad-detail-page__spec-group,
+  .ad-detail-page__description,
+  .ad-detail-page__features {
+    background: #1a202c;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .ad-detail-page__title,
+  .ad-detail-page__section-title {
+    color: #e2e8f0;
+  }
+
+  .ad-detail-page__spec-group h3 {
+    color: #e2e8f0;
+    border-bottom-color: #4a5568;
+  }
+
+  .ad-detail-page__spec-value {
+    color: #e2e8f0;
+  }
+
+  .ad-detail-page__seller-name {
+    color: #e2e8f0;
+  }
+
+  .ad-detail-page__key-spec {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    color: #e2e8f0;
+    border-color: #4a5568;
+  }
+
+  .ad-detail-page__seller-compact {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    border-color: #4a5568;
+  }
+
+  .ad-detail-page__feature-tag {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    color: #e2e8f0;
+    border-color: #4a5568;
+
+    &:hover {
+      background: linear-gradient(135deg, #4a5568 0%, #718096 100%);
+    }
+  }
+
+  .ad-detail-page__description-content p {
+    color: #cbd5e0;
   }
 }
