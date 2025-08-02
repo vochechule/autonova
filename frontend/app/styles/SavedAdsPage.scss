@@ -1,0 +1,176 @@
+@use './components/FavoriteButton.scss';
+
+.saved-ads-page {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 2rem 0;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+
+    @media (max-width: 768px) {
+      padding: 0 1rem;
+    }
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #1a202c;
+      margin: 0 0 0.5rem 0;
+
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+    }
+
+    p {
+      font-size: 1.125rem;
+      color: #6b7280;
+      margin: 0;
+    }
+  }
+
+  &__loading,
+  &__auth-required {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6b7280;
+    font-size: 1.125rem;
+  }
+
+  &__auth-required {
+    h1 {
+      color: #1a202c;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      margin-bottom: 2rem;
+    }
+  }
+
+  &__login-btn,
+  &__browse-btn {
+    display: inline-block;
+    background: #3b82f6;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #6b7280;
+
+    &-icon {
+      margin-bottom: 2rem;
+      color: #d1d5db;
+    }
+
+    h2 {
+      color: #1a202c;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    p {
+      margin-bottom: 2rem;
+      font-size: 1.125rem;
+    }
+  }
+
+  &__list {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    position: relative;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+  }
+
+  &__card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  &__image-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+
+    .saved-ads-page__card:hover & {
+      transform: scale(1.05);
+    }
+  }
+
+  &__content {
+    padding: 1.5rem;
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+  }
+
+  &__price {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #059669;
+    margin-bottom: 0.5rem;
+  }
+
+  &__date {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  &__actions {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+  }
+} 

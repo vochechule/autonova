@@ -2,6 +2,7 @@
 @use './components/AdCreateForm.scss';
 @use './components/ActiveFilters.scss';
 @use './components/FilterSidebar.scss';
+@use './components/FavoriteButton.scss';
 
 //page
 
@@ -90,11 +91,26 @@
     transition: all 0.2s ease;
     text-decoration: none;
     color: inherit;
+    position: relative;
 
     &:hover {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transform: translateY(-1px);
     }
+  }
+
+  &__card-link {
+    display: flex;
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  &__favorite-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
   }
 
   &__image-container {
@@ -285,4 +301,32 @@
   &__mileage {
     color: #888;
   }
+}
+
+.ads-page__seller-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+}
+
+.ads-page__seller-name {
+  font-weight: 500;
+  color: #0070f3;
+}
+
+.ads-page__seller-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffd700;
+  font-size: 1.1rem;
+}
+
+.ads-page__seller-rating-number {
+  color: #222;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-left: 4px;
 }

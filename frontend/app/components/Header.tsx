@@ -28,6 +28,9 @@ export default function Header() {
         <nav className="header__nav">
           <a href="/" className="header__link">Domů</a>
           <a href="/ads" className="header__link">Inzeráty</a>
+          {loggedIn && (
+            <a href="/saved-ads" className="header__link">Oblíbené</a>
+          )}
           
           {/* Desktop-only navigation items */}
           <div className="header__desktop-nav">

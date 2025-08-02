@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import AdFilter from '../components/AdFilter'
 import ActiveFilters from '../components/ActiveFilters'
 import FilterSidebar from '../components/FilterSidebar'
+import FavoriteButton from '../components/FavoriteButton'
 import Link from 'next/link'
 import '../styles/AdsPage.scss'
 
@@ -23,6 +24,10 @@ type Ad = {
   color?: string
   description?: string
   images: { url: string }[]
+  user?: {
+    name: string
+    averageRating: number
+  }
 }
 
 export default function AdsPage() {
@@ -91,19 +96,19 @@ export default function AdsPage() {
             ) : (
               <div className="ads-page__list">
                 {ads.map(ad => (
-                  <Link
-                    key={ad.id}
-                    href={`/ads/${ad.id}`}
-                    className="ads-page__card-horizontal"
-                  >
-                    <div className="ads-page__image-container">
-                      <img
-                        src={ad.images?.[0]?.url || '/no-image.png'}
-                        alt={ad.title}
-                        className="ads-page__image-horizontal"
-                      />
-                    </div>
-                    <div className="ads-page__content">
+                  <div key={ad.id} className="ads-page__card-horizontal">
+                    <Link
+                      href={`/ads/${ad.id}`}
+                      className="ads-page__card-link"
+                    >
+                      <div className="ads-page__image-container">
+                        <img
+                          src={ad.images?.[0]?.url || '/no-image.png'}
+                          alt={ad.title}
+                          className="ads-page__image-horizontal"
+                        />
+                      </div>
+                      <div className="ads-page__content">
                       <div className="ads-page__title-horizontal">{ad.title}</div>
                       <div className="ads-page__specs">
                         {ad.brand && ad.model && (
@@ -141,10 +146,30 @@ export default function AdsPage() {
                         )}
                       </div>
                       <div className="ads-page__price-horizontal">{ad.price?.toLocaleString()} Kč</div>
+
+                      {/* Seller info and rating */}
+                      <div className="ads-page__seller-info">
+                        <span className="ads-page__seller-name">{ad.user?.name ?? "Neznámý prodejce"}</span>
+                        {typeof ad.user?.averageRating === "number" && (
+                          <span className="ads-page__seller-rating">
+                            {"★".repeat(Math.round(ad.user.averageRating))}
+                            {"☆".repeat(5 - Math.round(ad.user.averageRating))}
+                            <span className="ads-page__seller-rating-number">
+                              {ad.user.averageRating.toFixed(1)}
+                            </span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </Link>
-                ))}
-              </div>
+                  
+                  {/* Favorite button */}
+                  <div className="ads-page__favorite-btn">
+                    <FavoriteButton adId={ad.id.toString()} className="favorite-button--inline" />
+                  </div>
+                </div>
+              ))}
+            </div>
             )}
           </div>
         </div>

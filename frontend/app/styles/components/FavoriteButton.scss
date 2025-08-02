@@ -1,0 +1,114 @@
+.favorite-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    transition: all 0.2s ease;
+  }
+
+  &--saved {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+
+    &:hover {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    svg {
+      animation: heartBeat 0.3s ease-in-out;
+    }
+  }
+
+  // Loading state
+  &:disabled::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// Floating favorite button for ad detail page
+.favorite-button--floating {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.9);
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(0, 0, 0, 0.8);
+  }
+}
+
+// Inline favorite button for ad cards
+.favorite-button--inline {
+  width: 36px;
+  height: 36px;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+} 

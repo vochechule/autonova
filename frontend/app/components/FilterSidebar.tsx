@@ -34,6 +34,7 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
 
   // Handlery pro změny v komponentách
   const handleBrandChange = (brandValue: string) => {
+    console.log('Selected brand:', brandValue) // Přidejte tento log
     setSelectedBrand(brandValue)
     setSelectedModel('') // Reset model when brand changes
     // Trigger immediate filter update
@@ -41,6 +42,7 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
       const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
       if (form) {
         const params = buildParams(form)
+        console.log('Built params:', params.toString()) // Přidejte tento log
         const newParamsString = params.toString()
         const currentParamsString = searchParams.toString()
         

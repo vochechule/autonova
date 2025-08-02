@@ -5,6 +5,7 @@ import '../styles/components/BottomNavbar.scss'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Domů', icon: '🏠' },
+  { href: '/ads', label: 'Inzeráty', icon: '🚗' },
   { href: '/ads/create', label: 'Přidat inzerát', icon: '➕' },
   // Profile/Login will be handled dynamically
   { href: '/settings', label: 'Nastavení', icon: '⚙️' },
@@ -30,6 +31,15 @@ export default function BottomNavbar() {
           <span className="bottom-navbar__label">{item.label}</span>
         </a>
       ))}
+      {loggedIn && (
+        <a
+          href="/saved-ads"
+          className={`bottom-navbar__item${pathname === '/saved-ads' ? ' active' : ''}`}
+        >
+          <span className="bottom-navbar__icon">❤️</span>
+          <span className="bottom-navbar__label">Oblíbené</span>
+        </a>
+      )}
       <a
         href={loggedIn ? '/profile' : '/login'}
         className={`bottom-navbar__item${pathname === '/profile' || pathname === '/login' ? ' active' : ''}`}

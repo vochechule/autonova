@@ -225,18 +225,35 @@ export class AdService {
 
     console.log('Filter where clause:', JSON.stringify(where, null, 2));
 
-    return this.prisma.ad.findMany({
+    const ads = await this.prisma.ad.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: { images: true, user: true, features: true },
     });
+    // Attach average rating to each ad's user
+    for (const ad of ads) {
+      const avg = await this.prisma.review.aggregate({
+        where: { targetId: ad.userId },
+        _avg: { rating: true },
+      });
+      (ad.user as any).averageRating = avg._avg.rating;
+    }
+    return ads;
   }
 
-  findAll() {
-    return this.prisma.ad.findMany({
+  findAll = async () => {
+    const ads = await this.prisma.ad.findMany({
       orderBy: { createdAt: 'desc' },
       include: { user: true, images: true, features: true },
     });
+    for (const ad of ads) {
+      const avg = await this.prisma.review.aggregate({
+        where: { targetId: ad.userId },
+        _avg: { rating: true },
+      });
+      (ad.user as any).averageRating = avg._avg.rating;
+    }
+    return ads;
   }
 
   async findOne(id: string) {
@@ -265,6 +282,12 @@ export class AdService {
       ad.images = [defaultImage];
     }
     
+    // Attach average rating to user
+    const avg = await this.prisma.review.aggregate({
+      where: { targetId: ad.userId },
+      _avg: { rating: true },
+    });
+    (ad.user as any).averageRating = avg._avg.rating;
     return ad;
   }
 

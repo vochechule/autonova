@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useSwipeable } from 'react-swipeable'
+import FavoriteButton from '../../components/FavoriteButton'
 import '../../styles/AdDetailPage.scss'
+import Link from 'next/link'
 
 export default function AdDetailPage() {
   const { id } = useParams()
@@ -54,6 +56,8 @@ export default function AdDetailPage() {
           </button>
           
           <div className="ad-detail-page__price">{ad.price?.toLocaleString()} Kč</div>
+          
+          <FavoriteButton adId={ad.id} className="ad-detail-page__favorite-btn" />
         </div>
 
         {/* Layout s obrázky a základními info */}
@@ -155,12 +159,12 @@ export default function AdDetailPage() {
                 <div className="ad-detail-page__seller-name">{ad.user?.name ?? 'Neznámý uživatel'}</div>
                 <div className="ad-detail-page__seller-location">{ad.user?.location ?? 'Neuvedeno'}</div>
               </div>
-              <button className="ad-detail-page__contact-btn">
+              <Link href={`/profile/${ad.user?.id}`} className="ad-detail-page__contact-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Kontakt
-              </button>
+                Profil prodejce
+              </Link>
             </div>
           </div>
         </div>
@@ -331,6 +335,9 @@ export default function AdDetailPage() {
           </section>
         )}
       </div>
+      
+      {/* Floating favorite button */}
+      <FavoriteButton adId={ad.id} className="favorite-button--floating" />
     </main>
   )
 }

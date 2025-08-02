@@ -8,30 +8,36 @@ export default function ProfilePage() {
   const [ads, setAds] = useState<any[]>([])
   const [savedAds, setSavedAds] = useState<any[]>([])
   const [reviews, setReviews] = useState<any[]>([])
+  const [avgRating, setAvgRating] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showAllReviews, setShowAllReviews] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) return
-    Promise.all([
-      fetch('http://localhost:3000/auth/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(res => res.ok ? res.json() : null),
-      fetch('http://localhost:3000/ad/my', {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(res => res.ok ? res.json() : []),
-      fetch('http://localhost:3000/ad/saved', {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(res => res.ok ? res.json() : []),
-      fetch('http://localhost:3000/review/my', {
-        headers: { Authorization: `Bearer ${token}` },
-      }).then(res => res.ok ? res.json() : []),
-    ])
-      .then(([user, ads, savedAds, reviews]) => {
+    fetch('http://localhost:3000/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then(user => {
         setUser(user)
-        setAds(ads)
-        setSavedAds(savedAds)
-        setReviews(reviews)
+        if (user) {
+          Promise.all([
+            fetch(`http://localhost:3000/ad/my`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }).then(res => res.ok ? res.json() : []),
+            fetch(`http://localhost:3000/saved-ads`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }).then(res => res.ok ? res.json() : []),
+            fetch(`http://localhost:3000/user/${user.id}/reviews`).then(res => res.ok ? res.json() : []),
+            fetch(`http://localhost:3000/user/${user.id}/average-rating`).then(res => res.ok ? res.json() : { averageRating: null }),
+          ]).then(([ads, savedAds, reviews, avg]) => {
+            setAds(ads)
+            setSavedAds(savedAds)
+            setReviews(reviews)
+            setAvgRating(avg.averageRating)
+          })
+        }
       })
       .catch(err => setError('Nepodařilo se načíst profil: ' + err.message))
   }, [])
@@ -45,11 +51,6 @@ export default function ProfilePage() {
       </main>
     )
   }
-
-  // Výpočet průměrného hodnocení
-  const avgRating = reviews.length
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-    : null
 
   // Počty hvězdiček
   const ratingCounts = [0, 0, 0, 0, 0]
@@ -136,18 +137,51 @@ export default function ProfilePage() {
       </section>
 
       <section className="profile-page__saved">
-        <h2>Saved Ads</h2>
+        <div className="profile-page__saved-header">
+          <h2>Saved Ads</h2>
+          {savedAds.length > 3 && (
+            <Link href="/saved-ads" className="profile-page__show-all-btn">
+              Show All ({savedAds.length})
+            </Link>
+          )}
+        </div>
         <div className="profile-page__saved-list">
-          {savedAds.map(ad => (
-            <div key={ad.id} className="profile-page__saved-ad">
-              <img src={ad.images?.[0]?.url || '/default-car.png'} alt="" />
-              <div>
-                <div>{ad.title}</div>
-                <div className="profile-page__saved-price">${ad.price?.toLocaleString()}</div>
-              </div>
-              <button className="profile-page__saved-remove">Remove</button>
+          {savedAds.slice(0, 3).map(savedAd => (
+            <div key={savedAd.id} className="profile-page__saved-ad">
+                             <Link href={`/ads/${savedAd.ad.id}`} className="profile-page__saved-link">
+                 <img src={savedAd.ad.images?.[0]?.url || '/default-car.png'} alt="" />
+                <div className="profile-page__saved-info">
+                  <div className="profile-page__saved-title">{savedAd.ad.title}</div>
+                  <div className="profile-page__saved-brand">{savedAd.ad.brand} {savedAd.ad.model}</div>
+                  <div className="profile-page__saved-price">${savedAd.ad.price?.toLocaleString()}</div>
+                </div>
+              </Link>
+              <button 
+                className="profile-page__saved-remove"
+                onClick={async () => {
+                  if (!confirm('Remove this ad from saved?')) return;
+                  const token = localStorage.getItem('token');
+                  const res = await fetch(`http://localhost:3000/saved-ads/${savedAd.ad.id}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+                  if (res.ok) {
+                    setSavedAds(savedAds => savedAds.filter(sa => sa.id !== savedAd.id));
+                  } else {
+                    alert('Failed to remove from saved');
+                  }
+                }}
+              >
+                Remove
+              </button>
             </div>
           ))}
+          {savedAds.length === 0 && (
+            <div className="profile-page__saved-empty">
+              <p>No saved ads yet</p>
+              <Link href="/ads" className="profile-page__browse-btn">Browse Ads</Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -155,7 +189,7 @@ export default function ProfilePage() {
         <h2>Reviews Received</h2>
         <div className="profile-page__rating-summary">
           <div className="profile-page__rating-main">
-            <span className="profile-page__rating-number">{avgRating ?? '-'}</span>
+            <span className="profile-page__rating-number">{avgRating !== null ? avgRating.toFixed(1) : '-'}</span>
             <span className="profile-page__stars">
               {'★'.repeat(Math.round(Number(avgRating) || 0))}
               {'☆'.repeat(5 - Math.round(Number(avgRating) || 0))}
@@ -186,26 +220,26 @@ export default function ProfilePage() {
           </div>
         </div>
         <div className="profile-page__review-list">
-          {reviews.map(r => (
+          {(showAllReviews ? reviews : reviews.slice(0, 3)).map(r => (
             <div key={r.id} className="profile-page__review">
               <div className="profile-page__review-header">
-                <img src={r.author?.avatar || '/default-avatar.png'} alt="" />
-                <div>
-                  <div className="profile-page__review-author">{r.author?.name}</div>
-                  <div className="profile-page__review-date">{r.date}</div>
-                  <div className="profile-page__review-stars">
-                    {'★'.repeat(r.rating)}
-                    {'☆'.repeat(5 - r.rating)}
-                  </div>
+                <div className="profile-page__review-author">{r.user?.name || 'Unknown'}</div>
+                <div className="profile-page__review-date">{new Date(r.createdAt).toLocaleDateString()}</div>
+                <div className="profile-page__review-stars">
+                  {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
                 </div>
               </div>
-              <div className="profile-page__review-text">{r.text}</div>
-              <div className="profile-page__review-actions">
-                <span>👍 {r.likes || 0}</span>
-                <span>💬 {r.comments || 0}</span>
-              </div>
+              {r.comment && <div className="profile-page__review-text">{r.comment}</div>}
             </div>
           ))}
+          {reviews.length > 3 && (
+            <button
+              className="profile-page__show-all-btn"
+              onClick={() => setShowAllReviews(v => !v)}
+            >
+              {showAllReviews ? 'Show less' : 'See all my reviews'}
+            </button>
+          )}
         </div>
       </section>
 

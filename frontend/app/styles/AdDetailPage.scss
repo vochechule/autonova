@@ -1,3 +1,5 @@
+@use './components/FavoriteButton.scss';
+
 // Moderní a responsivní styl pro detail inzerátu - světlé téma podle obrázku
 .ad-detail-page {
   background: #f8fafc;
@@ -80,6 +82,10 @@
   @media (min-width: 768px) {
     font-size: 36px;
   }
+}
+
+.ad-detail-page__favorite-btn {
+  flex-shrink: 0;
 }
 
 // Hlavní obsah - layout podle obrázku
