@@ -8,7 +8,7 @@ export class SavedAdResponseDto {
     title: string;
     brand: string;
     model: string;
-    price: number;
+    price: number | null;
     image_url?: string | null;
     createdAt: Date;
   };

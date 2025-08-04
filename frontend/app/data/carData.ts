@@ -11,13 +11,17 @@ export const carBrands = {
       'Karoq',
       'Kodiaq',
       'Enyaq',
+      'Enyaq Coupe',
       'Rapid',
       'Yeti',
       'Roomster',
+      'Kushaq',
+      'SLAVIA',
       'Fabia RS',
       'Octavia RS',
       'Superb SportLine',
-      'Kodiaq RS'
+      'Kodiaq RS',
+      'Jiný model'
     ]
   },
   'volkswagen': {
@@ -41,12 +45,16 @@ export const carBrands = {
       'ID.3',
       'ID.4',
       'ID.5',
+      'ID.7',
+      'ID.Buzz',
+      'Virtus',
       'Polo GTI',
       'Golf GTI',
       'Golf R',
       'T-Roc R',
       'Tiguan R',
-      'Arteon R'
+      'Arteon R',
+      'Jiný model'
     ]
   },
   'audi': {
@@ -89,7 +97,8 @@ export const carBrands = {
       'RS7',
       'RS Q3',
       'RS Q8',
-      'TT RS'
+      'TT RS',
+      'Jiný model'
     ]
   },
   'bmw': {
@@ -126,7 +135,8 @@ export const carBrands = {
       'X4 M',
       'X5 M',
       'X6 M',
-      'Z4 M'
+      'Z4 M',
+      'Jiný model'
     ]
   },
   'mercedes': {
@@ -169,7 +179,8 @@ export const carBrands = {
       'GLE 63 AMG',
       'GLS 63 AMG',
       'G 63 AMG',
-      'SL 63 AMG'
+      'SL 63 AMG',
+      'Jiný model'
     ]
   },
   'ford': {
@@ -188,12 +199,16 @@ export const carBrands = {
       'Ranger',
       'Transit',
       'Tourneo',
+      'Mustang Mach-E',
+      'F-150',
+      'Tourneo Custom',
       'Fiesta ST',
       'Focus ST',
       'Focus RS',
       'Mustang GT',
       'Mustang Shelby',
-      'Ranger Raptor'
+      'Ranger Raptor',
+      'Jiný model'
     ]
   },
   'opel': {
@@ -208,7 +223,10 @@ export const carBrands = {
       'Combo',
       'Vivaro',
       'Movano',
-      'Zafira'
+      'Zafira',
+      'Frontera',
+      'Grandland X',
+      'Jiný model'
     ]
   },
   'peugeot': {
@@ -227,7 +245,8 @@ export const carBrands = {
       'Rifter',
       '208 GTI',
       '308 GTI',
-      '508 PSE'
+      '508 PSE',
+      'Jiný model'
     ]
   },
   'renault': {
@@ -248,7 +267,8 @@ export const carBrands = {
       'ZOE',
       'Clio RS',
       'Megane RS',
-      'Alpine A110'
+      'Alpine A110',
+      'Jiný model'
     ]
   },
   'citroen': {
@@ -263,7 +283,8 @@ export const carBrands = {
       'Berlingo',
       'SpaceTourer',
       'Jumpy',
-      'Jumper'
+      'Jumper',
+      'Jiný model'
     ]
   },
   'hyundai': {
@@ -279,7 +300,11 @@ export const carBrands = {
       'Tucson',
       'Santa Fe',
       'IONIQ',
-      'IONIQ 5'
+      'IONIQ 5',
+      'IONIQ 6',
+      'Palisade',
+      'Venue',
+      'Jiný model'
     ]
   },
   'kia': {
@@ -293,7 +318,11 @@ export const carBrands = {
       'Sportage',
       'Sorento',
       'Niro',
-      'EV6'
+      'EV6',
+      'EV9',
+      'Seltos',
+      'Carnival',
+      'Jiný model'
     ]
   },
   'toyota': {
@@ -309,7 +338,11 @@ export const carBrands = {
       'Land Cruiser',
       'Prius',
       'Mirai',
-      'Proace'
+      'Proace',
+      'bZ4X',
+      'Crown',
+      'GR86',
+      'Jiný model'
     ]
   },
   'nissan': {
@@ -323,7 +356,8 @@ export const carBrands = {
       'Ariya',
       'Navara',
       'NV200',
-      'NV400'
+      'NV400',
+      'Jiný model'
     ]
   },
   'mazda': {
@@ -337,7 +371,9 @@ export const carBrands = {
       'CX-5',
       'CX-60',
       'MX-5',
-      'MX-30'
+      'MX-30',
+      'CX-90',
+      'Jiný model'
     ]
   },
   'honda': {
@@ -350,7 +386,8 @@ export const carBrands = {
       'CR-V',
       'e:Ny1',
       'Civic Type R',
-      'NSX'
+      'NSX',
+      'Jiný model'
     ]
   },
   'seat': {
@@ -367,7 +404,8 @@ export const carBrands = {
       'Ibiza FR',
       'Leon FR',
       'Leon Cupra',
-      'Ateca FR'
+      'Ateca FR',
+      'Jiný model'
     ]
   },
   'dacia': {
@@ -378,7 +416,9 @@ export const carBrands = {
       'Duster',
       'Lodgy',
       'Dokker',
-      'Spring'
+      'Spring',
+      'Jogger',
+      'Jiný model'
     ]
   },
   'fiat': {
@@ -390,7 +430,8 @@ export const carBrands = {
       '500X',
       'Doblo',
       'Ducato',
-      '500e'
+      '500e',
+      'Jiný model'
     ]
   },
   'alfa_romeo': {
@@ -400,7 +441,8 @@ export const carBrands = {
       'Giulietta',
       'Giulia',
       'Stelvio',
-      'Tonale'
+      'Tonale',
+      'Jiný model'
     ]
   },
   'jeep': {
@@ -412,7 +454,9 @@ export const carBrands = {
       'Grand Cherokee',
       'Wrangler',
       'Gladiator',
-      'Avenger'
+      'Avenger',
+      'Wagoneer',
+      'Jiný model'
     ]
   },
   'volvo': {
@@ -427,7 +471,9 @@ export const carBrands = {
       'XC60',
       'XC90',
       'C40',
-      'EX30'
+      'EX30',
+      'EX90',
+      'Jiný model'
     ]
   },
   'lexus': {
@@ -440,7 +486,9 @@ export const carBrands = {
       'UX',
       'NX',
       'RX',
-      'LX'
+      'LX',
+      'RZ',
+      'Jiný model'
     ]
   },
   'infiniti': {
@@ -452,7 +500,10 @@ export const carBrands = {
       'Q70',
       'QX30',
       'QX50',
-      'QX70'
+      'QX70',
+      'QX55',
+      'QX80',
+      'Jiný model'
     ]
   },
   'tesla': {
@@ -461,7 +512,10 @@ export const carBrands = {
       'Model S',
       'Model 3',
       'Model X',
-      'Model Y'
+      'Model Y',
+      'Cybertruck',
+      'Roadster',
+      'Jiný model'
     ]
   },
   'lada': {
@@ -469,7 +523,9 @@ export const carBrands = {
     models: [
       'Niva',
       'Vesta',
-      'XRAY'
+      'XRAY',
+      'Granta',
+      'Jiný model'
     ]
   },
   'suzuki': {
@@ -481,7 +537,9 @@ export const carBrands = {
       'Ignis',
       'S-Cross',
       'Vitara',
-      'Jimny'
+      'Jimny',
+      'Swace',
+      'Jiný model'
     ]
   },
   'mitsubishi': {
@@ -491,7 +549,8 @@ export const carBrands = {
       'ASX',
       'Eclipse Cross',
       'Outlander',
-      'L200'
+      'L200',
+      'Jiný model'
     ]
   },
   'subaru': {
@@ -502,7 +561,9 @@ export const carBrands = {
       'Outback',
       'Forester',
       'XV',
-      'BRZ'
+      'BRZ',
+      'Solterra',
+      'Jiný model'
     ]
   },
   'jine': {
@@ -520,7 +581,8 @@ export const carBrands = {
       'Panamera',
       'Cayenne',
       'Macan',
-      'Taycan'
+      'Taycan',
+      'Jiný model'
     ]
   },
   'mini': {
@@ -532,7 +594,9 @@ export const carBrands = {
       'Paceman',
       'Roadster',
       'Coupe',
-      'Convertible'
+      'Convertible',
+      'Aceman',
+      'Jiný model'
     ]
   },
   'chevrolet': {
@@ -547,7 +611,9 @@ export const carBrands = {
       'Trax',
       'Equinox',
       'Tahoe',
-      'Silverado'
+      'Silverado',
+      'Trailblazer',
+      'Jiný model'
     ]
   },
   'chrysler': {
@@ -555,7 +621,8 @@ export const carBrands = {
     models: [
       '300',
       'Pacifica',
-      'Voyager'
+      'Voyager',
+      'Jiný model'
     ]
   },
   'dodge': {
@@ -564,7 +631,9 @@ export const carBrands = {
       'Challenger',
       'Charger',
       'Durango',
-      'Journey'
+      'Journey',
+      'Hornet',
+      'Jiný model'
     ]
   },
   'ram': {
@@ -573,7 +642,9 @@ export const carBrands = {
       '1500',
       '2500',
       '3500',
-      'ProMaster'
+      'ProMaster',
+      'ProMaster City',
+      'Jiný model'
     ]
   },
   'saab': {
@@ -582,7 +653,8 @@ export const carBrands = {
       '9-3',
       '9-5',
       '900',
-      '9000'
+      '9000',
+      'Jiný model'
     ]
   },
   'daewoo': {
@@ -592,7 +664,8 @@ export const carBrands = {
       'Kalos',
       'Lacetti',
       'Nubira',
-      'Leganza'
+      'Leganza',
+      'Jiný model'
     ]
   },
   'lancia': {
@@ -601,7 +674,8 @@ export const carBrands = {
       'Ypsilon',
       'Delta',
       'Musa',
-      'Thesis'
+      'Thesis',
+      'Jiný model'
     ]
   },
   'abarth': {
@@ -610,7 +684,9 @@ export const carBrands = {
       '500',
       '595',
       '695',
-      'Punto'
+      'Punto',
+      '124 Spider',
+      'Jiný model'
     ]
   },
   'smart': {
@@ -618,7 +694,9 @@ export const carBrands = {
     models: [
       'Fortwo',
       'Forfour',
-      'Roadster'
+      'Roadster',
+      '#1',
+      'Jiný model'
     ]
   },
   'cupra': {
@@ -627,7 +705,9 @@ export const carBrands = {
       'Ateca',
       'Leon',
       'Formentor',
-      'Born'
+      'Born',
+      'Tavascan',
+      'Jiný model'
     ]
   },
   'ds': {
@@ -636,7 +716,9 @@ export const carBrands = {
       'DS 3',
       'DS 4',
       'DS 7',
-      'DS 9'
+      'DS 9',
+      'DS 5',
+      'Jiný model'
     ]
   },
   'polestar': {
@@ -644,7 +726,9 @@ export const carBrands = {
     models: [
       '1',
       '2',
-      '3'
+      '3',
+      '4',
+      'Jiný model'
     ]
   },
   'genesis': {
@@ -655,7 +739,8 @@ export const carBrands = {
       'G90',
       'GV60',
       'GV70',
-      'GV80'
+      'GV80',
+      'Jiný model'
     ]
   },
   'bentley': {
@@ -664,7 +749,8 @@ export const carBrands = {
       'Continental',
       'Flying Spur',
       'Bentayga',
-      'Mulsanne'
+      'Mulsanne',
+      'Jiný model'
     ]
   },
   'rolls_royce': {
@@ -674,7 +760,9 @@ export const carBrands = {
       'Phantom',
       'Wraith',
       'Dawn',
-      'Cullinan'
+      'Cullinan',
+      'Spectre',
+      'Jiný model'
     ]
   },
   'maserati': {
@@ -684,7 +772,9 @@ export const carBrands = {
       'Quattroporte',
       'Levante',
       'MC20',
-      'GranTurismo'
+      'GranTurismo',
+      'Grecale',
+      'Jiný model'
     ]
   },
   'ferrari': {
@@ -696,7 +786,9 @@ export const carBrands = {
       'Roma',
       'Portofino',
       '812',
-      'Purosangue'
+      'Purosangue',
+      '296 GTB',
+      'Jiný model'
     ]
   },
   'lamborghini': {
@@ -705,7 +797,8 @@ export const carBrands = {
       'Huracán',
       'Aventador',
       'Urus',
-      'Revuelto'
+      'Revuelto',
+      'Jiný model'
     ]
   },
   'bugatti': {
@@ -713,27 +806,76 @@ export const carBrands = {
     models: [
       'Chiron',
       'Veyron',
-      'Divo'
+      'Divo',
+      'Mistral',
+      'Jiný model'
     ]
   },
-  'corvette': {
-  name: 'Corvette',
-  models: [
-    'C1',
-    'C2',
-    'C3',
-    'C4',
-    'C5',
-    'C6',
-    'C7',
-    'C8',
-    'Z06',
-    'ZR1',
-    'Grand Sport',
-    'Stingray',
-    'E-Ray'
-  ]
-}
+  'tatra': {
+    name: 'Tatra',
+    models: [
+      'T700',
+      'T815',
+      'Phoenix',
+      'Jiný model'
+    ]
+  },
+  'mg': {
+    name: 'MG',
+    models: [
+      'MG4',
+      'MG5',
+      'ZS',
+      'HS',
+      'Marvel R',
+      'Cyberster',
+      'Jiný model'
+    ]
+  },
+  'jac': {
+    name: 'JAC',
+    models: [
+      'JS4',
+      'JS6',
+      'JS7',
+      'T8 Pro',
+      'Jiný model'
+    ]
+  },
+  'dfsk': {
+    name: 'DFSK',
+    models: [
+      'Seres 3',
+      'Glory 500',
+      'Jiný model'
+    ]
+  },
+  'dr': {
+    name: 'DR Motor',
+    models: [
+      'DR1',
+      'DR3',
+      'DR5',
+      'DR6',
+      'Jiný model'
+    ]
+  },
+  'ikco': {
+    name: 'IKCO',
+    models: [
+      'Dena',
+      'Tara',
+      'Soren',
+      'Jiný model'
+    ]
+  },
+  'raf': {
+    name: 'RAF',
+    models: [
+      'Latvija',
+      'Jiný model'
+    ]
+  },
 };
 
 export const getBrandsList = () => {
@@ -741,9 +883,9 @@ export const getBrandsList = () => {
     .map(([key, brand]) => ({
       value: key,
       label: brand.name,
-      logo: `/logos/${key}.png` // Cesta k logu značky
+      logo: `/logos/${key}.png`
     }))
-    .sort((a, b) => a.label.localeCompare(b.label, 'cs')); // Abecední řazení česky
+    .sort((a, b) => a.label.localeCompare(b.label, 'cs'));
 };
 
 export const getModelsList = (brandKey: string) => {
@@ -756,7 +898,7 @@ export const getModelsList = (brandKey: string) => {
       value: model.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, ''),
       label: model
     }))
-    .sort((a, b) => a.label.localeCompare(b.label, 'cs')); // Abecední řazení česky
+    .sort((a, b) => a.label.localeCompare(b.label, 'cs'));
 };
 
 export const getBrandsGroupedByLetter = () => {

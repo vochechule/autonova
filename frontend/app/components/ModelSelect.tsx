@@ -22,10 +22,22 @@ export default function ModelSelect({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Filtrování modelů podle vyhledávání
-  const filteredModels = models.filter(model =>
-    model.label.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Filtrování a řazení modelů - "jiný model" vždy na konec
+  const filteredModels = models
+    .filter(model =>
+      model.label.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const aIsOther = a.label.toLowerCase().includes('jiný')
+      const bIsOther = b.label.toLowerCase().includes('jiný')
+      
+      // Pokud jeden je "jiný" a druhý ne, "jiný" jde na konec
+      if (aIsOther && !bIsOther) return 1
+      if (!aIsOther && bIsOther) return -1
+      
+      // Jinak zachovat původní pořadí
+      return 0
+    })
 
   // Najít vybraný model pro zobrazení
   const selectedModel = models.find(model => model.value === value)

@@ -7,11 +7,13 @@ import { AdModule } from './ad/ad.module';
 import { SavedAdModule } from './saved-ad/saved-ad.module';
 import { PrismaModule } from './prisma/prisma.module'; // OPRAVA: importuj modul, ne službu!
 import { MulterModule } from '@nestjs/platform-express';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
+    AdminModule,
     AdModule,
     SavedAdModule,
     PrismaModule, // OPRAVA: přidej do imports!

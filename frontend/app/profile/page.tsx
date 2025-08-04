@@ -77,7 +77,7 @@ export default function ProfilePage() {
             })()}
           </div>
           <div className="profile-page__meta">
-            {user.type === 'private' ? 'Private Person' : 'Dealer'} &middot; Joined in {user.joinedYear || 'N/A'}
+            {user.isDealer ? 'Autobazar' : 'Soukromý prodejce'} &middot; Joined in {user.createdAt ? new Date(user.createdAt).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : 'N/A'}
           </div>
         </div>
       </section>

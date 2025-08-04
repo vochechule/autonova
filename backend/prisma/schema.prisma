@@ -13,6 +13,7 @@ model User {
   password         String
   name             String
   isDealer         Boolean   @default(false)
+  role             Role      @default(USER)
   ads              Ad[]
   savedAds         SavedAd[]
   reviewsWritten   Review[]
@@ -164,4 +165,9 @@ enum CarCondition {
   used
   crashed
   demo
+}
+
+enum Role {
+  USER
+  ADMIN
 }

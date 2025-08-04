@@ -88,7 +88,8 @@ export class SavedAdService {
       },
     });
 
-    return savedAds;
+    
+  return savedAds;
   }
 
   async isAdSaved(userId: string, adId: string): Promise<boolean> {

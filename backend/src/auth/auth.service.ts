@@ -21,4 +21,8 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email };
     return { access_token: this.jwt.sign(payload) };
   }
+
+  async findUserById(id: string) {
+    return this.userService.findOne(id);
+  }
 }

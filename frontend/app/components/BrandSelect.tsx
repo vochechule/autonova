@@ -22,9 +22,28 @@ export default function BrandSelect({ value, onChange, required = false }: Brand
     const filteredBrandsInGroup = brands.filter(brand =>
       brand.label.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    if (filteredBrandsInGroup.length > 0) {
-      acc[letter] = filteredBrandsInGroup
+    
+    // Rozdělit na normální značky a "jiné"
+    const normalBrands = filteredBrandsInGroup.filter(brand => 
+      !brand.label.toLowerCase().includes('jiné')
+    )
+    const otherBrands = filteredBrandsInGroup.filter(brand => 
+      brand.label.toLowerCase().includes('jiné')
+    )
+    
+    // Přidat normální značky do původní skupiny
+    if (normalBrands.length > 0) {
+      acc[letter] = normalBrands
     }
+    
+    // Přidat "jiné" značky do speciální skupiny na konci
+    if (otherBrands.length > 0) {
+      if (!acc['Ostatní']) {
+        acc['Ostatní'] = []
+      }
+      acc['Ostatní'].push(...otherBrands)
+    }
+    
     return acc
   }, {} as { [key: string]: typeof brandsGrouped[string] })
 
@@ -130,7 +149,12 @@ export default function BrandSelect({ value, onChange, required = false }: Brand
               </div>
             ) : (
               Object.entries(filteredBrands)
-                .sort(([a], [b]) => a.localeCompare(b))
+                .sort(([a], [b]) => {
+                  // "Ostatní" skupina vždy na konec
+                  if (a === 'Ostatní') return 1
+                  if (b === 'Ostatní') return -1
+                  return a.localeCompare(b)
+                })
                 .map(([letter, brands]) => (
                   <div key={letter} className="brand-select__group">
                     <div className="brand-select__group-label">{letter}</div>
