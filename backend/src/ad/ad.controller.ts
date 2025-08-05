@@ -39,13 +39,18 @@ export class AdController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req,
   ) {
+    console.log('🔥 FILES RECEIVED:', files?.length || 0);
+    console.log('🔥 FILES:', files?.map(f => ({ name: f.originalname, size: f.size })));
+    
     // Přidej kontrolu počtu obrázků
     if (!files || files.length < 2) {
       throw new BadRequestException('Musíte přidat alespoň dva obrázky.');
     }
+    
     if (!req.user || !req.user.id) {
       throw new UnauthorizedException('User not authenticated properly');
     }
+    
     return this.adService.create(dto, req.user.id, files);
   }
 
@@ -157,6 +162,9 @@ export class AdController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
+    // Zvýšit počet zobrazení
+    await this.adService.incrementViews(id);
+    
     const ad = await this.adService.findOne(id);
 
     if (!ad) {

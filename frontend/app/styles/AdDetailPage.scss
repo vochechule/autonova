@@ -252,6 +252,41 @@
   font-weight: 500;
 }
 
+// Meta informace - datum a zobrazení
+.ad-detail-page__meta-info {
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  
+  @media (max-width: 767px) {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+.ad-detail-page__date-added,
+.ad-detail-page__views {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+  
+  svg {
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+}
+
+.ad-detail-page__views {
+  color: #4a5568;
+  
+  svg {
+    opacity: 0.8;
+  }
+}
+
 // Klíčové specifikace - jako tagy
 .ad-detail-page__key-specs {
   display: grid;
@@ -501,6 +536,19 @@
   }
 }
 
+.ad-detail-page__date-added {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  
+  svg {
+    opacity: 0.7;
+  }
+}
+
 // Responzivní úpravy podle obrázku
 @media (max-width: 767px) {
   .ad-detail-page__container {
@@ -619,6 +667,26 @@
   }
 
   .ad-detail-page__description-content p {
+    color: #cbd5e0;
+  }
+
+  .ad-detail-page__meta-info {
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    
+    @media (max-width: 767px) {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+
+  .ad-detail-page__date-added,
+  .ad-detail-page__views {
+    color: #a0aec0;
+  }
+  
+  .ad-detail-page__views {
     color: #cbd5e0;
   }
 }

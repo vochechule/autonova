@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import '../styles/LoginForm.scss'
@@ -11,18 +11,36 @@ export default function RegisterForm() {
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [password, setPassword] = useState('')
+  const [passwordStrength, setPasswordStrength] = useState({
+    hasLength: false,
+    hasUppercase: false,
+    hasNumber: false
+  })
 
-  function isPasswordStrong(pw: string) {
-    return pw.length >= 8 && /[A-Z]/.test(pw) && /[0-9]/.test(pw)
+  // Update password strength indicators in real-time
+  useEffect(() => {
+    setPasswordStrength({
+      hasLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasNumber: /[0-9]/.test(password)
+    })
+  }, [password])
+
+  function isPasswordStrong() {
+    return passwordStrength.hasLength && 
+           passwordStrength.hasUppercase && 
+           passwordStrength.hasNumber
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
-    if (!isPasswordStrong(password)) {
-      setError('Heslo musí mít alespoň 8 znaků, jedno velké písmeno a číslo.')
+    
+    if (!isPasswordStrong()) {
+      setError('Heslo musí splňovat všechny požadavky')
       return
     }
+    
     setLoading(true)
     const form = e.currentTarget
     const email = form.email.value
@@ -34,12 +52,29 @@ export default function RegisterForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),
       })
-      if (!res.ok) throw new Error('Registrace se nezdařila')
+      
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Registrace se nezdařila')
+      }
+      
+      const data = await res.json()
+      
+      // Save token and update auth state
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+        
+        // Dispatch custom event to notify Header about auth change
+        window.dispatchEvent(new CustomEvent('authChange', {
+          detail: { isLoggedIn: true }
+        }))
+      }
+      
       setSuccess(true)
       setLoading(false)
       setTimeout(() => router.push('/'), 1000)
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || 'Došlo k chybě při registraci')
       setLoading(false)
     }
   }
@@ -47,10 +82,26 @@ export default function RegisterForm() {
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <h2>Registrace</h2>
+      
       <label htmlFor="name">Jméno</label>
-      <input name="name" id="name" type="text" required placeholder="Jméno" />
+      <input 
+        name="name" 
+        id="name" 
+        type="text" 
+        required 
+        placeholder="Jméno" 
+        minLength={2}
+      />
+      
       <label htmlFor="email">Email</label>
-      <input name="email" id="email" type="email" required placeholder="Email" />
+      <input 
+        name="email" 
+        id="email" 
+        type="email" 
+        required 
+        placeholder="Email" 
+      />
+      
       <label htmlFor="password">Heslo</label>
       <div className="login-form__password-wrap">
         <input
@@ -61,6 +112,7 @@ export default function RegisterForm() {
           placeholder="Heslo"
           value={password}
           onChange={e => setPassword(e.target.value)}
+          minLength={8}
         />
         <button
           type="button"
@@ -72,16 +124,41 @@ export default function RegisterForm() {
           {showPassword ? '👁️' : '👁'}
         </button>
       </div>
-      <div className="login-form__password-hint">
-        Heslo musí mít alespoň 8 znaků, jedno velké písmeno a číslo.
+      
+      <div className="login-form__password-strength">
+        <div className={`strength-indicator ${passwordStrength.hasLength ? 'valid' : ''}`}>
+          • Minimálně 8 znaků
+        </div>
+        <div className={`strength-indicator ${passwordStrength.hasUppercase ? 'valid' : ''}`}>
+          • Jedno velké písmeno
+        </div>
+        <div className={`strength-indicator ${passwordStrength.hasNumber ? 'valid' : ''}`}>
+          • Jedno číslo
+        </div>
       </div>
-      <button type="submit" disabled={loading || success}>
-        {loading ? 'Registruji...' : 'Registrovat'}
+      
+      <button 
+        type="submit" 
+        disabled={loading || success}
+        className={loading || success ? 'loading' : ''}
+      >
+        {loading ? (
+          <>
+            <span className="spinner"></span> Registruji...
+          </>
+        ) : success ? (
+          'Úspěšně registrováno!'
+        ) : (
+          'Registrovat'
+        )}
       </button>
+      
       <div className="login-form__switch">
         Máte účet? <Link href="/login">Přihlaste se zde</Link>
       </div>
+      
       {error && <div className="login-form__error">{error}</div>}
+      
       {success && (
         <div className="login-form__success">
           Registrace úspěšná, probíhá přesměrování…

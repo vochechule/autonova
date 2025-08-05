@@ -24,9 +24,18 @@ export default function LoginForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
+      
       if (!res.ok) throw new Error('Přihlášení se nezdařilo')
+      
       const data = await res.json()
-      localStorage.setItem('token', data.access_token)
+      console.log('Login response:', data) // Debug log
+      
+      // ZMĚNA: data.token místo data.access_token
+      localStorage.setItem('token', data.token)
+      
+      // Poslat event pro aktualizaci headeru
+      window.dispatchEvent(new Event('loginStatusChanged'))
+      
       setSuccess(true)
       setLoading(false)
       setTimeout(() => router.push('/'), 1000) // Počkej 1s a přesměruj

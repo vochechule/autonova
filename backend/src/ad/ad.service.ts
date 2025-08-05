@@ -77,19 +77,32 @@ export class AdService {
         try {
           const filename = `${Date.now()}_${file.originalname}`;
           
-          console.log('Uploading to Supabase:', filename);
+          console.log('🔥 Uploading to Supabase:', filename);
+          console.log('🔥 File size:', file.size);
+          console.log('🔥 File type:', file.mimetype);
+          
           const { data, error } = await this.supabase
             .storage
-            .from('photos') // správný bucket!
+            .from('photos')
             .upload(filename, file.buffer, {
               contentType: file.mimetype,
               upsert: true
             });
 
+          // ✅ OPRAVA: zkontroluj chyby!
+          if (error) {
+            console.error('❌ Supabase upload error:', error);
+            throw new Error(`Upload failed: ${error.message}`);
+          }
+
+          console.log('✅ Upload successful:', data);
+
           const { data: urlData } = this.supabase
             .storage
-            .from('photos') // správný bucket!
+            .from('photos')
             .getPublicUrl(filename);
+
+          console.log('🔗 Generated URL:', urlData?.publicUrl);
 
           await this.prisma.image.create({
             data: {
@@ -98,7 +111,9 @@ export class AdService {
             },
           });
         } catch (err) {
-          console.error('File upload error:', err);
+          console.error('❌ File upload error:', err);
+          // Zahoď chybu výše, aby se zastavil celý proces
+          throw err;
         }
       }
     } else {
@@ -254,6 +269,22 @@ export class AdService {
       (ad.user as any).averageRating = avg._avg.rating;
     }
     return ads;
+  }
+
+  async incrementViews(id: string): Promise<void> {
+    try {
+      await this.prisma.ad.update({
+        where: { id },
+        data: {
+          views: {
+            increment: 1
+          }
+        }
+      });
+    } catch (error) {
+      // Pokud inzerát neexistuje, nebude se počítadlo zvyšovat
+      console.error('Error incrementing views:', error);
+    }
   }
 
   async findOne(id: string) {

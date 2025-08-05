@@ -9,17 +9,41 @@ export class AuthService {
 
   async register(email: string, password: string, name: string) {
     const hashed = await bcrypt.hash(password, 10);
-    return this.userService.create(email, hashed, name);
+    const user = await this.userService.create(email, hashed, name);
+
+    // Vygenerovat token po registraci (automatické přihlášení)
+    const payload = { sub: user.id, email: user.email };
+    const token = this.jwt.sign(payload);
+
+    return {
+      user: { id: user.id, email: user.email, name: user.name },
+      token,
+    };
   }
 
   async login(email: string, password: string) {
+    console.log('🔍 AuthService.login called with:', { email, password }); // Debug log
+    console.log('🔍 Email type:', typeof email); // Debug log
+
+    if (!email) {
+      throw new Error('Email is undefined or empty');
+    }
+
     const user = await this.userService.findByEmail(email);
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const payload = { sub: user.id, email: user.email };
-    return { access_token: this.jwt.sign(payload) };
+    const token = this.jwt.sign(payload);
+
+    console.log('🎟️ Generated token:', token);
+    console.log('🧑 Payload:', payload);
+
+    return {
+      token,
+      user: { id: user.id, email: user.email, name: user.name },
+    };
   }
 
   async findUserById(id: string) {

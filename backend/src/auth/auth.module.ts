@@ -1,19 +1,23 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';  // Přidej tento import
+import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { UserModule } from '../user/user.module';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
-    JwtModule.register({
-      secret: 'tajnyklic', // -> použij ENV ve finále
-      signOptions: { expiresIn: '7d' },
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '7d' },
+      }),
+      inject: [ConfigService],
     }),
     UserModule,
   ],
-  controllers: [AuthController],  // Přidej toto pole!
+  controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })

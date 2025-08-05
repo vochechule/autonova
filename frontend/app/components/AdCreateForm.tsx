@@ -70,6 +70,7 @@ export default function AdCreateForm() {
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  try {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -83,54 +84,113 @@ export default function AdCreateForm() {
       setImageError(null)
     }
 
+    if (!selectedBrand || !selectedModel) {
+      throw new Error('Vyberte značku a model vozidla')
+    }
+
     const form = e.currentTarget
     const formData = new FormData()
+    const formValues = new FormData(form)
 
-    for (const el of form.elements) {
-      if (!(el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement)) continue
-      if (el.name && el.value && el.type !== 'file') {
-        formData.append(el.name, el.value)
+    // Brand a model ze state
+    formData.append('brand', selectedBrand)
+    formData.append('model', selectedModel)
+
+    // String hodnoty
+    const stringFields = ['title', 'description', 'bodyType', 'color', 'colorFinish', 
+                         'fuel', 'transmission', 'drivetrain', 'airConditioning', 'condition', 
+                         'countryOfOrigin', 'euroStandard', 'windowNote']
+    
+    stringFields.forEach(field => {
+      const value = formValues.get(field)
+      if (value) formData.append(field, value.toString())
+    })
+
+    // Integer hodnoty
+    const integerFields = ['price', 'mileage', 'year', 'firstRegistration', 'doorCount', 'seatCount', 
+                          'airbagCount', 'engineVolume', 'power', 'gearCount']
+    
+    integerFields.forEach(field => {
+      const value = formValues.get(field)
+      if (value && value.toString().trim()) {
+        formData.append(field, value.toString())
       }
+    })
+
+    // avgConsumption jako float
+    const avgConsumptionValue = formValues.get('avgConsumption')
+    if (avgConsumptionValue && avgConsumptionValue.toString().trim()) {
+      formData.append('avgConsumption', avgConsumptionValue.toString())
     }
+
+    // Boolean hodnoty
+    const booleanFields = ['ecoTaxPaid', 'isFirstOwner', 'isDisabledAdapted', 'wasCrashed', 'hasServiceBook']
+    booleanFields.forEach(field => {
+      const checkbox = form.querySelector(`[name="${field}"]`) as HTMLInputElement
+      formData.append(field, checkbox?.checked ? 'true' : 'false')
+    })
+
+    // Features jako array
+    // const featuresValue = formValues.get('features')
+    // if (featuresValue && featuresValue.toString().trim()) {
+    //   const featuresArray = featuresValue.toString().split(',').map(f => f.trim()).filter(f => f)
+    //   featuresArray.forEach(feature => formData.append('features', feature))
+    // }
+
+    // Datum hodnoty
+    const techCheckValue = formValues.get('technicalCheckUntil')
+    if (techCheckValue) {
+      formData.append('technicalCheckUntil', new Date(techCheckValue.toString()).toISOString())
+    }
+    
+    const warrantyValue = formValues.get('warrantyUntil')
+    if (warrantyValue) {
+      formData.append('warrantyUntil', new Date(warrantyValue.toString()).toISOString())
+    }
+
+    // Obrázky
     if (images.length > 0) {
       images.forEach(img => {
         formData.append('images', img)
       })
     }
-    if (form.technicalCheckUntil?.value) {
-      const date = new Date(form.technicalCheckUntil.value)
-      formData.set('technicalCheckUntil', date.toISOString())
-    }
-    if (form.warrantyUntil?.value) {
-      const date = new Date(form.warrantyUntil.value)
-      formData.set('warrantyUntil', date.toISOString())
+
+    // Debug log
+    console.log('🔍 FormData entries:')
+    for (let pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`)
     }
 
     const token = localStorage.getItem('token')
-    try {
-      const res = await fetch('http://localhost:3000/ad', {
-        method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: formData,
-        credentials: 'include'
-      })
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.message || errData.error || 'Chyba při ukládání inzerátu')
-      }
-      setSuccess(true)
-      form.reset()
-      setImages([])
-    } catch (err) {
-      if (err instanceof Error) setError(err.message)
-      else setError('Neznámá chyba')
-      console.error('Upload error:', err)
-    } finally {
-      setLoading(false)
+    const res = await fetch('http://localhost:3000/ad', {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: formData,
+      credentials: 'include'
+    })
+    
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.message || errData.error || 'Chyba při ukládání inzerátu')
     }
+
+    setSuccess(true)
+    form.reset()
+    setImages([])
+
+  } catch (err) {
+    console.error('🔍 Submit error:', err)
+    if (err instanceof Error) {
+      setError(err.message)
+    } else {
+      setError('Neznámá chyba')
+    }
+  } finally {
+    setLoading(false)
   }
+}
 
   function fillTestData(form: HTMLFormElement) {
     const getValue = (name: string): HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null => 
@@ -179,7 +239,7 @@ export default function AdCreateForm() {
     setCheckboxValue('hasServiceBook', true)
     setInputValue('warrantyUntil', '2026-01-01')
     setInputValue('windowNote', 'Test poznámka')
-    setInputValue('features', 'klimatizace, ABS, ESP')
+    //setInputValue('features', 'klimatizace, ABS, ESP')
   }
 
   return (
@@ -348,7 +408,8 @@ export default function AdCreateForm() {
                   <option value="">Vyberte převodovku</option>
                   <option value="manual">Manuální</option>
                   <option value="automatic">Automatická</option>
-                  <option value="semi_automatic">Poloautomatická</option>
+                  <option value="cvt">CVT</option>
+                  <option value="sequential">Sekvenční</option>
                 </select>
               </div>
 
@@ -431,10 +492,10 @@ export default function AdCreateForm() {
                 <input name="windowNote" id="windowNote" placeholder="Např. Volat po 18h" />
               </div>
 
-              <div className="form-group form-group--full-width">
+              {/* <div className="form-group form-group--full-width">
                 <label htmlFor="features">Výbava (čárkou oddělené)</label>
                 <input name="features" id="features" placeholder="klimatizace, ABS, ESP, navigace..." />
-              </div>
+              </div> */}
             </div>
 
             {/* Checkboxy */}

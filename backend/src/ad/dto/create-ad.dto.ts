@@ -7,117 +7,167 @@ import {
   EmissionClass,
   CarCondition,
 } from '../enums/ad.enums'
-import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray } from 'class-validator'
+import { Transform, Type } from 'class-transformer'
+import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray, IsNumber } from 'class-validator'
 
 export class CreateAdDto {
-   @IsString()
+  @IsString()
   brand: string;
 
   @IsString()
   model: string;
 
   @IsString()
-  title: string
+  title: string;
 
   @IsString()
-  description: string
+  description: string;
 
+  // ✅ OPRAVA: Přidej @Type pro čísla
+  @Type(() => Number)
   @IsInt()
-  price: number
+  price: number;
 
+  @Type(() => Number)
   @IsInt()
-  mileage: number
+  mileage: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
-  year?: number
+  year?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
-  firstRegistration?: number
+  firstRegistration?: number;
 
   @IsEnum(BodyType)
-  bodyType: BodyType
+  bodyType: BodyType;
 
+  @Type(() => Number)
   @IsInt()
-  doorCount: number
+  doorCount: number;
 
+  @Type(() => Number)
   @IsInt()
-  seatCount: number
+  seatCount: number;
 
   @IsString()
-  color: string
+  color: string;
 
   @IsOptional()
   @IsString()
-  colorFinish?: string
+  colorFinish?: string;
 
+  @Type(() => Number)
   @IsInt()
-  airbagCount: number
+  airbagCount: number;
 
   @IsEnum(AirConditioning)
-  airConditioning: AirConditioning
+  airConditioning: AirConditioning;
 
   @IsEnum(FuelType)
-  fuel: FuelType
+  fuel: FuelType;
 
-  @IsInt()
-  engineVolume: number
-
-  @IsInt()
-  power: number
-
-  @IsOptional()
-  @IsInt()
-  avgConsumption?: number
-
+  // ✅ PŘIDEJTE TRANSMISSION
   @IsEnum(Transmission)
-  transmission: Transmission
-
-  @IsOptional()
-  @IsInt()
-  gearCount?: number
+  transmission: Transmission;
 
   @IsEnum(Drivetrain)
-  drivetrain: Drivetrain
+  drivetrain: Drivetrain;
 
+  // ✅ PŘIDEJTE CONDITION
   @IsEnum(CarCondition)
-  condition: CarCondition
+  condition: CarCondition;
 
-  @IsOptional()
-  @IsDateString()
-  technicalCheckUntil?: string
-
-  @IsString()
-  countryOfOrigin: string
-
-  @IsEnum(EmissionClass)
-  euroStandard: EmissionClass
-
-  @IsBoolean()
-  ecoTaxPaid: boolean
-
-  @IsBoolean()
-  isFirstOwner: boolean
-
-  @IsBoolean()
-  isDisabledAdapted: boolean
-
-  @IsBoolean()
-  wasCrashed: boolean
-
-  @IsBoolean()
-  hasServiceBook: boolean
-
-  @IsOptional()
-  @IsDateString()
-  warrantyUntil?: string
-
+  // ✅ PŘIDEJTE COUNTRY OF ORIGIN
   @IsOptional()
   @IsString()
-  windowNote?: string
+  countryOfOrigin?: string;
 
+  // ✅ PŘIDEJTE EURO STANDARD
+  @IsOptional()
+  @IsString()
+  euroStandard?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  engineVolume: number;
+
+  @Type(() => Number)
+  @IsInt()
+  power: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({ maxDecimalPlaces: 2 }) // ✅ Změna z @IsInt() na @IsNumber()
+  avgConsumption?: number;
+
+  @Type(() => Number)
+  @IsInt()
+  gearCount: number;
+
+  // ✅ Features jako array
   @IsOptional()
   @IsArray()
-  features?: string[]
+  @IsString({ each: true })
+  features?: string[];
+
+  // Boolean hodnoty s transformací
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return Boolean(value);
+  })
+  @IsBoolean()
+  ecoTaxPaid: boolean;
+
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return Boolean(value);
+  })
+  @IsBoolean()
+  isFirstOwner: boolean;
+
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return Boolean(value);
+  })
+  @IsBoolean()
+  isDisabledAdapted: boolean;
+
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return Boolean(value);
+  })
+  @IsBoolean()
+  wasCrashed: boolean;
+
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      return value === 'true';
+    }
+    return Boolean(value);
+  })
+  @IsBoolean()
+  hasServiceBook: boolean;
+
+  // ✅ PŘIDEJTE DATUM FIELDY
+  @IsOptional()
+  @IsDateString()
+  technicalCheckUntil?: string; // ISO string datum
+
+  @IsOptional()
+  @IsDateString()
+  warrantyUntil?: string; // ISO string datum
+
+  // Ostatní fieldy...
 }

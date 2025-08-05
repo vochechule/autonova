@@ -13,12 +13,21 @@ export default function AdDetailPage() {
   const [imgIndex, setImgIndex] = useState(0)
 
   useEffect(() => {
-    fetch(`http://localhost:3000/ad/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setAd(data);
-        setLoading(false);
-      });
+    let timeoutId: NodeJS.Timeout;
+    
+    const fetchAd = () => {
+      fetch(`http://localhost:3000/ad/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          setAd(data);
+          setLoading(false);
+        });
+    };
+    
+    // Debounce - počkej 100ms před voláním
+    timeoutId = setTimeout(fetchAd, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, [id])
 
   const handlePrev = () => {
@@ -120,6 +129,31 @@ export default function AdDetailPage() {
             </h1>
             <div className="ad-detail-page__subtitle">
               {ad.year} &bull; {ad.mileage?.toLocaleString()} km &bull; {ad.fuel}
+            </div>
+            
+            {/* Datum přidání a počet zobrazení */}
+            <div className="ad-detail-page__meta-info">
+              {ad.createdAt && (
+                <div className="ad-detail-page__date-added">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2"/>
+                    <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2"/>
+                    <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                  Přidáno {new Date(ad.createdAt).toLocaleDateString('cs-CZ')}
+                </div>
+              )}
+              
+              {ad.views !== undefined && (
+                <div className="ad-detail-page__views">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                  {ad.views.toLocaleString()} zobrazení
+                </div>
+              )}
             </div>
             
             {/* Klíčové specs */}
@@ -336,8 +370,7 @@ export default function AdDetailPage() {
         )}
       </div>
       
-      {/* Floating favorite button */}
-      <FavoriteButton adId={ad.id} className="favorite-button--floating" />
+     
     </main>
   )
 }

@@ -98,9 +98,15 @@ export default function ProfilePage() {
             {ads.map(ad => (
               <tr key={ad.id}>
                 <td>
-                  <img src={ad.images?.[0]?.url || '/default-car.png'} alt="" className="profile-page__ad-img" />
+                  <Link href={`/ads/${ad.id}`}>
+                    <img src={ad.images?.[0]?.url || '/default-car.png'} alt="" className="profile-page__ad-img" />
+                  </Link>
                 </td>
-                <td>{ad.title}</td>
+                <td>
+                  <Link href={`/ads/${ad.id}`} className="profile-page__ad-title-link">
+                    {ad.title}
+                  </Link>
+                </td>
                 <td>{ad.price ? `$${ad.price.toLocaleString()}` : '-'}</td>
                 <td>
                   <span className={`profile-page__ad-status profile-page__ad-status--${ad.status?.toLowerCase()}`}>
@@ -185,63 +191,66 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <section className="profile-page__reviews">
-        <h2>Reviews Received</h2>
-        <div className="profile-page__rating-summary">
-          <div className="profile-page__rating-main">
-            <span className="profile-page__rating-number">{avgRating !== null ? avgRating.toFixed(1) : '-'}</span>
-            <span className="profile-page__stars">
-              {'★'.repeat(Math.round(Number(avgRating) || 0))}
-              {'☆'.repeat(5 - Math.round(Number(avgRating) || 0))}
-            </span>
-          </div>
-          <div className="profile-page__rating-count">{reviews.length} reviews</div>
-          <div className="profile-page__rating-bars">
-            {[5, 4, 3, 2, 1].map((star, i) => (
-              <div key={star} className="profile-page__rating-bar-row">
-                <span>{star}</span>
-                <div className="profile-page__rating-bar">
-                  <div
-                    className="profile-page__rating-bar-inner"
-                    style={{
-                      width: reviews.length
-                        ? `${(ratingCounts[star - 1] / reviews.length) * 100}%`
-                        : '0%',
-                    }}
-                  />
+      {/* Zobrazit sekci hodnocení pouze pokud má uživatel nějaká hodnocení */}
+      {reviews.length > 0 && (
+        <section className="profile-page__reviews">
+          <h2>Reviews Received</h2>
+          <div className="profile-page__rating-summary">
+            <div className="profile-page__rating-main">
+              <span className="profile-page__rating-number">{avgRating !== null ? avgRating.toFixed(1) : '-'}</span>
+              <span className="profile-page__stars">
+                {'★'.repeat(Math.round(Number(avgRating) || 0))}
+                {'☆'.repeat(5 - Math.round(Number(avgRating) || 0))}
+              </span>
+            </div>
+            <div className="profile-page__rating-count">{reviews.length} reviews</div>
+            <div className="profile-page__rating-bars">
+              {[5, 4, 3, 2, 1].map((star, i) => (
+                <div key={star} className="profile-page__rating-bar-row">
+                  <span>{star}</span>
+                  <div className="profile-page__rating-bar">
+                    <div
+                      className="profile-page__rating-bar-inner"
+                      style={{
+                        width: reviews.length
+                          ? `${(ratingCounts[star - 1] / reviews.length) * 100}%`
+                          : '0%',
+                      }}
+                    />
+                  </div>
+                  <span>
+                    {reviews.length
+                      ? `${Math.round((ratingCounts[star - 1] / reviews.length) * 100)}%`
+                      : '0%'}
+                  </span>
                 </div>
-                <span>
-                  {reviews.length
-                    ? `${Math.round((ratingCounts[star - 1] / reviews.length) * 100)}%`
-                    : '0%'}
-                </span>
+              ))}
+            </div>
+          </div>
+          <div className="profile-page__review-list">
+            {(showAllReviews ? reviews : reviews.slice(0, 3)).map(r => (
+              <div key={r.id} className="profile-page__review">
+                <div className="profile-page__review-header">
+                  <div className="profile-page__review-author">{r.user?.name || 'Unknown'}</div>
+                  <div className="profile-page__review-date">{new Date(r.createdAt).toLocaleDateString()}</div>
+                  <div className="profile-page__review-stars">
+                    {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                  </div>
+                </div>
+                {r.comment && <div className="profile-page__review-text">{r.comment}</div>}
               </div>
             ))}
+            {reviews.length > 3 && (
+              <button
+                className="profile-page__show-all-btn"
+                onClick={() => setShowAllReviews(v => !v)}
+              >
+                {showAllReviews ? 'Show less' : 'See all my reviews'}
+              </button>
+            )}
           </div>
-        </div>
-        <div className="profile-page__review-list">
-          {(showAllReviews ? reviews : reviews.slice(0, 3)).map(r => (
-            <div key={r.id} className="profile-page__review">
-              <div className="profile-page__review-header">
-                <div className="profile-page__review-author">{r.user?.name || 'Unknown'}</div>
-                <div className="profile-page__review-date">{new Date(r.createdAt).toLocaleDateString()}</div>
-                <div className="profile-page__review-stars">
-                  {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
-                </div>
-              </div>
-              {r.comment && <div className="profile-page__review-text">{r.comment}</div>}
-            </div>
-          ))}
-          {reviews.length > 3 && (
-            <button
-              className="profile-page__show-all-btn"
-              onClick={() => setShowAllReviews(v => !v)}
-            >
-              {showAllReviews ? 'Show less' : 'See all my reviews'}
-            </button>
-          )}
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="profile-page__settings">
         <h2>Account Settings</h2>

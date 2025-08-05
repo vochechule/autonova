@@ -1,24 +1,55 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import '../styles/components/Header.scss'
 
 export default function Header() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
+  const pathname = usePathname()  // Get current path for route changes
 
   useEffect(() => {
-    // Aplikuj dark mode na html element
+    // Check login status on mount and route changes
+    setLoggedIn(!!localStorage.getItem('token'))
+    
+    const handleAuthChange = () => {
+      setLoggedIn(!!localStorage.getItem('token'))
+    }
+    
+    // Listen to storage changes and custom events
+    window.addEventListener('storage', handleAuthChange)
+    window.addEventListener('authChange', handleAuthChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleAuthChange)
+      window.removeEventListener('authChange', handleAuthChange)
+    }
+  }, [pathname])  // Re-run on route change
+
+  useEffect(() => {
+    // Apply dark mode
     if (isDarkMode) {
       document.documentElement.setAttribute('data-theme', 'dark')
     } else {
       document.documentElement.removeAttribute('data-theme')
     }
+    
+    // Initialize from system preference or saved setting
+    const savedMode = localStorage.getItem('darkMode')
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    
+    if (savedMode !== null) {
+      setIsDarkMode(savedMode === 'true')
+    } else {
+      setIsDarkMode(systemPrefersDark)
+    }
   }, [isDarkMode])
 
-  useEffect(() => {
-    // Check if user is logged in
-    setLoggedIn(!!localStorage.getItem('token'))
-  }, [])
+  const toggleDarkMode = () => {
+    const newMode = !isDarkMode
+    setIsDarkMode(newMode)
+    localStorage.setItem('darkMode', String(newMode))
+  }
 
   return (
     <header className="header">
@@ -32,23 +63,31 @@ export default function Header() {
             <a href="/saved-ads" className="header__link">Oblíbené</a>
           )}
           
-          {/* Desktop-only navigation items */}
           <div className="header__desktop-nav">
-            <a href="/ads/create" className="header__button header__button--primary">
-              + Přidat inzerát
-            </a>
-            <a 
-              href={loggedIn ? '/profile' : '/login'} 
-              className="header__button header__button--secondary"
-            >
-              {loggedIn ? '👤 Profil' : '🔑 Přihlásit'}
-            </a>
+            {loggedIn ? (
+              <>
+                <a href="/ads/create" className="header__button header__button--primary">
+                  + Přidat inzerát
+                </a>
+                <a href="/profile" className="header__button header__button--secondary">
+                  👤 Profil
+                </a>
+              </>
+            ) : (
+              <>
+                <a href="/login" className="header__button header__button--secondary">
+                  Přihlásit se
+                </a>
+                <a href="/register" className="header__button header__button--primary">
+                  Registrovat se
+                </a>
+              </>
+            )}
           </div>
           
-          {/* Theme Toggle */}
           <button 
             className="header__theme-toggle"
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={toggleDarkMode}
             aria-label={isDarkMode ? 'Přepnout na světlé téma' : 'Přepnout na tmavé téma'}
           >
             {isDarkMode ? (
