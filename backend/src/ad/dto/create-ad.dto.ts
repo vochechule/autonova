@@ -66,8 +66,9 @@ export class CreateAdDto {
   @IsInt()
   airbagCount: number;
 
+  @IsOptional() // ✅ PŘIDÁNO - klimatizace nepovinná
   @IsEnum(AirConditioning)
-  airConditioning: AirConditioning;
+  airConditioning?: AirConditioning; // ✅ ZMĚNĚNO na optional
 
   @IsEnum(FuelType)
   fuel: FuelType;
@@ -90,8 +91,8 @@ export class CreateAdDto {
 
   // ✅ PŘIDEJTE EURO STANDARD
   @IsOptional()
-  @IsString()
-  euroStandard?: string;
+  @IsEnum(EmissionClass) // ✅ ZMĚNĚNO z @IsString() na @IsEnum()
+  euroStandard?: EmissionClass; // ✅ ZMĚNĚNO typ
 
   @Type(() => Number)
   @IsInt()

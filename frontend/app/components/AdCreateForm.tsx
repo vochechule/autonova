@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation' // ✅ PŘIDÁNO
 import '../styles/components/AdCreateForm.scss'
+import '../styles/components/SuccessMessage.scss' // ✅ PŘIDÁNO
 import { carBrands, getBrandsList, getModelsList, getBrandsGroupedByLetter } from '../data/carData';
 import BrandSelect from './BrandSelect';
 import ModelSelect from './ModelSelect';
@@ -8,16 +10,18 @@ import ColorSelect from './ColorSelect'
 import ColorFinishSelect from './ColorFinishSelect'
 
 export default function AdCreateForm() {
+  const router = useRouter() // ✅ PŘIDÁNO
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [createdAdId, setCreatedAdId] = useState<string | null>(null) // ✅ PŘIDÁNO
   const [images, setImages] = useState<File[]>([])
   const [imageError, setImageError] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const [selectedBrand, setSelectedBrand] = useState<string>('')
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [selectedColor, setSelectedColor] = useState<string>('')
-  const [selectedColorFinish, setSelectedColorFinish] = useState<string>('standard') // ✅ ZMĚNĚNO z '' na 'standard'
+  const [selectedColorFinish, setSelectedColorFinish] = useState<string>('standard')
 
   const modelsList = getModelsList(selectedBrand)
 
@@ -62,140 +66,212 @@ export default function AdCreateForm() {
     }
   }
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const files = Array.from(e.dataTransfer.files)
-      handleImageAdd(files)
-    }
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    validateAndAddFiles(files)
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-  try {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
+    setDragActive(false)
+    const files = Array.from(e.dataTransfer.files)
+    validateAndAddFiles(files)
+  }
 
-    // validace počtu obrázků
-    if (images.length < 2) {
-      setImageError('Přidejte alespoň dva obrázky.')
-      setLoading(false)
-      return
+  // ✅ PŘIDÁNO - Nová funkce pro validaci souborů
+  const validateAndAddFiles = (newFiles: File[]) => {
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    const errors: string[] = []
+    const validFiles: File[] = []
+
+    newFiles.forEach(file => {
+      // Kontrola velikosti
+      if (file.size > maxSize) {
+        errors.push(`${file.name}: Příliš velký soubor (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum je 10MB.`)
+        return
+      }
+
+      // Kontrola typu
+      if (!allowedTypes.includes(file.type)) {
+        errors.push(`${file.name}: Nepodporovaný formát. Povolené: JPEG, PNG, WebP.`)
+        return
+      }
+
+      validFiles.push(file)
+    })
+
+    // Kontrola celkového počtu obrázků
+    if (images.length + validFiles.length > 10) {
+      errors.push(`Můžete nahrát maximálně 10 obrázků. Aktuálně máte ${images.length}, snažíte se přidat ${validFiles.length}.`)
+    } else {
+      setImages(prev => [...prev, ...validFiles])
+    }
+
+    // Zobraz chyby
+    if (errors.length > 0) {
+      setImageError(errors.join('\n'))
     } else {
       setImageError(null)
     }
-
-    if (!selectedBrand || !selectedModel) {
-      throw new Error('Vyberte značku a model vozidla')
-    }
-
-    const form = e.currentTarget
-    const formData = new FormData()
-    const formValues = new FormData(form)
-
-    // Brand a model ze state
-    formData.append('brand', selectedBrand)
-    formData.append('model', selectedModel)
-
-    // String hodnoty
-    const stringFields = ['title', 'description', 'bodyType', 'color', 'colorFinish', 
-                         'fuel', 'transmission', 'drivetrain', 'airConditioning', 'condition', 
-                         'countryOfOrigin', 'euroStandard', 'windowNote']
-    
-    stringFields.forEach(field => {
-      const value = formValues.get(field)
-      if (value) formData.append(field, value.toString())
-    })
-
-    // Integer hodnoty
-    const integerFields = ['price', 'mileage', 'year', 'firstRegistration', 'doorCount', 'seatCount', 
-                          'airbagCount', 'engineVolume', 'power', 'gearCount']
-    
-    integerFields.forEach(field => {
-      const value = formValues.get(field)
-      if (value && value.toString().trim()) {
-        formData.append(field, value.toString())
-      }
-    })
-
-    // avgConsumption jako float
-    const avgConsumptionValue = formValues.get('avgConsumption')
-    if (avgConsumptionValue && avgConsumptionValue.toString().trim()) {
-      formData.append('avgConsumption', avgConsumptionValue.toString())
-    }
-
-    // Boolean hodnoty
-    const booleanFields = ['ecoTaxPaid', 'isFirstOwner', 'isDisabledAdapted', 'wasCrashed', 'hasServiceBook']
-    booleanFields.forEach(field => {
-      const checkbox = form.querySelector(`[name="${field}"]`) as HTMLInputElement
-      formData.append(field, checkbox?.checked ? 'true' : 'false')
-    })
-
-    // Features jako array
-    // const featuresValue = formValues.get('features')
-    // if (featuresValue && featuresValue.toString().trim()) {
-    //   const featuresArray = featuresValue.toString().split(',').map(f => f.trim()).filter(f => f)
-    //   featuresArray.forEach(feature => formData.append('features', feature))
-    // }
-
-    // Datum hodnoty
-    const techCheckValue = formValues.get('technicalCheckUntil')
-    if (techCheckValue) {
-      formData.append('technicalCheckUntil', new Date(techCheckValue.toString()).toISOString())
-    }
-    
-    const warrantyValue = formValues.get('warrantyUntil')
-    if (warrantyValue) {
-      formData.append('warrantyUntil', new Date(warrantyValue.toString()).toISOString())
-    }
-
-    // Obrázky
-    if (images.length > 0) {
-      images.forEach(img => {
-        formData.append('images', img)
-      })
-    }
-
-    // Debug log
-    console.log('🔍 FormData entries:')
-    for (let pair of formData.entries()) {
-      console.log(`${pair[0]}: ${pair[1]}`)
-    }
-
-    const token = localStorage.getItem('token')
-    const res = await fetch('http://localhost:3000/ad', {
-      method: 'POST',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: formData,
-      credentials: 'include'
-    })
-    
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}))
-      throw new Error(errData.message || errData.error || 'Chyba při ukládání inzerátu')
-    }
-
-    setSuccess(true)
-    form.reset()
-    setImages([])
-
-  } catch (err) {
-    console.error('🔍 Submit error:', err)
-    if (err instanceof Error) {
-      setError(err.message)
-    } else {
-      setError('Neznámá chyba')
-    }
-  } finally {
-    setLoading(false)
   }
-}
 
+  // V handleSubmit funkci aktualizujte validaci:
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    try {
+      e.preventDefault()
+      setLoading(true)
+      setError(null)
+
+      // validace počtu obrázků - ZŮSTÁVÁ POVINNÉ
+      if (images.length < 2) {
+        setImageError('Přidejte alespoň dva obrázky.')
+        setLoading(false)
+        return
+      } else {
+        setImageError(null)
+      }
+
+      if (!selectedBrand || !selectedModel) {
+        throw new Error('Vyberte značku a model vozidla')
+      }
+
+      const form = e.currentTarget
+      const formData = new FormData()
+      const formValues = new FormData(form)
+
+      // Brand a model ze state
+      formData.append('brand', selectedBrand)
+      formData.append('model', selectedModel)
+      
+      // Color a colorFinish ze state
+      formData.append('color', selectedColor)
+      formData.append('colorFinish', selectedColorFinish || 'standard')
+
+      // String hodnoty
+      const stringFields = ['title', 'description', 'bodyType', 
+                           'fuel', 'transmission', 'drivetrain', 'airConditioning', 'condition', 
+                           'countryOfOrigin', 'euroStandard']
+      
+      stringFields.forEach(field => {
+        const value = formValues.get(field)
+        if (value) formData.append(field, value.toString())
+      })
+
+      // Integer hodnoty - ✅ PŘIDÁNO year, firstRegistration jako povinné
+      const requiredIntegerFields = ['price', 'mileage', 'year', 'firstRegistration', 'doorCount', 'seatCount', 'engineVolume', 'power']
+      const optionalIntegerFields = ['airbagCount', 'gearCount']
+
+      // Povinná integer pole
+      requiredIntegerFields.forEach(field => {
+        const value = formValues.get(field)
+        if (!value || !value.toString().trim()) {
+          throw new Error(`${field} je povinné pole`)
+        }
+        formData.append(field, value.toString())
+      })
+
+      // Nepovinná integer pole
+      optionalIntegerFields.forEach(field => {
+        const value = formValues.get(field)
+        if (value && value.toString().trim()) {
+          formData.append(field, value.toString())
+        }
+      })
+
+      // ✅ ZMĚNĚNO - avgConsumption jako povinná, ale správně validovaná
+      const avgConsumptionValue = formValues.get('avgConsumption')
+      if (!avgConsumptionValue || !avgConsumptionValue.toString().trim()) {
+        throw new Error('Průměrná spotřeba je povinná')
+      }
+      formData.append('avgConsumption', avgConsumptionValue.toString())
+
+      // Boolean hodnoty
+      const booleanFields = ['ecoTaxPaid', 'isFirstOwner', 'isDisabledAdapted', 'wasCrashed', 'hasServiceBook']
+      booleanFields.forEach(field => {
+        const checkbox = form.querySelector(`[name="${field}"]`) as HTMLInputElement
+        formData.append(field, checkbox?.checked ? 'true' : 'false')
+      })
+
+      // Datum hodnoty
+      const techCheckValue = formValues.get('technicalCheckUntil')
+      if (techCheckValue) {
+        formData.append('technicalCheckUntil', new Date(techCheckValue.toString()).toISOString())
+      }
+      
+      const warrantyValue = formValues.get('warrantyUntil')
+      if (warrantyValue) {
+        formData.append('warrantyUntil', new Date(warrantyValue.toString()).toISOString())
+      }
+
+      // Obrázky
+      if (images.length > 0) {
+        images.forEach(img => {
+          formData.append('images', img)
+        })
+      }
+
+      const token = localStorage.getItem('token')
+      const res = await fetch('http://localhost:3000/ad', {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: formData,
+        credentials: 'include'
+      })
+      
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        console.error('❌ Backend error response:', errData); // ✅ PŘIDÁNO pro debug
+        
+        // ✅ VYLEPŠENO - Lepší error parsing
+        let errorMessage = 'Chyba při ukládání inzerátu';
+        
+        if (errData.message) {
+          errorMessage = Array.isArray(errData.message) 
+            ? errData.message.join(', ') 
+            : errData.message;
+        } else if (errData.error) {
+          errorMessage = errData.error;
+        } else if (res.status === 413) {
+          errorMessage = 'Soubory jsou příliš velké. Zkuste nahrát menší obrázky.';
+        } else if (res.status === 400) {
+          errorMessage = 'Neplatná data ve formuláři. Zkontrolujte všechna pole.';
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      // ✅ ZMĚNĚNO - Získáme ID vytvořeného inzerátu
+      const result = await res.json()
+      setCreatedAdId(result.id)
+      setSuccess(true)
+      form.reset()
+      setImages([])
+
+      // ✅ PŘIDÁNO - Redirect po 2 sekundách
+      setTimeout(() => {
+        if (result.id) {
+          router.push(`/ads/${result.id}`)
+        } else {
+          router.push('/ads')
+        }
+      }, 2000)
+
+    } catch (err) {
+      console.error('🔍 Submit error:', err)
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Neznámá chyba')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // V fillTestData funkci změňte:
   function fillTestData(form: HTMLFormElement) {
     const getValue = (name: string): HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null => 
       form.querySelector(`[name="${name}"]`)
@@ -213,24 +289,24 @@ export default function AdCreateForm() {
     setInputValue('title', 'Testovací auto')
     setSelectedBrand('skoda')
     setSelectedModel('octavia')
-    setInputValue('description', 'Popis testovacího auta')
+    setInputValue('description', 'Popis testovacího auta') // nepovinné, ale pro test
     setInputValue('price', '123456')
     setInputValue('mileage', '150000')
-    setInputValue('year', '2018')
-    setInputValue('firstRegistration', '2018')
+    setInputValue('year', '2018') // ✅ POVINNÉ
+    setInputValue('firstRegistration', '2018') // ✅ POVINNÉ
     setInputValue('bodyType', 'sedan')
     setInputValue('doorCount', '4')
     setInputValue('seatCount', '5')
-    setInputValue('color', 'Stříbrná')
-    setSelectedColorFinish('metallic') // ✅ ZMĚNĚNO - používáme state setter místo input value
-    setInputValue('airbagCount', '6')
-    setInputValue('airConditioning', 'automatic')
+    setSelectedColor('silver')
+    setSelectedColorFinish('metallic')
+    setInputValue('airbagCount', '6') // nepovinné, ale pro test
+    // ✅ ODSTRANĚNO - airConditioning už není povinné
     setInputValue('fuel', 'diesel')
     setInputValue('engineVolume', '1968')
     setInputValue('power', '110')
-    setInputValue('avgConsumption', '5.2')
-    setInputValue('transmission', 'automatic')
-    setInputValue('gearCount', '6')
+    setInputValue('avgConsumption', '5.2') // ✅ POVINNÉ
+    setInputValue('transmission', 'automatic') // ✅ PŘIDÁNO ZPĚT
+    setInputValue('gearCount', '6') // ✅ PŘIDÁNO ZPĚT
     setInputValue('drivetrain', 'fwd')
     setInputValue('condition', 'used')
     setInputValue('technicalCheckUntil', '2025-12-31')
@@ -242,10 +318,9 @@ export default function AdCreateForm() {
     setCheckboxValue('wasCrashed', false)
     setCheckboxValue('hasServiceBook', true)
     setInputValue('warrantyUntil', '2026-01-01')
-    setInputValue('windowNote', 'Test poznámka')
-    //setInputValue('features', 'klimatizace, ABS, ESP')
   }
 
+  // Na konci return JSX změňte error/success zprávy:
   return (
     <div className="ad-create-form">
       <div className="form-container">
@@ -269,12 +344,12 @@ export default function AdCreateForm() {
             <h3 className="form-section__title">Základní informace</h3>
             <div className="form-grid">
               <div className="form-group form-group--full-width">
-                <label htmlFor="title">Název inzerátu</label>
+                <label htmlFor="title">Název inzerátu <span className="required">*</span></label>
                 <input name="title" id="title" required placeholder="Např. Škoda Octavia 2.0 TDI Combi" />
               </div>
               
               <div className="form-group">
-                <label htmlFor="brand">Značka</label>
+                <label htmlFor="brand">Značka <span className="required">*</span></label>
                 <BrandSelect
                   value={selectedBrand}
                   onChange={handleBrandChange}
@@ -283,7 +358,7 @@ export default function AdCreateForm() {
               </div>
               
               <div className="form-group">
-                <label htmlFor="model">Model</label>
+                <label htmlFor="model">Model <span className="required">*</span></label>
                 <ModelSelect
                   value={selectedModel}
                   onChange={handleModelChange}
@@ -293,9 +368,10 @@ export default function AdCreateForm() {
                 />
               </div>
               
+              {/* Základní informace - POPIS NEPOVINNÝ */}
               <div className="form-group form-group--full-width">
-                <label htmlFor="description">Popis vozidla</label>
-                <textarea name="description" id="description" required placeholder="Popište stav vozidla, výbavu, historii..." />
+                <label htmlFor="description">Popis vozidla</label> {/* ✅ ODSTRANĚNO required * */}
+                <textarea name="description" id="description" placeholder="Popište stav vozidla, výbavu, historii..." />
               </div>
             </div>
           </div>
@@ -305,23 +381,23 @@ export default function AdCreateForm() {
             <h3 className="form-section__title">Cena a základní údaje</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="price">Cena (Kč)</label>
+                <label htmlFor="price">Cena (Kč) <span className="required">*</span></label>
                 <input name="price" id="price" type="number" required placeholder="450000" />
               </div>
               
               <div className="form-group">
-                <label htmlFor="mileage">Nájezd (km)</label>
+                <label htmlFor="mileage">Nájezd (km) <span className="required">*</span></label>
                 <input name="mileage" id="mileage" type="number" required placeholder="150000" />
               </div>
               
               <div className="form-group">
-                <label htmlFor="year">Rok výroby</label>
-                <input name="year" id="year" type="number" placeholder="2018" />
+                <label htmlFor="year">Rok výroby <span className="required">*</span></label> {/* ✅ PŘIDÁNO * */}
+                <input name="year" id="year" type="number" required placeholder="2018" />
               </div>
               
               <div className="form-group">
-                <label htmlFor="firstRegistration">První registrace (rok)</label>
-                <input name="firstRegistration" id="firstRegistration" type="number" placeholder="2018" />
+                <label htmlFor="firstRegistration">První registrace (rok) <span className="required">*</span></label> {/* ✅ PŘIDÁNO * */}
+                <input name="firstRegistration" id="firstRegistration" type="number" required placeholder="2018" />
               </div>
             </div>
           </div>
@@ -331,7 +407,7 @@ export default function AdCreateForm() {
             <h3 className="form-section__title">Vzhled a rozměry</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="bodyType">Karoserie</label>
+                <label htmlFor="bodyType">Karoserie <span className="required">*</span></label>
                 <select name="bodyType" id="bodyType" required>
                   <option value="">Vyberte karoserii</option>
                   <option value="hatchback">Hatchback</option>
@@ -348,7 +424,7 @@ export default function AdCreateForm() {
               </div>
 
               <div className="form-group">
-                <label>Barva</label>
+                <label>Barva <span className="required">*</span></label>
                 <ColorSelect
                   value={selectedColor}
                   onChange={setSelectedColor}
@@ -357,26 +433,28 @@ export default function AdCreateForm() {
               </div>
 
               <div className="form-group">
-                <label>Povrchová úprava</label>
+                <label>Povrchová úprava <span className="required">*</span></label>
                 <ColorFinishSelect
                   value={selectedColorFinish}
                   onChange={setSelectedColorFinish}
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="doorCount">Počet dveří</label>
+                <label htmlFor="doorCount">Počet dveří <span className="required">*</span></label>
                 <input name="doorCount" id="doorCount" type="number" required placeholder="5" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="seatCount">Počet míst</label>
+                <label htmlFor="seatCount">Počet míst <span className="required">*</span></label>
                 <input name="seatCount" id="seatCount" type="number" required placeholder="5" />
               </div>
 
+              {/* Vzhled a rozměry - AIRBAGY NEPOVINNÉ */}
               <div className="form-group">
-                <label htmlFor="airbagCount">Počet airbagů</label>
-                <input name="airbagCount" id="airbagCount" type="number" required placeholder="6" />
+                <label htmlFor="airbagCount">Počet airbagů</label> {/* ✅ ODSTRANĚNO required * */}
+                <input name="airbagCount" id="airbagCount" type="number" placeholder="6" />
               </div>
             </div>
           </div>
@@ -386,7 +464,7 @@ export default function AdCreateForm() {
             <h3 className="form-section__title">Motor a pohon</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="fuel">Palivo</label>
+                <label htmlFor="fuel">Palivo <span className="required">*</span></label>
                 <select name="fuel" id="fuel" required>
                   <option value="">Vyberte palivo</option>
                   <option value="petrol">Benzín</option>
@@ -399,22 +477,23 @@ export default function AdCreateForm() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="engineVolume">Objem motoru (ccm)</label>
+                <label htmlFor="engineVolume">Objem motoru (ccm) <span className="required">*</span></label>
                 <input name="engineVolume" id="engineVolume" type="number" required placeholder="1968" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="power">Výkon (kW)</label>
+                <label htmlFor="power">Výkon (kW) <span className="required">*</span></label>
                 <input name="power" id="power" type="number" required placeholder="110" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="avgConsumption">Průměrná spotřeba (l/100km)</label>
-                <input name="avgConsumption" id="avgConsumption" type="number" step="0.1" placeholder="5.2" />
+                <label htmlFor="avgConsumption">Průměrná spotřeba (l/100km) <span className="required">*</span></label>
+                <input name="avgConsumption" id="avgConsumption" type="number" step="0.1" required placeholder="5.2" />
               </div>
 
+              {/* ✅ PŘIDÁNO ZPĚT - Převodovka */}
               <div className="form-group">
-                <label htmlFor="transmission">Převodovka</label>
+                <label htmlFor="transmission">Převodovka <span className="required">*</span></label>
                 <select name="transmission" id="transmission" required>
                   <option value="">Vyberte převodovku</option>
                   <option value="manual">Manuální</option>
@@ -424,31 +503,32 @@ export default function AdCreateForm() {
                 </select>
               </div>
 
+              {/* ✅ PŘIDÁNO ZPĚT - Počet rychlostí */}
               <div className="form-group">
                 <label htmlFor="gearCount">Počet rychlostí</label>
                 <input name="gearCount" id="gearCount" type="number" placeholder="6" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="drivetrain">Pohon</label>
-                <select name="drivetrain" id="drivetrain" required>
-                  <option value="">Vyberte pohon</option>
-                  <option value="fwd">Přední (FWD)</option>
-                  <option value="rwd">Zadní (RWD)</option>
-                  <option value="awd">4x4 (AWD)</option>
-                  <option value="four_x_four">4x4 (mechanické)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
                 <label htmlFor="airConditioning">Klimatizace</label>
-                <select name="airConditioning" id="airConditioning" required>
+                <select name="airConditioning" id="airConditioning">
                   <option value="">Vyberte klimatizaci</option>
                   <option value="none">Žádná</option>
                   <option value="manual">Manuální</option>
                   <option value="automatic">Automatická</option>
                   <option value="two_zone">Dvouzónová</option>
                   <option value="three_zone">Třízónová</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="drivetrain">Pohon <span className="required">*</span></label>
+                <select name="drivetrain" id="drivetrain" required>
+                  <option value="">Vyberte pohon</option>
+                  <option value="fwd">Přední (FWD)</option>
+                  <option value="rwd">Zadní (RWD)</option>
+                  <option value="awd">4x4 (AWD)</option>
+                  <option value="four_x_four">4x4 (mechanické)</option>
                 </select>
               </div>
             </div>
@@ -459,11 +539,11 @@ export default function AdCreateForm() {
             <h3 className="form-section__title">Stav a dokumenty</h3>
             <div className="form-grid">
               <div className="form-group">
-                <label htmlFor="condition">Stav vozidla</label>
+                <label htmlFor="condition">Stav vozidla <span className="required">*</span></label>
                 <select name="condition" id="condition" required>
                   <option value="">Vyberte stav</option>
                   <option value="new">Nové</option>
-                  <option value="used">Použité</option>
+                  <option value="used">Použité</option>           
                   <option value="crashed">Havárie</option>
                   <option value="demo">Demo</option>
                 </select>
@@ -475,13 +555,13 @@ export default function AdCreateForm() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="countryOfOrigin">Země původu</label>
+                <label htmlFor="countryOfOrigin">Země původu <span className="required">*</span></label>
                 <input name="countryOfOrigin" id="countryOfOrigin" required placeholder="ČR" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="euroStandard">Emisní norma</label>
-                <select name="euroStandard" id="euroStandard" required>
+                <label htmlFor="euroStandard">Emisní norma</label> {/* ✅ ODSTRANĚNO required * */}
+                <select name="euroStandard" id="euroStandard"> {/* ✅ ODSTRANĚNO required */}
                   <option value="">Vyberte normu</option>
                   <option value="euro1">Euro 1</option>
                   <option value="euro2">Euro 2</option>
@@ -497,16 +577,6 @@ export default function AdCreateForm() {
                 <label htmlFor="warrantyUntil">Záruka do</label>
                 <input name="warrantyUntil" id="warrantyUntil" type="date" />
               </div>
-
-              <div className="form-group">
-                <label htmlFor="windowNote">Poznámka na okno</label>
-                <input name="windowNote" id="windowNote" placeholder="Např. Volat po 18h" />
-              </div>
-
-              {/* <div className="form-group form-group--full-width">
-                <label htmlFor="features">Výbava (čárkou oddělené)</label>
-                <input name="features" id="features" placeholder="klimatizace, ABS, ESP, navigace..." />
-              </div> */}
             </div>
 
             {/* Checkboxy */}
@@ -531,8 +601,14 @@ export default function AdCreateForm() {
 
           {/* Image Upload Section */}
           <div className="image-upload-section">
-            <h3>Obrázky inzerátu</h3>
-            <p className="image-requirement">Přidejte alespoň 2 kvalitní obrázky vašeho vozidla</p>
+            <h3>Obrázky inzerátu <span className="required">*</span></h3> {/* ✅ PŘIDÁNO * */}
+            <p className="image-requirement">
+              Přidejte alespoň 2 kvalitní obrázky vašeho vozidla
+              <br />
+              <small style={{ color: '#6c757d' }}>
+                Maximální velikost: 10MB na obrázek | Povolené formáty: JPEG, PNG, WebP | Maximum: 10 obrázků
+              </small>
+            </p>
             
             {/* Image Gallery */}
             {images.length > 0 && (
@@ -601,7 +677,19 @@ export default function AdCreateForm() {
               </span>
             </div>
 
-            {imageError && <div className="error">{imageError}</div>}
+            {imageError && (
+              <div className="image-error" style={{ 
+                color: '#dc3545', 
+                backgroundColor: '#f8d7da', 
+                border: '1px solid #f5c6cb',
+                borderRadius: '4px',
+                padding: '12px',
+                marginTop: '8px',
+                whiteSpace: 'pre-line' // Pro zobrazení více řádků
+              }}>
+                {imageError}
+              </div>
+            )}
           </div>
 
           <button type="submit" disabled={loading}>
@@ -609,8 +697,60 @@ export default function AdCreateForm() {
           </button>
           
           {error && <div className="error">{error}</div>}
-          {success && <div className="success">Inzerát byl úspěšně přidán!</div>}
+          
+          {/* ✅ ZMĚNĚNO - Nová success zpráva */}
+          {success && (
+            <div className="success-message">
+              <div className="success-message__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="success-message__content">
+                <h3 className="success-message__title">Inzerát byl úspěšně vytvořen!</h3>
+                <p className="success-message__text">
+                  Přesměrovávám vás na detail inzerátu...
+                </p>
+                <div className="success-message__actions">
+                  {createdAdId && (
+                    <button 
+                      type="button"
+                      className="success-message__button"
+                      onClick={() => router.push(`/ads/${createdAdId}`)}
+                    >
+                      Zobrazit inzerát
+                    </button>
+                  )}
+                  <button 
+                    type="button"
+                    className="success-message__button success-message__button--secondary"
+                    onClick={() => router.push('/ads')}
+                  >
+                    Všechny inzeráty
+                  </button>
+                </div>
+              </div>
+              <div className="success-message__spinner">
+                <div className="spinner"></div>
+              </div>
+            </div>
+          )}
         </form>
+
+        {/* ✅ PŘIDÁNO - Vysvětlivka pro povinná pole */}
+        <div className="form-notice">
+          <div className="form-notice__content">
+            <svg className="form-notice__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9,9h6v6H9z"/>
+              <path d="M9,15h6"/>
+            </svg>
+            <p>
+              <span className="required">*</span> 
+              Povinná pole jsou označena červenou hvězdičkou a musí být vyplněna před odesláním formuláře.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

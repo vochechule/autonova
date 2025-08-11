@@ -6,13 +6,15 @@ interface ColorFinishSelectProps {
   onChange: (value: string) => void
   required?: boolean
   className?: string
+  placeholder?: string
 }
 
 export default function ColorFinishSelect({ 
   value, 
   onChange, 
   required = false,
-  className = ""
+  className = "",
+  placeholder = "Vyberte povrchovou úpravu"
 }: ColorFinishSelectProps) {
   const selectedFinish = getColorFinishByValue(value)
 
@@ -24,7 +26,8 @@ export default function ColorFinishSelect({
         required={required}
         className="color-finish-select__select"
       >
-        <option value="">Vyberte povrchovou úpravu</option>
+        {/* ✅ ZMĚNĚNO - nebudeme mít prázdnou možnost pokud je required */}
+        {!required && <option value="">{placeholder}</option>}
         {colorFinishes.map(finish => (
           <option key={finish.value} value={finish.value}>
             {finish.label}

@@ -37,7 +37,7 @@ model Ad {
   color               String
   colorFinish         String?
   airbagCount         Int
-  airConditioning     AirConditioning
+  airConditioning     AirConditioning?
   fuel                FuelType
   engineVolume        Int
   power               Int
@@ -48,7 +48,7 @@ model Ad {
   condition           CarCondition
   technicalCheckUntil DateTime?
   countryOfOrigin     String
-  euroStandard        EmissionClass
+  euroStandard        EmissionClass?
   ecoTaxPaid          Boolean
   isFirstOwner        Boolean
   isDisabledAdapted   Boolean

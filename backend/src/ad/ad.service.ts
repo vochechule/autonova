@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -24,6 +24,22 @@ export class AdService {
     // Kontrola userId
     if (!userId) {
       throw new Error('User ID is required');
+    }
+
+    // ✅ PŘIDÁNO - Validace obrázků
+    if (!files || files.length < 2) {
+      throw new Error('Je nutné nahrát alespoň 2 obrázky');
+    }
+
+    // ✅ PŘIDÁNO - Validace povinných polí
+    const requiredFields = ['title', 'brand', 'model', 'price', 'mileage', 'year', 'firstRegistration', 
+                         'bodyType', 'color', 'colorFinish', 'doorCount', 'seatCount', 
+                         'fuel', 'engineVolume', 'power', 'avgConsumption', 'transmission', 
+                         'drivetrain', 'condition', 'countryOfOrigin'];
+
+    const missingFields = requiredFields.filter(field => !dto[field] || dto[field] === '');
+    if (missingFields.length > 0) {
+      throw new Error(`Chybí povinná pole: ${missingFields.join(', ')}`);
     }
 
     // Odstraň features ze základních dat, zpracuji je zvlášť
@@ -56,14 +72,23 @@ export class AdService {
       technicalCheckUntil: dto.technicalCheckUntil ? new Date(dto.technicalCheckUntil).toISOString() : undefined,
       warrantyUntil: dto.warrantyUntil ? new Date(dto.warrantyUntil).toISOString() : undefined,
       
-      // Ujisti se, že description existuje (je povinné)
-      description: dto.description || 'Bez popisu',
+      // ✅ OPRAVENO - Nepovinné string hodnoty
+      airConditioning: dto.airConditioning || undefined,
+      euroStandard: dto.euroStandard || undefined,
+      description: dto.description || undefined,
       
       // Místo userId použij user.connect
       user: {
         connect: { id: userId }
       }
     };
+
+    // ✅ PŘIDÁNO - Odstraň undefined hodnoty
+    Object.keys(data).forEach(key => {
+      if (data[key] === undefined || data[key] === '') {
+        delete data[key];
+      }
+    });
 
     // Vytvořit inzerát
     const ad = await this.prisma.ad.create({
@@ -73,12 +98,28 @@ export class AdService {
     
     // Zpracovat obrázky
     if (files && files.length > 0) {
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         try {
-          const filename = `${Date.now()}_${file.originalname}`;
+          // ✅ PŘIDÁNO - Validace velikosti souboru (10MB limit)
+          const maxSize = 10 * 1024 * 1024; // 10MB v bytech
+          if (file.size > maxSize) {
+            throw new BadRequestException(`Soubor ${file.originalname} je příliš velký. Maximální velikost je 10MB, váš soubor má ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
+          }
+
+          // ✅ PŘIDÁNO - Validace typu souboru
+          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.mimetype)) {
+            throw new BadRequestException(`Nepodporovaný formát souboru ${file.originalname}. Povolené formáty: JPEG, PNG, WebP.`);
+          }
+
+          // ✅ ZMĚNĚNO - Jednoduchý a bezpečný název
+          const fileExtension = path.extname(file.originalname || '.jpg');
+          const filename = `ad_${Date.now()}_${i + 1}${fileExtension}`;
           
-          console.log('🔥 Uploading to Supabase:', filename);
-          console.log('🔥 File size:', file.size);
+          console.log('🔥 Original filename:', file.originalname);
+          console.log('🔥 Safe filename:', filename);
+          console.log('🔥 File size:', `${(file.size / 1024 / 1024).toFixed(2)}MB`);
           console.log('🔥 File type:', file.mimetype);
           
           const { data, error } = await this.supabase
@@ -89,10 +130,9 @@ export class AdService {
               upsert: true
             });
 
-          // ✅ OPRAVA: zkontroluj chyby!
           if (error) {
             console.error('❌ Supabase upload error:', error);
-            throw new Error(`Upload failed: ${error.message}`);
+            throw new BadRequestException(`Upload failed: ${error.message}`);
           }
 
           console.log('✅ Upload successful:', data);
@@ -112,8 +152,11 @@ export class AdService {
           });
         } catch (err) {
           console.error('❌ File upload error:', err);
-          // Zahoď chybu výše, aby se zastavil celý proces
-          throw err;
+          // ✅ ZMĚNĚNO - Properly throw the error
+          if (err instanceof BadRequestException) {
+            throw err; // Re-throw validation errors
+          }
+          throw new BadRequestException(`Chyba při nahrávání souboru ${file.originalname}: ${err.message}`);
         }
       }
     } else {
