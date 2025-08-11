@@ -301,6 +301,44 @@
   &__mileage {
     color: #888;
   }
+
+  &__results-info {
+    margin-bottom: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  &__loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+  }
+
+  &__load-more {
+    text-align: center;
+    margin: 3rem 0 2rem;
+  }
+
+  &__end-message {
+    text-align: center;
+    padding: 1.5rem 2rem;
+    color: #1f2937;
+    font-weight: 500;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-top: 2rem;
+    font-size: 0.95rem;
+    
+    // Trocha modré na konci
+    &::before {
+      content: "✓";
+      display: inline-block;
+      margin-right: 8px;
+      color: #3b82f6;
+      font-weight: 600;
+    }
+  }
 }
 
 .ads-page__seller-info {
@@ -329,4 +367,72 @@
   font-size: 0.95rem;
   font-weight: 500;
   margin-left: 4px;
+}
+
+.load-more-button {
+  background: #ffffff;
+  color: #1f2937;
+  border: 2px solid #e5e7eb;
+  padding: 14px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 16px;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(59, 130, 246, 0.25);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.load-more-count {
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #6b7280;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.load-more-progress {
+  width: 180px;
+  height: 2px;
+  background: #f3f4f6;
+  border-radius: 1px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.load-more-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  border-radius: 1px;
+  transition: width 0.3s ease;
 }

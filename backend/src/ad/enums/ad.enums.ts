@@ -58,3 +58,28 @@ export enum CarCondition {
   crashed = 'crashed',
   demo = 'demo',
 }
+
+export enum Color {
+  BLACK = 'black',
+  WHITE = 'white',
+  SILVER = 'silver',
+  GRAY = 'gray',
+  RED = 'red',
+  BLUE = 'blue',
+  GREEN = 'green',
+  YELLOW = 'yellow',
+  ORANGE = 'orange',
+  BROWN = 'brown',
+  GOLD = 'gold',
+  BURGUNDY = 'burgundy',
+  NAVY = 'navy',
+  OTHER = 'other'
+}
+
+export enum ColorFinish {
+  STANDARD = 'standard',
+  METALLIC = 'metallic',
+  PEARL = 'pearl',
+  MATTE = 'matte',
+  SPECIAL = 'special'
+}

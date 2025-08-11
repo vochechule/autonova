@@ -5,6 +5,8 @@ import { getModelsList } from '../data/carData'
 import BrandSelect from './BrandSelect'
 import ModelSelect from './ModelSelect'
 import RangeFilter from './RangeFilter'
+import ColorSelect from './ColorSelect' // ✅ PŘIDÁNO
+import ColorFinishSelect from './ColorFinishSelect' // ✅ PŘIDÁNO
 import '../styles/components/AdFilter.scss'
 
 export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => void }) {
@@ -18,6 +20,8 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
   // State pro brand/model filtry
   const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || '')
   const [selectedModel, setSelectedModel] = useState(searchParams.get('model') || '')
+  const [selectedColor, setSelectedColor] = useState(searchParams.get('color') || '') // ✅ PŘIDÁNO
+  const [selectedColorFinish, setSelectedColorFinish] = useState(searchParams.get('colorFinish') || '') // ✅ PŘIDÁNO
   
   // State pro range filtry
   const [priceFrom, setPriceFrom] = useState(parseInt(searchParams.get('priceFrom') || '0') || 0)
@@ -34,6 +38,15 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
 
   const handleModelChange = (modelValue: string) => {
     setSelectedModel(modelValue)
+  }
+
+  // ✅ PŘIDÁNO - Handlery pro barvy
+  const handleColorChange = (colorValue: string) => {
+    setSelectedColor(colorValue)
+  }
+
+  const handleColorFinishChange = (colorFinishValue: string) => {
+    setSelectedColorFinish(colorFinishValue)
   }
 
   const handlePriceChange = (from: number, to: number) => {
@@ -62,9 +75,11 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
       }
     }
 
-    // Přidat brand/model z state (přepsat hidden inputy)
+    // Přidat brand/model/color z state (přepsat hidden inputy)
     if (selectedBrand) params.set('brand', selectedBrand)
     if (selectedModel) params.set('model', selectedModel)
+    if (selectedColor) params.set('color', selectedColor) // ✅ PŘIDÁNO
+    if (selectedColorFinish) params.set('colorFinish', selectedColorFinish) // ✅ PŘIDÁNO
     
     // Přidat price range (přepsat hidden inputy)
     if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
@@ -100,6 +115,8 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     // Aktualizace state z URL parametrů
     setSelectedBrand(searchParams.get('brand') || '')
     setSelectedModel(searchParams.get('model') || '')
+    setSelectedColor(searchParams.get('color') || '') // ✅ PŘIDÁNO
+    setSelectedColorFinish(searchParams.get('colorFinish') || '') // ✅ PŘIDÁNO
     setPriceFrom(parseInt(searchParams.get('priceFrom') || '0') || 0)
     setPriceTo(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
     setMileageFrom(parseInt(searchParams.get('mileageFrom') || '0') || 0)
@@ -163,6 +180,8 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
               disabled={!selectedBrand}
             />
           </div>
+
+          
 
           <div className="ad-filter__filter-group">
             <label className="ad-filter__label">Cena</label>
@@ -243,6 +262,27 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
                 </select>
               </div>
 
+              {/* ✅ PŘIDÁNO - Color Filter */}
+          <div className="ad-filter__filter-group">
+            <label className="ad-filter__label">Barva</label>
+            <ColorSelect
+              value={selectedColor}
+              onChange={handleColorChange}
+              placeholder="Všechny barvy"
+              className="ad-filter__color-select"
+            />
+          </div>
+
+          {/* ✅ PŘIDÁNO - Color Finish Filter */}
+          <div className="ad-filter__filter-group">
+            <label className="ad-filter__label">Povrchová úprava</label>
+            <ColorFinishSelect
+              value={selectedColorFinish}
+              onChange={handleColorFinishChange}
+              className="ad-filter__color-finish-select"
+            />
+          </div>
+
               <div className="ad-filter__filter-group">
                 <label className="ad-filter__label" htmlFor="transmission">Převodovka</label>
                 <select id="transmission" name="transmission" className="ad-filter__select" defaultValue={searchParams.get('transmission') || ''}>
@@ -275,21 +315,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
                 </select>
               </div>
 
-              <div className="ad-filter__filter-group">
-                <label className="ad-filter__label" htmlFor="color">Barva</label>
-                <select id="color" name="color" className="ad-filter__select" defaultValue={searchParams.get('color') || ''}>
-                  <option value="">Všechny barvy</option>
-                  <option value="černá">Černá</option>
-                  <option value="bílá">Bílá</option>
-                  <option value="šedá">Šedá</option>
-                  <option value="modrá">Modrá</option>
-                  <option value="červená">Červená</option>
-                  <option value="zelená">Zelená</option>
-                  <option value="žlutá">Žlutá</option>
-                  <option value="stříbrná">Stříbrná</option>
-                  <option value="jiná">Jiná</option>
-                </select>
-              </div>
+              {/* ✅ ODSTRANIT starý color select - nahrazený ColorSelect komponentou */}
 
               <div className="ad-filter__filter-group">
                 <label className="ad-filter__label" htmlFor="doorCount">Počet dveří</label>
@@ -323,6 +349,10 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
             </div>
           </div>
         )}
+
+        {/* ✅ PŘIDÁNO - Hidden inputs pro form submission */}
+        <input type="hidden" name="color" value={selectedColor} />
+        <input type="hidden" name="colorFinish" value={selectedColorFinish} />
       </form>
 
       {/* Loading a výsledky */}

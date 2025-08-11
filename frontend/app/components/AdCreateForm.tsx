@@ -4,6 +4,8 @@ import '../styles/components/AdCreateForm.scss'
 import { carBrands, getBrandsList, getModelsList, getBrandsGroupedByLetter } from '../data/carData';
 import BrandSelect from './BrandSelect';
 import ModelSelect from './ModelSelect';
+import ColorSelect from './ColorSelect'
+import ColorFinishSelect from './ColorFinishSelect'
 
 export default function AdCreateForm() {
   const [loading, setLoading] = useState(false)
@@ -14,6 +16,8 @@ export default function AdCreateForm() {
   const [dragActive, setDragActive] = useState(false)
   const [selectedBrand, setSelectedBrand] = useState<string>('')
   const [selectedModel, setSelectedModel] = useState<string>('')
+  const [selectedColor, setSelectedColor] = useState<string>('')
+  const [selectedColorFinish, setSelectedColorFinish] = useState<string>('standard') // ✅ ZMĚNĚNO z '' na 'standard'
 
   const modelsList = getModelsList(selectedBrand)
 
@@ -218,7 +222,7 @@ export default function AdCreateForm() {
     setInputValue('doorCount', '4')
     setInputValue('seatCount', '5')
     setInputValue('color', 'Stříbrná')
-    setInputValue('colorFinish', 'Metalíza')
+    setSelectedColorFinish('metallic') // ✅ ZMĚNĚNO - používáme state setter místo input value
     setInputValue('airbagCount', '6')
     setInputValue('airConditioning', 'automatic')
     setInputValue('fuel', 'diesel')
@@ -344,13 +348,20 @@ export default function AdCreateForm() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="color">Barva</label>
-                <input name="color" id="color" required placeholder="Stříbrná" />
+                <label>Barva</label>
+                <ColorSelect
+                  value={selectedColor}
+                  onChange={setSelectedColor}
+                  required
+                />
               </div>
 
               <div className="form-group">
-                <label htmlFor="colorFinish">Povrchová úprava</label>
-                <input name="colorFinish" id="colorFinish" placeholder="Metalíza" />
+                <label>Povrchová úprava</label>
+                <ColorFinishSelect
+                  value={selectedColorFinish}
+                  onChange={setSelectedColorFinish}
+                />
               </div>
 
               <div className="form-group">

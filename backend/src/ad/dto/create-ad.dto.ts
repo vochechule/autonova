@@ -6,6 +6,8 @@ import {
   Drivetrain,
   EmissionClass,
   CarCondition,
+  Color,
+  ColorFinish,
 } from '../enums/ad.enums'
 import { Transform, Type } from 'class-transformer'
 import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray, IsNumber } from 'class-validator'
@@ -53,12 +55,12 @@ export class CreateAdDto {
   @IsInt()
   seatCount: number;
 
-  @IsString()
-  color: string;
+  @IsEnum(Color)
+  color: Color;
 
   @IsOptional()
-  @IsString()
-  colorFinish?: string;
+  @IsEnum(ColorFinish)
+  colorFinish?: ColorFinish;
 
   @Type(() => Number)
   @IsInt()

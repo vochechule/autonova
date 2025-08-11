@@ -134,6 +134,11 @@ export class AdService {
   }
 
   async findWithFilters(query: any) {
+    // ✅ PŘIDEJTE PAGINATION PARAMETRY
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     const {
       search,
       title,
@@ -149,6 +154,7 @@ export class AdService {
       fuel,
       bodyType,
       color,
+      colorFinish, // ✅ PŘIDÁNO
       powerFrom,
       powerTo,
       transmission,
@@ -221,13 +227,18 @@ export class AdService {
       where.color = color;
     }
 
+    // ✅ PŘIDÁNO - Filtr pro povrchovou úpravu barvy
+    if (colorFinish) {
+      where.colorFinish = colorFinish;
+    }
+
     // Přidej fulltextové vyhledávání
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
         { brand: { contains: search, mode: 'insensitive' } },
-        { model: { contains: search, mode: 'insensitive' } },
+        { model: { contains: model, mode: 'insensitive' } },
       ];
     }
 
@@ -240,11 +251,18 @@ export class AdService {
 
     console.log('Filter where clause:', JSON.stringify(where, null, 2));
 
-    const ads = await this.prisma.ad.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: { images: true, user: true, features: true },
-    });
+    // ✅ PŘIDEJTE PAGINATION A COUNT
+    const [ads, total] = await Promise.all([
+      this.prisma.ad.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: { images: true, user: true, features: true },
+        skip,      // ← PAGINATION
+        take: limit // ← LIMIT
+      }),
+      this.prisma.ad.count({ where }) // ← TOTAL COUNT
+    ]);
+
     // Attach average rating to each ad's user
     for (const ad of ads) {
       const avg = await this.prisma.review.aggregate({
@@ -253,7 +271,19 @@ export class AdService {
       });
       (ad.user as any).averageRating = avg._avg.rating;
     }
-    return ads;
+
+    // ✅ VRAŤ PAGINATION DATA
+    return {
+      ads,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      }
+    };
   }
 
   findAll = async () => {

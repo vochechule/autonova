@@ -5,6 +5,8 @@ import { getModelsList } from '../data/carData'
 import BrandSelect from './BrandSelect'
 import ModelSelect from './ModelSelect'
 import RangeFilter from './RangeFilter'
+import ColorSelect from './ColorSelect' // ✅ PŘIDÁNO
+import ColorFinishSelect from './ColorFinishSelect' // ✅ PŘIDÁNO
 import '../styles/components/FilterSidebar.scss'
 
 interface FilterSidebarProps {
@@ -23,6 +25,8 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
   // State pro brand/model filtry
   const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || '')
   const [selectedModel, setSelectedModel] = useState(searchParams.get('model') || '')
+  const [selectedColor, setSelectedColor] = useState(searchParams.get('color') || '') // ✅ PŘIDÁNO
+  const [selectedColorFinish, setSelectedColorFinish] = useState(searchParams.get('colorFinish') || '') // ✅ PŘIDÁNO
   
   // State pro range filtry
   const [priceFrom, setPriceFrom] = useState(parseInt(searchParams.get('priceFrom') || '0') || 0)
@@ -31,6 +35,44 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
   const [mileageTo, setMileageTo] = useState(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
 
   const modelsList = getModelsList(selectedBrand)
+
+  // ✅ PŘIDÁNO - Handler pro barvu
+  const handleColorChange = (colorValue: string) => {
+    setSelectedColor(colorValue)
+    // Trigger immediate filter update
+    setTimeout(() => {
+      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
+      if (form) {
+        const params = buildParams(form)
+        const newParamsString = params.toString()
+        const currentParamsString = searchParams.toString()
+        
+        if (currentParamsString !== newParamsString) {
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          fetchAds(params)
+        }
+      }
+    }, 0)
+  }
+
+  // ✅ PŘIDÁNO - Handler pro povrchovou úpravu
+  const handleColorFinishChange = (colorFinishValue: string) => {
+    setSelectedColorFinish(colorFinishValue)
+    // Trigger immediate filter update
+    setTimeout(() => {
+      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
+      if (form) {
+        const params = buildParams(form)
+        const newParamsString = params.toString()
+        const currentParamsString = searchParams.toString()
+        
+        if (currentParamsString !== newParamsString) {
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          fetchAds(params)
+        }
+      }
+    }, 0)
+  }
 
   // Handlery pro změny v komponentách
   const handleBrandChange = (brandValue: string) => {
@@ -155,9 +197,11 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
       }
     }
 
-    // Přidat brand/model z state (přepsat případné form hodnoty)
+    // Přidat brand/model/color z state (přepsat případné form hodnoty)
     if (selectedBrand) params.set('brand', selectedBrand)
     if (selectedModel) params.set('model', selectedModel)
+    if (selectedColor) params.set('color', selectedColor) // ✅ PŘIDÁNO
+    if (selectedColorFinish) params.set('colorFinish', selectedColorFinish) // ✅ PŘIDÁNO
     
     // Přidat price range z state
     if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
@@ -168,7 +212,7 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
     if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
 
     return params
-  }, [selectedBrand, selectedModel, priceFrom, priceTo, mileageFrom, mileageTo])
+  }, [selectedBrand, selectedModel, selectedColor, selectedColorFinish, priceFrom, priceTo, mileageFrom, mileageTo]) // ✅ PŘIDÁNO selectedColorFinish
 
   // Handle checkbox changes (immediate)
   const handleCheckboxChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,6 +270,8 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
   useEffect(() => {
     setSelectedBrand(searchParams.get('brand') || '')
     setSelectedModel(searchParams.get('model') || '')
+    setSelectedColor(searchParams.get('color') || '') // ✅ PŘIDÁNO
+    setSelectedColorFinish(searchParams.get('colorFinish') || '') // ✅ PŘIDÁNO
     setPriceFrom(parseInt(searchParams.get('priceFrom') || '0') || 0)
     setPriceTo(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
     setMileageFrom(parseInt(searchParams.get('mileageFrom') || '0') || 0)
@@ -278,6 +324,28 @@ export default function FilterSidebar({ onResults, isVisible = true, onClose }: 
             onChange={handleModelChange}
             models={modelsList}
             disabled={!selectedBrand}
+          />
+        </div>
+
+        {/* ✅ PŘIDÁNO - Color Filter */}
+        <div className="filter-sidebar__group">
+          <label className="filter-sidebar__label">Barva</label>
+          <ColorSelect
+            value={selectedColor}
+            onChange={handleColorChange}
+            placeholder="Všechny barvy"
+            className="filter-sidebar__color-select"
+          />
+        </div>
+
+        {/* ✅ PŘIDÁNO - Color Finish Filter */}
+        <div className="filter-sidebar__group">
+          <label className="filter-sidebar__label">Povrchová úprava</label>
+          <ColorFinishSelect
+            value={selectedColorFinish}
+            onChange={handleColorFinishChange}
+            placeholder="Všechny úpravy"
+            className="filter-sidebar__color-finish-select"
           />
         </div>
 
