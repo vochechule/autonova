@@ -35,14 +35,7 @@ export default function AdCreateForm() {
   }
 
   const handleImageAdd = (newFiles: File[]) => {
-    const validFiles = newFiles.filter(file => file.type.startsWith('image/'))
-    setImages(prev => [...prev, ...validFiles])
-    
-    if (images.length + validFiles.length < 2) {
-      setImageError('Přidejte alespoň dva obrázky.')
-    } else {
-      setImageError(null)
-    }
+    validateAndAddFiles(newFiles) // ✅ ZMĚNĚNO - používá validaci místo přímého přidání
   }
 
   const handleImageRemove = (index: number) => {
@@ -639,21 +632,30 @@ export default function AdCreateForm() {
 
             {/* Drop Zone */}
             <div 
-              className={`drop-zone ${dragActive ? 'active' : ''}`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
+              className={`drop-zone ${dragActive ? 'active' : ''} ${images.length >= 10 ? 'disabled' : ''}`}
+              onDragEnter={images.length < 10 ? handleDrag : undefined}
+              onDragLeave={images.length < 10 ? handleDrag : undefined}
+              onDragOver={images.length < 10 ? handleDrag : undefined}
+              onDrop={images.length < 10 ? handleDrop : undefined}
             >
               <div className="drop-zone-content">
-                <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <p className="drop-text">
-                  Přetáhněte obrázky sem nebo 
-                  <label htmlFor="images" className="file-input-label"> vyberte soubory</label>
-                </p>
-                <p className="drop-subtext">Podporované formáty: JPG, PNG, WEBP (max 10MB/obrázek)</p>
+                {images.length >= 10 ? (
+                  <>
+                    <p className="drop-text">Dosáhli jste maximálního počtu obrázků (10)</p>
+                    <p className="drop-subtext">Odstraňte některé obrázky pro přidání nových</p>
+                  </>
+                ) : (
+                  <>
+                    <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p className="drop-text">
+                      Přetáhněte obrázky sem nebo 
+                      <label htmlFor="images" className="file-input-label"> vyberte soubory</label>
+                    </p>
+                    <p className="drop-subtext">Podporované formáty: JPG, PNG, WEBP (max 10MB/obrázek)</p>
+                  </>
+                )}
               </div>
               
               <input
@@ -662,18 +664,17 @@ export default function AdCreateForm() {
                 id="images"
                 accept="image/*"
                 multiple
-                onChange={e => {
-                  const files = Array.from(e.target.files || [])
-                  handleImageAdd(files)
-                }}
+                onChange={handleFileSelect}
+                disabled={images.length >= 10} // ✅ PŘIDÁNO - disable při dosažení limitu
                 style={{ display: 'none' }}
               />
             </div>
 
             {/* Image Counter */}
             <div className="image-counter">
-              <span className={`counter ${images.length >= 2 ? 'valid' : 'invalid'}`}>
-                {images.length} / min. 2 obrázků
+              <span className={`counter ${images.length >= 2 ? 'valid' : 'invalid'} ${images.length >= 10 ? 'full' : ''}`}>
+                {images.length} / 10 obrázků (min. 2)
+                {images.length >= 10 && <span className="limit-reached"> - limit dosažen</span>}
               </span>
             </div>
 
