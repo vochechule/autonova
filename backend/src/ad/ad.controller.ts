@@ -90,8 +90,50 @@ export class AdController {
   
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateAdDto) {
-    return this.adService.update(id, dto);
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FilesInterceptor('images', 10, {
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit per file
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new BadRequestException(`Nepodporovaný formát souboru ${file.originalname}. Povolené formáty: JPEG, PNG, WebP.`), false);
+      }
+    },
+  }))
+  async update(
+    @Param('id') id: string, 
+    @Body() dto: UpdateAdDto,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Req() req
+  ) {
+    try {
+      console.log('🔥 UPDATE - FILES RECEIVED:', files?.length || 0);
+      console.log('🔥 UPDATE - DTO:', dto);
+      
+      if (!req.user || !req.user.id) {
+        throw new UnauthorizedException('User not authenticated properly');
+      }
+
+      // Zkontroluj vlastnictví inzerátu
+      const existingAd = await this.adService.findOne(id);
+      if (existingAd.userId !== req.user.id) {
+        throw new UnauthorizedException('Můžete editovat pouze své inzeráty');
+      }
+
+      return await this.adService.update(id, dto, req.user.id, files);
+    } catch (error) {
+      console.error('❌ Update controller error:', error);
+      
+      if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+        throw error;
+      }
+      
+      throw new BadRequestException(error.message || 'Chyba při aktualizaci inzerátu');
+    }
   }
 
   @Delete(':id')

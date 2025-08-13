@@ -17,6 +17,9 @@
   }
 
   &__logo {
+    display: flex;           // ✅ PŘIDÁNO - flex pro logo + text
+    align-items: center;     // ✅ PŘIDÁNO - centrování vertikálně
+    gap: 12px;              // ✅ PŘIDÁNO - mezera mezi logem a textem
     font-size: 24px;
     font-family: 'Merriweather Sans', sans-serif;  
     font-weight: 800;
@@ -24,10 +27,45 @@
     transition: color 0.3s ease;
     text-decoration: none;
 
+    &:hover {               // ✅ PŘIDÁNO - hover efekt
+      opacity: 0.9;
+      text-decoration: none;
+    }
+
+    // ✅ PŘIDÁNO - styling pro logo obrázek
+    &-image {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;        // Zabráníme zmenšování loga
+      transition: transform 0.2s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+
     h1 {
       margin: 0;
       font-size: inherit;
       font-weight: inherit;
+      transition: color 0.3s ease;
+    }
+
+    // ✅ PŘIDÁNO - responsivní chování
+    @media (max-width: 768px) {
+      gap: 8px;
+      font-size: 20px;
+      
+      &-image {
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        display: none;       // Na velmi malých displejích skryjeme text
+      }
     }
   }
 
@@ -138,6 +176,10 @@
 
   .header__logo {
     color: #e2e8f0;
+
+    h1 {
+      color: #e2e8f0;      // ✅ PŘIDÁNO - dark mode pro text loga
+    }
   }
 
   .header__link {

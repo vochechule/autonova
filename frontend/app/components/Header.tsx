@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
 import '../styles/components/Header.scss'
 
 export default function Header() {
@@ -27,13 +28,6 @@ export default function Header() {
   }, [pathname])  // Re-run on route change
 
   useEffect(() => {
-    // Apply dark mode
-    if (isDarkMode) {
-      document.documentElement.setAttribute('data-theme', 'dark')
-    } else {
-      document.documentElement.removeAttribute('data-theme')
-    }
-    
     // Initialize from system preference or saved setting
     const savedMode = localStorage.getItem('darkMode')
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -42,6 +36,15 @@ export default function Header() {
       setIsDarkMode(savedMode === 'true')
     } else {
       setIsDarkMode(systemPrefersDark)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Apply dark mode
+    if (isDarkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else {
+      document.documentElement.removeAttribute('data-theme')
     }
   }, [isDarkMode])
 
@@ -54,7 +57,18 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header__container">
-        <a href="/" className="header__logo"><h1>Carta.cz</h1></a>
+        <a href="/" className="header__logo">
+          {/* ✅ PŘIDÁNO - SVG logo s podmíněným zobrazením podle dark mode */}
+          <Image
+            src={isDarkMode ? "/carta-logo-negative.svg" : "/carta-logo.svg"}
+            alt="Carta.cz"
+            width={40}
+            height={40}
+            priority
+            className="header__logo-image"
+          />
+          <h1>Carta.cz</h1>
+        </a>
         
         <nav className="header__nav">
           <a href="/" className="header__link">Domů</a>

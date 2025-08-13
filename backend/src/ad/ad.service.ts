@@ -395,26 +395,139 @@ export class AdService {
     return ad;
   }
 
-  async update(id: string, dto: UpdateAdDto) {
-    const { features, ...adData } = dto;
-    const data: any = {
-      ...adData,
-      // userId: userId, // ODEBER nebo definuj userId, pokud je potřeba
-    };
-
-    Object.keys(data).forEach(key => {
-      if (data[key] === undefined) delete data[key];
+  async update(id: string, dto: any, userId: string, files?: Express.Multer.File[]) {
+    // Kontrola vlastnictví
+    const existingAd = await this.prisma.ad.findUnique({
+      where: { id },
+      include: { images: true }
     });
 
-    if (data.technicalCheckUntil)
-      data.technicalCheckUntil = new Date(data.technicalCheckUntil).toISOString();
-    if (data.warrantyUntil)
-      data.warrantyUntil = new Date(data.warrantyUntil).toISOString();
+    if (!existingAd) {
+      throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
+    }
 
-    return await this.prisma.ad.update({
+    if (existingAd.userId !== userId) {
+      throw new BadRequestException('Můžete editovat pouze své inzeráty');
+    }
+
+    // Validace povinných polí (stejná jako při vytváření)
+    const requiredFields = ['title', 'brand', 'model', 'price', 'mileage', 'year', 'firstRegistration', 
+                         'bodyType', 'color', 'colorFinish', 'doorCount', 'seatCount', 
+                         'fuel', 'engineVolume', 'power', 'avgConsumption', 'transmission', 
+                         'drivetrain', 'condition', 'countryOfOrigin'];
+
+    const missingFields = requiredFields.filter(field => !dto[field] || dto[field] === '');
+    if (missingFields.length > 0) {
+      throw new Error(`Chybí povinná pole: ${missingFields.join(', ')}`);
+    }
+
+    // Odstraň features ze základních dat
+    const { features, imagesToDelete, ...adBaseData } = dto;
+    
+    // Převeď stringy na správné typy (stejná logika jako v create)
+    const data = {
+      ...adBaseData,
+      // Numerické hodnoty
+      price: dto.price ? Number(dto.price) : undefined,
+      mileage: dto.mileage ? Number(dto.mileage) : undefined,
+      year: dto.year ? Number(dto.year) : undefined,
+      firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
+      doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
+      seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
+      airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined,
+      engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
+      power: dto.power ? Number(dto.power) : undefined,
+      avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
+      gearCount: dto.gearCount ? Number(dto.gearCount) : undefined,
+      
+      // Boolean hodnoty
+      ecoTaxPaid: dto.ecoTaxPaid === 'on' || dto.ecoTaxPaid === 'true' || dto.ecoTaxPaid === true,
+      isFirstOwner: dto.isFirstOwner === 'on' || dto.isFirstOwner === 'true' || dto.isFirstOwner === true,
+      isDisabledAdapted: dto.isDisabledAdapted === 'on' || dto.isDisabledAdapted === 'true' || dto.isDisabledAdapted === true,
+      wasCrashed: dto.wasCrashed === 'on' || dto.wasCrashed === 'true' || dto.wasCrashed === true,
+      hasServiceBook: dto.hasServiceBook === 'on' || dto.hasServiceBook === 'true' || dto.hasServiceBook === true,
+      
+      // Datumy
+      technicalCheckUntil: dto.technicalCheckUntil ? new Date(dto.technicalCheckUntil).toISOString() : undefined,
+      warrantyUntil: dto.warrantyUntil ? new Date(dto.warrantyUntil).toISOString() : undefined,
+      
+      // Nepovinné string hodnoty
+      airConditioning: dto.airConditioning || undefined,
+      euroStandard: dto.euroStandard || undefined,
+      description: dto.description || undefined,
+    };
+
+    // Odstraň undefined hodnoty
+    Object.keys(data).forEach(key => {
+      if (data[key] === undefined || data[key] === '') {
+        delete data[key];
+      }
+    });
+
+    // Aktualizuj základní data inzerátu
+    const updatedAd = await this.prisma.ad.update({
       where: { id },
       data,
-      include: { images: true, features: true, user: true },
+      include: { images: true, user: true, features: true },
+    });
+
+    // Zpracuj obrázky pokud jsou přiloženy
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        try {
+          // Validace velikosti a typu (stejná jako v create)
+          const maxSize = 10 * 1024 * 1024;
+          if (file.size > maxSize) {
+            throw new BadRequestException(`Soubor ${file.originalname} je příliš velký. Maximální velikost je 10MB.`);
+          }
+
+          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+          if (!allowedTypes.includes(file.mimetype)) {
+            throw new BadRequestException(`Nepodporovaný formát souboru ${file.originalname}.`);
+          }
+
+          // Upload do Supabase
+          const fileExtension = path.extname(file.originalname || '.jpg');
+          const filename = `ad_${Date.now()}_edit_${i + 1}${fileExtension}`;
+          
+          const { data: uploadData, error } = await this.supabase
+            .storage
+            .from('photos')
+            .upload(filename, file.buffer, {
+              contentType: file.mimetype,
+              upsert: true
+            });
+
+          if (error) {
+            throw new BadRequestException(`Upload failed: ${error.message}`);
+          }
+
+          const { data: urlData } = this.supabase
+            .storage
+            .from('photos')
+            .getPublicUrl(filename);
+
+          // Přidej obrázek do databáze
+          await this.prisma.image.create({
+            data: {
+              url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
+              adId: updatedAd.id,
+            },
+          });
+        } catch (err) {
+          console.error('❌ File upload error during update:', err);
+          if (err instanceof BadRequestException) {
+            throw err;
+          }
+          throw new BadRequestException(`Chyba při nahrávání souboru ${file.originalname}: ${err.message}`);
+        }
+      }
+    }
+
+    return this.prisma.ad.findUnique({
+      where: { id },
+      include: { images: true, user: true, features: true },
     });
   }
 
