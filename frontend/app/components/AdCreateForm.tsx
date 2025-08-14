@@ -204,6 +204,27 @@ export default function AdCreateForm() {
         })
       }
 
+      // V handleSubmit před odesláním:
+      const contactPhone = formValues.get('contactPhone')
+      const contactEmail = formValues.get('contactEmail')
+
+      if (!contactPhone || !contactPhone.toString().trim()) {
+        throw new Error('Telefon je povinný')
+      }
+
+      if (!contactEmail || !contactEmail.toString().trim()) {
+        throw new Error('Email je povinný')
+      }
+
+      // Přidej do formData
+      formData.append('contactPhone', contactPhone.toString())
+      formData.append('contactEmail', contactEmail.toString())
+
+      const contactName = formValues.get('contactName')
+      if (contactName && contactName.toString().trim()) {
+        formData.append('contactName', contactName.toString())
+      }
+
       const token = localStorage.getItem('token')
       const res = await fetch('http://localhost:3000/ad', {
         method: 'POST',
@@ -311,6 +332,11 @@ export default function AdCreateForm() {
     setCheckboxValue('wasCrashed', false)
     setCheckboxValue('hasServiceBook', true)
     setInputValue('warrantyUntil', '2026-01-01')
+
+    // ✅ PŘIDÁNO - Testovací kontaktní údaje
+    setInputValue('contactName', 'Jan Novák')
+    setInputValue('contactPhone', '+420 123 456 789')
+    setInputValue('contactEmail', 'jan.novak@email.cz')
   }
 
   // Na konci return JSX změňte error/success zprávy:
@@ -589,6 +615,57 @@ export default function AdCreateForm() {
               <label className="checkbox-label">
                 <input name="hasServiceBook" type="checkbox" /> Servisní knížka
               </label>
+            </div>
+          </div>
+
+          {/* Kontaktní údaje */}
+          <div className="form-section">
+            <h3 className="form-section__title">Kontaktní údaje prodejce</h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="contactName">Jméno kontaktní osoby</label>
+                <input 
+                  name="contactName" 
+                  id="contactName" 
+                  placeholder="Vyplňte pouze pokud se liší od vašeho jména" 
+                />
+                <small className="form-help">
+                  Volitelné - zobrazí se pouze pokud se liší od jména z vašeho profilu
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="contactPhone">Telefon <span className="required">*</span></label>
+                <input 
+                  name="contactPhone" 
+                  id="contactPhone" 
+                  type="tel" 
+                  required 
+                  placeholder="+420 123 456 789"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="contactEmail">Email <span className="required">*</span></label>
+                <input 
+                  name="contactEmail" 
+                  id="contactEmail" 
+                  type="email" 
+                  required 
+                  placeholder="vase@email.cz"
+                />
+              </div>
+            </div>
+            
+            <div className="contact-notice">
+              <svg className="contact-notice__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="m9 12 2 2 4-4"/>
+              </svg>
+              <p>
+                Telefon a email budou zobrazeny zájemcům přímo u vašeho inzerátu. 
+                Můžete použít jiné kontakty než ty z vašeho profilu.
+              </p>
             </div>
           </div>
 

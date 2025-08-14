@@ -66,6 +66,11 @@ model Ad {
   isVisible           Boolean        @default(true)
   views               Int            @default(0)
   image_url           String?
+
+  contactPhone         String       // Telefon pro tento inzerát
+  contactEmail         String       // Email pro tento inzerát
+  contactName          String?      // Volitelné jméno kontaktní osoby
+  
 }
 
 model CarFeature {

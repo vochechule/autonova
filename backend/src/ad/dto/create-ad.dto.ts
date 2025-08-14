@@ -10,22 +10,22 @@ import {
   ColorFinish,
 } from '../enums/ad.enums'
 import { Transform, Type } from 'class-transformer'
-import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray, IsNumber } from 'class-validator'
+import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray, IsNumber, IsEmail, IsPhoneNumber } from 'class-validator'
 
 export class CreateAdDto {
+  @IsString()
+  title: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
   @IsString()
   brand: string;
 
   @IsString()
   model: string;
 
-  @IsString()
-  title: string;
-
-  @IsString()
-  description: string;
-
-  // ✅ OPRAVA: Přidej @Type pro čísla
   @Type(() => Number)
   @IsInt()
   price: number;
@@ -172,5 +172,14 @@ export class CreateAdDto {
   @IsDateString()
   warrantyUntil?: string; // ISO string datum
 
-  // Ostatní fieldy...
+  // ✅ PŘIDÁNO - Kontaktní údaje
+  @IsString()
+  contactPhone: string;
+
+  @IsEmail()
+  contactEmail: string;
+
+  @IsOptional()
+  @IsString()
+  contactName?: string;
 }

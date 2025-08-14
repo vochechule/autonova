@@ -35,7 +35,8 @@ export class AdService {
     const requiredFields = ['title', 'brand', 'model', 'price', 'mileage', 'year', 'firstRegistration', 
                          'bodyType', 'color', 'colorFinish', 'doorCount', 'seatCount', 
                          'fuel', 'engineVolume', 'power', 'avgConsumption', 'transmission', 
-                         'drivetrain', 'condition', 'countryOfOrigin'];
+                         'drivetrain', 'condition', 'countryOfOrigin',
+                         'contactPhone', 'contactEmail']; // ✅ PŘIDÁNO
 
     const missingFields = requiredFields.filter(field => !dto[field] || dto[field] === '');
     if (missingFields.length > 0) {
@@ -76,6 +77,11 @@ export class AdService {
       airConditioning: dto.airConditioning || undefined,
       euroStandard: dto.euroStandard || undefined,
       description: dto.description || undefined,
+      
+      // ✅ PŘIDÁNO - Kontaktní údaje
+      contactPhone: dto.contactPhone,
+      contactEmail: dto.contactEmail,
+      contactName: dto.contactName || undefined,
       
       // Místo userId použij user.connect
       user: {
@@ -396,6 +402,12 @@ export class AdService {
   }
 
   async update(id: string, dto: any, userId: string, files?: Express.Multer.File[]) {
+    // ✅ VYLEPŠENÝ DEBUG
+    console.log('🔍 UPDATE SERVICE - DTO keys:', Object.keys(dto));
+    console.log('🔍 UPDATE SERVICE - imagesToDelete raw:', dto.imagesToDelete);
+    console.log('🔍 UPDATE SERVICE - imagesToDelete type:', typeof dto.imagesToDelete);
+    console.log('🔍 UPDATE SERVICE - files count:', files?.length || 0);
+
     // Kontrola vlastnictví
     const existingAd = await this.prisma.ad.findUnique({
       where: { id },
@@ -414,14 +426,90 @@ export class AdService {
     const requiredFields = ['title', 'brand', 'model', 'price', 'mileage', 'year', 'firstRegistration', 
                          'bodyType', 'color', 'colorFinish', 'doorCount', 'seatCount', 
                          'fuel', 'engineVolume', 'power', 'avgConsumption', 'transmission', 
-                         'drivetrain', 'condition', 'countryOfOrigin'];
+                         'drivetrain', 'condition', 'countryOfOrigin',
+                         'contactPhone', 'contactEmail']; // ✅ PŘIDÁNO
 
     const missingFields = requiredFields.filter(field => !dto[field] || dto[field] === '');
     if (missingFields.length > 0) {
       throw new Error(`Chybí povinná pole: ${missingFields.join(', ')}`);
     }
 
-    // Odstraň features ze základních dat
+    // ✅ VYLEPŠENÉ - Zpracování mazání obrázků
+    if (dto.imagesToDelete) {
+      let imagesToDelete: string[] = [];
+      try {
+        console.log('🗑️ Raw imagesToDelete value:', dto.imagesToDelete);
+        console.log('🗑️ Type of imagesToDelete:', typeof dto.imagesToDelete);
+        
+        if (typeof dto.imagesToDelete === 'string') {
+          try {
+            imagesToDelete = JSON.parse(dto.imagesToDelete);
+            console.log('🗑️ Parsed as JSON:', imagesToDelete);
+          } catch (parseError) {
+            console.log('🗑️ Not JSON, treating as single ID:', dto.imagesToDelete);
+            imagesToDelete = [dto.imagesToDelete];
+          }
+        } else if (Array.isArray(dto.imagesToDelete)) {
+          imagesToDelete = dto.imagesToDelete;
+          console.log('🗑️ Already array:', imagesToDelete);
+        } else {
+          console.log('🗑️ Unknown type, converting to string array');
+          imagesToDelete = [String(dto.imagesToDelete)];
+        }
+        
+        console.log('🗑️ Final images to delete:', imagesToDelete);
+
+        if (Array.isArray(imagesToDelete) && imagesToDelete.length > 0) {
+          for (const imageId of imagesToDelete) {
+            console.log('🗑️ Processing deletion of image ID:', imageId);
+            
+            // Najdi obrázek v databázi
+            const imageToDelete = await this.prisma.image.findUnique({
+              where: { id: imageId }
+            });
+
+            if (imageToDelete && imageToDelete.adId === id) {
+              console.log('🗑️ Found image to delete:', imageToDelete.url);
+
+              // Extrahuj název souboru z URL
+              const fileName = imageToDelete.url.split('/').pop();
+              if (fileName) {
+                console.log('🗑️ Attempting to delete from Supabase:', fileName);
+                
+                // Smaž ze Supabase storage
+                const { error: deleteError } = await this.supabase
+                  .storage
+                  .from('photos')
+                  .remove([fileName]);
+
+                if (deleteError) {
+                  console.error('❌ Supabase delete error:', deleteError);
+                } else {
+                  console.log('✅ Deleted from Supabase:', fileName);
+                }
+              }
+
+              // Smaž z databáze
+              await this.prisma.image.delete({
+                where: { id: imageId }
+              });
+              console.log('✅ Deleted from database:', imageId);
+            } else {
+              console.log('⚠️ Image not found or doesn\'t belong to this ad:', imageId);
+            }
+          }
+        } else {
+          console.log('⚠️ No valid images to delete after processing');
+        }
+      } catch (error) {
+        console.error('❌ Error processing imagesToDelete:', error);
+        console.error('❌ Raw imagesToDelete value:', dto.imagesToDelete);
+      }
+    } else {
+      console.log('ℹ️ No images to delete (dto.imagesToDelete is falsy)');
+    }
+
+    // Odstraň features a imagesToDelete ze základních dat
     const { features, imagesToDelete, ...adBaseData } = dto;
     
     // Převeď stringy na správné typy (stejná logika jako v create)
@@ -455,6 +543,11 @@ export class AdService {
       airConditioning: dto.airConditioning || undefined,
       euroStandard: dto.euroStandard || undefined,
       description: dto.description || undefined,
+      
+      // Kontaktní údaje
+      contactPhone: dto.contactPhone,
+      contactEmail: dto.contactEmail,
+      contactName: dto.contactName || undefined,
     };
 
     // Odstraň undefined hodnoty
@@ -471,7 +564,7 @@ export class AdService {
       include: { images: true, user: true, features: true },
     });
 
-    // Zpracuj obrázky pokud jsou přiloženy
+    // Zpracuj nové obrázky pokud jsou přiloženy
     if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -490,6 +583,8 @@ export class AdService {
           // Upload do Supabase
           const fileExtension = path.extname(file.originalname || '.jpg');
           const filename = `ad_${Date.now()}_edit_${i + 1}${fileExtension}`;
+          
+          console.log('📤 Uploading new file:', filename);
           
           const { data: uploadData, error } = await this.supabase
             .storage
@@ -515,6 +610,8 @@ export class AdService {
               adId: updatedAd.id,
             },
           });
+          
+          console.log('✅ New image uploaded and saved:', filename);
         } catch (err) {
           console.error('❌ File upload error during update:', err);
           if (err instanceof BadRequestException) {
@@ -525,6 +622,19 @@ export class AdService {
       }
     }
 
+    // ✅ ZMĚNĚNO - Použij updatedAd místo nového query
+    // Načti aktuální počet obrázků
+    const currentImageCount = await this.prisma.image.count({
+      where: { adId: id }
+    });
+
+    if (currentImageCount < 2) {
+      throw new BadRequestException('Inzerát musí mít alespoň 2 obrázky. Přidejte další obrázky.');
+    }
+
+    console.log(`✅ Ad updated successfully. Final image count: ${currentImageCount}`);
+
+    // Vrať kompletní data
     return this.prisma.ad.findUnique({
       where: { id },
       include: { images: true, user: true, features: true },

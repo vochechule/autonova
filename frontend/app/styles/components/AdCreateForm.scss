@@ -390,6 +390,70 @@
     }
   }
 
+  // Kontaktní sekce
+  .contact-section {
+    .form-section {
+      // Kontaktní sekce má speciální styling
+      .form-section__title {
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        &::before {
+          content: "📞";
+          font-size: 1.2em;
+        }
+      }
+    }
+  }
+
+  .contact-notice {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #e7f3ff;
+    border: 1px solid #b6d7ff;
+    border-radius: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    &__icon {
+      width: 20px;
+      height: 20px;
+      color: #0066cc;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    p {
+      margin: 0;
+      color: #004085;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+  }
+
+  // Dark mode pro kontaktní notice
+  [data-theme="dark"] {
+    .form-help {
+      color: #a0aec0;
+    }
+
+    .contact-notice {
+      background: #1e3a8a;
+      border-color: #3b82f6;
+      
+      &__icon {
+        color: #60a5fa;
+      }
+      
+      p {
+        color: #dbeafe;
+      }
+    }
+  }
+
   // Responsive design
   @media (max-width: 768px) {
     padding: 0.5rem;
@@ -409,5 +473,13 @@
     button[type='submit'] {
       width: 100%;
     }
+  }
+
+  .form-help {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-style: italic;
   }
 }

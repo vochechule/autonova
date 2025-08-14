@@ -246,8 +246,27 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       const imagesToDelete = adData.images.filter((img: any) => 
         !existingImages.find(existing => existing.id === img.id)
       )
+      console.log('🔍 Original images:', adData.images?.length || 0);
+      console.log('🔍 Existing images remaining:', existingImages.length);
+      console.log('🔍 Images to delete:', imagesToDelete.length, imagesToDelete.map(img => img.id));
+      console.log('🔍 New images to upload:', images.length);
+      
       if (imagesToDelete.length > 0) {
-        formData.append('imagesToDelete', JSON.stringify(imagesToDelete.map((img: any) => img.id)))
+        const idsToDelete = imagesToDelete.map((img: any) => img.id);
+        console.log('🗑️ Sending imagesToDelete:', idsToDelete);
+        formData.append('imagesToDelete', JSON.stringify(idsToDelete));
+      }
+
+      // ✅ PŘIDÁNO - Debug FormData contents
+      console.log('🔍 FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        if (key === 'imagesToDelete') {
+          console.log(key, '(parsed):', JSON.parse(value as string));
+        } else if (key === 'images') {
+          console.log(key, '(file):', (value as File).name);
+        } else {
+          console.log(key, value);
+        }
       }
 
       const token = localStorage.getItem('token')
@@ -569,6 +588,60 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
               <label className="checkbox-label">
                 <input name="hasServiceBook" type="checkbox" defaultChecked={adData.hasServiceBook} /> Servisní knížka
               </label>
+            </div>
+          </div>
+
+          {/* Kontaktní údaje */}
+          <div className="form-section">
+            <h3 className="form-section__title">Kontaktní údaje prodejce</h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="contactName">Jméno kontaktní osoby</label>
+                <input 
+                  name="contactName" 
+                  id="contactName" 
+                  placeholder="Vyplňte pouze pokud se liší od vašeho jména" 
+                  defaultValue={adData?.contactName || ''} // Pro EditAdForm
+                />
+                <small className="form-help">
+                  Volitelné - zobrazí se pouze pokud se liší od jména z vašeho profilu
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="contactPhone">Telefon <span className="required">*</span></label>
+                <input 
+                  name="contactPhone" 
+                  id="contactPhone" 
+                  type="tel" 
+                  required 
+                  placeholder="+420 123 456 789"
+                  defaultValue={adData?.contactPhone || ''} // Pro EditAdForm
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="contactEmail">Email <span className="required">*</span></label>
+                <input 
+                  name="contactEmail" 
+                  id="contactEmail" 
+                  type="email" 
+                  required 
+                  placeholder="vase@email.cz"
+                  defaultValue={adData?.contactEmail || ''} // Pro EditAdForm
+                />
+              </div>
+            </div>
+            
+            <div className="contact-notice">
+              <svg className="contact-notice__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="m9 12 2 2 4-4"/>
+              </svg>
+              <p>
+                Telefon a email budou zobrazeny zájemcům přímo u vašeho inzerátu. 
+                Můžete použít jiné kontakty než ty z vašeho profilu.
+              </p>
             </div>
           </div>
 

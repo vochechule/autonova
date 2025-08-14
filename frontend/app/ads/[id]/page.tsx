@@ -180,23 +180,47 @@ export default function AdDetailPage() {
               )}
             </div>
 
-            {/* Prodejce info */}
+            {/* Prodejce info s integrovanými kontakty */}
             <div className="ad-detail-page__seller-compact">
               <div className="ad-detail-page__seller-avatar">
                 {ad.user?.avatar
                   ? <img src={ad.user.avatar} alt="avatar" />
                   : <div className="ad-detail-page__seller-avatar-placeholder">
-                      {ad.user?.name?.charAt(0) || 'U'}
+                      {(ad.user?.firstName?.charAt(0) || ad.contactName?.charAt(0) || 'U')}
                     </div>}
               </div>
               <div className="ad-detail-page__seller-details">
-                <div className="ad-detail-page__seller-name">{ad.user?.name ?? 'Neznámý uživatel'}</div>
+                <div className="ad-detail-page__seller-name">
+                  {ad.user?.firstName && ad.user?.lastName 
+                    ? `${ad.user.firstName} ${ad.user.lastName}`
+                    : ad.contactName || 'Neznámý prodejce'}
+                </div>
                 <div className="ad-detail-page__seller-location">{ad.user?.location ?? 'Neuvedeno'}</div>
+                
+                {/* ✅ PŘIDÁNO - Kontaktní údaje přímo zde */}
+                <div className="ad-detail-page__contact-info">
+                  {ad.contactPhone && (
+                    <a href={`tel:${ad.contactPhone}`} className="ad-detail-page__contact-link">
+                      <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                      </svg>
+                      {ad.contactPhone}
+                    </a>
+                  )}
+                  
+                  {ad.contactEmail && (
+                    <a href={`mailto:${ad.contactEmail}`} className="ad-detail-page__contact-link">
+                      <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                      </svg>
+                      {ad.contactEmail}
+                    </a>
+                  )}
+                </div>
               </div>
+              
               <Link href={`/profile/${ad.user?.id}`} className="ad-detail-page__contact-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
                 Profil prodejce
               </Link>
             </div>

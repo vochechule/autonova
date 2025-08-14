@@ -93,7 +93,7 @@ export class AdController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('images', 10, {
     limits: {
-      fileSize: 10 * 1024 * 1024, // 10MB limit per file
+      fileSize: 10 * 1024 * 1024,
     },
     fileFilter: (req, file, cb) => {
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -112,7 +112,20 @@ export class AdController {
   ) {
     try {
       console.log('🔥 UPDATE - FILES RECEIVED:', files?.length || 0);
-      console.log('🔥 UPDATE - DTO:', dto);
+      console.log('🔥 UPDATE - DTO RECEIVED:', dto);
+      console.log('🔥 UPDATE - REQ.BODY:', req.body); // ✅ PŘIDÁNO - debug raw body
+
+      // ✅ PŘIDÁNO - Ručně extrahuj imagesToDelete z req.body
+      const imagesToDelete = req.body.imagesToDelete;
+      console.log('🔥 UPDATE - imagesToDelete from req.body:', imagesToDelete);
+      
+      // ✅ PŘIDÁNO - Předej imagesToDelete explicitně do service
+      const dtoWithImages = {
+        ...dto,
+        imagesToDelete: imagesToDelete
+      };
+      
+      console.log('🔥 UPDATE - Final DTO with images:', dtoWithImages);
       
       if (!req.user || !req.user.id) {
         throw new UnauthorizedException('User not authenticated properly');
@@ -124,7 +137,7 @@ export class AdController {
         throw new UnauthorizedException('Můžete editovat pouze své inzeráty');
       }
 
-      return await this.adService.update(id, dto, req.user.id, files);
+      return await this.adService.update(id, dtoWithImages, req.user.id, files); // ✅ ZMĚNĚNO
     } catch (error) {
       console.error('❌ Update controller error:', error);
       
