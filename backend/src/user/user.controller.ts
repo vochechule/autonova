@@ -52,8 +52,9 @@ export class UserController {
       Logger.warn(`User not found: ${id}`);
       throw new NotFoundException('User not found');
     }
-    const { id: userId, name, email, isDealer, createdAt } = user;
-    Logger.log(`User found: ${userId}`);
-    return { id: userId, name, email, isDealer, createdAt };
+    
+    // ✅ OPRAVENO - Vraťte celého uživatele včetně inzerátů
+    Logger.log(`User found: ${user.id}, ads count: ${user.ads?.length || 0}`);
+    return user; // Vrátit celý objekt místo jen vybraných polí
   }
 }

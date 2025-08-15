@@ -1,0 +1,868 @@
+// ProfilePageView.scss - Pro zobrazení profilů ostatních uživatelů (profile/[id]/page.tsx)
+
+.profile-page {
+  background: #f7f8fa;
+  min-height: 100vh;
+  font-family: 'Inter', Arial, sans-serif;
+  padding: 32px 16px;
+}
+
+// ✅ Header s avatarem a základními informacemi
+.profile-page__header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 32px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+    padding: 24px;
+  }
+}
+
+.profile-page__avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 4px solid #f0f0f0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.profile-page__name {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #1a202c;
+  letter-spacing: -0.5px;
+
+  @media (max-width: 768px) {
+    font-size: 1.8rem;
+  }
+}
+
+.profile-page__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  @media (max-width: 768px) {
+    align-items: center;
+  }
+}
+
+.profile-page__user-type {
+  color: #667eea;
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding: 6px 16px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 20px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.profile-page__location {
+  color: #718096;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// ✅ Reviews section
+.profile-page__reviews {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+// ✅ Rating summary card
+.profile-page__rating-summary {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    padding: 28px 20px;
+  }
+}
+
+.profile-page__rating-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-page__rating-number {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #667eea;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
+
+  @media (max-width: 768px) {
+    font-size: 3rem;
+  }
+}
+
+.profile-page__stars {
+  font-size: 2rem;
+  color: #ffd700;
+  letter-spacing: 4px;
+  text-shadow: 0 1px 3px rgba(255, 215, 0, 0.3);
+
+  @media (max-width: 768px) {
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+  }
+}
+
+.profile-page__rating-count {
+  color: #718096;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+// ✅ Rate user form
+.profile-page__rate-user {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 24px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+
+  @media (max-width: 768px) {
+    padding: 24px 20px;
+  }
+}
+
+.profile-page__rate-icon {
+  width: 28px;
+  height: 28px;
+  color: #667eea;
+}
+
+.profile-page__rate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-page__rate-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1rem;
+
+    .required {
+      color: #e53e3e;
+      margin-left: 4px;
+    }
+  }
+}
+
+.profile-page__rate-select,
+.profile-page__rate-input {
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  font-size: 1rem;
+  background: #fff;
+  transition: all 0.3s ease;
+  font-weight: 500;
+
+  &:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+  }
+
+  &:hover {
+    border-color: #cbd5e0;
+  }
+}
+
+.profile-page__rate-select {
+  cursor: pointer;
+}
+
+.profile-page__rate-help {
+  font-size: 0.85rem;
+  color: #718096;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.profile-page__rate-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 18px 32px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    background: #e2e8f0;
+    color: #a0aec0;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+// ✅ Reviews section
+.profile-page__reviews-section {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    &::before {
+      content: "💬";
+      font-size: 1.4em;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 24px 20px;
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 24px;
+    }
+  }
+}
+
+.profile-page__reviews-empty {
+  text-align: center;
+  padding: 60px 40px;
+  color: #718096;
+
+  svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 20px;
+    color: #cbd5e0;
+  }
+
+  p {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #4a5568;
+  }
+
+  small {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #718096;
+  }
+
+  @media (max-width: 768px) {
+    padding: 40px 20px;
+
+    p {
+      font-size: 1.1rem;
+    }
+
+    small {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.profile-page__review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ✅ Individual review styling
+.profile-page__review {
+  background: #f7fafc;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
+}
+
+.profile-page__review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.profile-page__review-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-page__review-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: white;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+}
+
+.profile-page__review-author {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1a202c;
+  margin-bottom: 4px;
+}
+
+.profile-page__review-date {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.profile-page__review-stars {
+  color: #ffd700;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  text-shadow: 0 1px 3px rgba(255, 215, 0, 0.3);
+
+  @media (max-width: 600px) {
+    font-size: 1.2rem;
+  }
+}
+
+.profile-page__review-text {
+  font-style: italic;
+  color: #4a5568;
+  font-size: 1rem;
+  line-height: 1.7;
+  padding: 16px 20px;
+  background: #fff;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-top: 4px;
+}
+
+// ✅ NOVÉ - Seller's ads section
+.profile-page__seller-ads {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    &::before {
+      content: "🚗";
+      font-size: 1.4em;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 24px 20px;
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 24px;
+    }
+  }
+}
+
+.profile-page__ads-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.profile-page__ad-card {
+  background: #f7fafc;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
+.profile-page__ad-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.05);
+  }
+}
+
+.profile-page__ad-placeholder {
+  height: 200px;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #a0aec0;
+}
+
+.profile-page__ad-price-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.profile-page__ad-content {
+  padding: 20px;
+}
+
+.profile-page__ad-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.profile-page__ad-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.profile-page__ad-brand {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.profile-page__ad-specs {
+  display: flex;
+  gap: 16px;
+  font-size: 0.9rem;
+  color: #718096;
+  font-weight: 500;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &::before {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #cbd5e0;
+      content: "";
+    }
+
+    &:first-child::before {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 4px;
+
+    span::before {
+      display: none;
+    }
+  }
+}
+
+.profile-page__ad-location {
+  color: #a0aec0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &::before {
+    content: "📍";
+    font-size: 0.8rem;
+  }
+}
+
+.profile-page__ads-empty {
+  text-align: center;
+  padding: 60px 40px;
+  color: #718096;
+
+  svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 20px;
+    color: #cbd5e0;
+  }
+
+  p {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #4a5568;
+  }
+
+  small {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #718096;
+  }
+
+  @media (max-width: 768px) {
+    padding: 40px 20px;
+
+    p {
+      font-size: 1.1rem;
+    }
+
+    small {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.profile-page__view-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  margin-top: 24px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+// ✅ Dark mode
+[data-theme="dark"] {
+  .profile-page {
+    background: #0f0f0f;
+  }
+
+  .profile-page__header {
+    background: #1a202c;
+    border-color: #4a5568;
+  }
+
+  .profile-page__name {
+    color: #e2e8f0;
+  }
+
+  .profile-page__user-type {
+    background: rgba(144, 205, 244, 0.15);
+    color: #90cdf4;
+  }
+
+  .profile-page__location {
+    color: #a0aec0;
+  }
+
+  .profile-page__rating-summary,
+  .profile-page__rate-user,
+  .profile-page__reviews-section {
+    background: #1a202c;
+    border-color: #4a5568;
+  }
+
+  .profile-page__rating-summary h2,
+  .profile-page__rate-user h3,
+  .profile-page__reviews-section h2 {
+    color: #e2e8f0;
+  }
+
+  .profile-page__rate-field label {
+    color: #e2e8f0;
+  }
+
+  .profile-page__rate-select,
+  .profile-page__rate-input {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+
+    &:focus {
+      border-color: #90cdf4;
+      box-shadow: 0 0 0 4px rgba(144, 205, 244, 0.1);
+    }
+
+    &:hover {
+      border-color: #718096;
+    }
+  }
+
+  .profile-page__rate-help {
+    color: #a0aec0;
+  }
+
+  .profile-page__review {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .profile-page__review-author {
+    color: #e2e8f0;
+  }
+
+  .profile-page__review-date {
+    color: #a0aec0;
+  }
+
+  .profile-page__review-text {
+    background: #1a202c;
+    color: #e2e8f0;
+    border-left-color: #90cdf4;
+  }
+
+  .profile-page__reviews-empty {
+    color: #a0aec0;
+
+    p {
+      color: #e2e8f0;
+    }
+
+    svg {
+      color: #4a5568;
+    }
+  }
+  .profile-page__seller-ads {
+    background: #1a202c;
+    border-color: #4a5568;
+
+    h2 {
+      color: #e2e8f0;
+    }
+  }
+
+  .profile-page__ad-card {
+    background: #2d3748;
+    border-color: #4a5568;
+  }
+
+  .profile-page__ad-placeholder {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    color: #718096;
+  }
+
+  .profile-page__ad-title {
+    color: #e2e8f0;
+  }
+
+  .profile-page__ad-brand {
+    color: #90cdf4;
+  }
+
+  .profile-page__ad-specs {
+    color: #a0aec0;
+
+    span::before {
+      background: #718096;
+    }
+  }
+
+  .profile-page__ad-location {
+    color: #718096;
+  }
+
+  .profile-page__ads-empty {
+    color: #a0aec0;
+
+    p {
+      color: #e2e8f0;
+    }
+
+    svg {
+      color: #4a5568;
+    }
+  }
+}
+
+// ✅ Responsivní design
+@media (max-width: 480px) {
+  .profile-page {
+    padding: 20px 12px;
+  }
+
+  .profile-page__rating-number {
+    font-size: 2.5rem;
+  }
+
+  .profile-page__stars {
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+  }
+
+  .profile-page__rate-submit {
+    padding: 16px 24px;
+    font-size: 1rem;
+  }
+
+  .profile-page__review-user {
+    gap: 12px;
+  }
+
+  .profile-page__review-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .profile-page__review-text {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+  }
+}

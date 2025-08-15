@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service'; // uprav cestu dle projektu
 
 @Injectable()
@@ -10,7 +10,27 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    return this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        ads: {
+          include: {
+            images: {
+              take: 1 // Jen první obrázek pro náhled
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Uživatel s ID ${id} nebyl nalezen`);
+    }
+
+    return user;
   }
 
   async findByEmail(email: string) {
