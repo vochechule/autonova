@@ -14,23 +14,55 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Check if ad is saved
-      const token = getToken();
-      fetch(`http://localhost:3000/saved-ads/${adId}/is-saved`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-        .then(res => res.json())
-        .then(data => setIsSaved(data.isSaved))
-        .catch(() => setIsSaved(false));
-    }
+    if (!isAuthenticated || !user) return;
+
+    // ✅ PŘIDÁNO - AbortController pro cleanup
+    const abortController = new AbortController();
+    
+    const checkSavedStatus = async () => {
+      try {
+        const token = getToken();
+        const response = await fetch(`http://localhost:3000/saved-ads/${adId}/is-saved`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          signal: abortController.signal, // ✅ PŘIDÁNO
+        });
+
+        // ✅ PŘIDÁNO - Check if request was aborted
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          setIsSaved(data.isSaved);
+        } else {
+          // ✅ OPRAVENO - Don't handle 401 here, let useAuth handle it
+          console.warn('Failed to check saved status:', response.status);
+          setIsSaved(false);
+        }
+      } catch (error) {
+        // ✅ PŘIDÁNO - Ignore aborted requests
+        if (error.name === 'AbortError') {
+          console.log('FavoriteButton: Request was cancelled');
+          return;
+        }
+        console.error('Error checking saved status:', error);
+        setIsSaved(false);
+      }
+    };
+
+    checkSavedStatus();
+
+    // ✅ PŘIDÁNO - Cleanup function
+    return () => {
+      abortController.abort();
+    };
   }, [adId, isAuthenticated, user, getToken]);
 
   const handleToggleFavorite = async () => {
     if (!isAuthenticated) {
-      // Redirect to login
       window.location.href = '/login';
       return;
     }
@@ -40,18 +72,19 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
 
     try {
       if (isSaved) {
-        // Unsave ad
-        await fetch(`http://localhost:3000/saved-ads/${adId}`, {
+        const response = await fetch(`http://localhost:3000/saved-ads/${adId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
-        setIsSaved(false);
-        onToggle?.(false);
+
+        if (response.ok) {
+          setIsSaved(false);
+          onToggle?.(false);
+        }
       } else {
-        // Save ad
-        await fetch('http://localhost:3000/saved-ads', {
+        const response = await fetch('http://localhost:3000/saved-ads', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -59,8 +92,11 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
           },
           body: JSON.stringify({ adId }),
         });
-        setIsSaved(true);
-        onToggle?.(true);
+
+        if (response.ok) {
+          setIsSaved(true);
+          onToggle?.(true);
+        }
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);
@@ -90,4 +126,4 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
       </svg>
     </button>
   );
-} 
+}

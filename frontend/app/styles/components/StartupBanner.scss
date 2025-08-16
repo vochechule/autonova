@@ -1,0 +1,218 @@
+.startup-banner {
+  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 50%, #fecaca 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  margin: 1.5rem 1.5rem 2rem;
+  padding: 1.5rem;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  animation: slideInFromTop 0.5s ease-out;
+
+  @media (max-width: 768px) {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  &__container {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      text-align: center;
+      gap: 0.75rem;
+    }
+  }
+
+  &__icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    
+    @media (max-width: 768px) {
+      align-self: center;
+    }
+  }
+
+  &__content {
+    flex: 1;
+  }
+
+  &__title {
+    color: #92400e;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    
+    @media (max-width: 768px) {
+      font-size: 1.125rem;
+    }
+  }
+
+  &__text {
+    color: #78350f;
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+    
+    strong {
+      color: #92400e;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 0.9rem;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+  }
+
+  &__cta {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      flex: 1;
+      padding: 0.625rem 1rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  &__dismiss {
+    background: rgba(120, 53, 15, 0.1);
+    color: #92400e;
+    border: 1px solid rgba(120, 53, 15, 0.2);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(120, 53, 15, 0.15);
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      margin-left: 0.5rem;
+    }
+  }
+
+  // ✅ Show button pro dismissed banner
+  &__show-button {
+    position: fixed;
+    bottom: 100px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    z-index: 999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      bottom: 160px; // Above bottom nav
+      right: 15px;
+      width: 44px;
+      height: 44px;
+    }
+  }
+}
+
+// ✅ Animations
+@keyframes slideInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ✅ Dark mode support
+[data-theme="dark"] .startup-banner {
+  background: linear-gradient(135deg, #374151 0%, #1f2937 50%, #111827 100%);
+  border-color: #f59e0b;
+
+  &__title {
+    color: #fbbf24;
+  }
+
+  &__text {
+    color: #d1d5db;
+    
+    strong {
+      color: #fbbf24;
+    }
+  }
+
+  &__dismiss {
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.2);
+
+    &:hover {
+      background: rgba(251, 191, 36, 0.15);
+    }
+  }
+}
+
+// ✅ Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .startup-banner {
+    animation: none;
+  }
+  
+  .startup-banner__cta:hover,
+  .startup-banner__dismiss:hover,
+  .startup-banner__show-button:hover {
+    transform: none;
+  }
+}
