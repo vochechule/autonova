@@ -5,6 +5,7 @@ import { useSwipeable } from 'react-swipeable'
 import FavoriteButton from '../../components/FavoriteButton'
 import '../../styles/AdDetailPage.scss'
 import Link from 'next/link'
+import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatter'
 
 export default function AdDetailPage() {
   const { id } = useParams()
@@ -125,7 +126,7 @@ export default function AdDetailPage() {
           {/* Základní informace */}
           <div className="ad-detail-page__basic-info">
             <h1 className="ad-detail-page__title">
-              {ad.brand} {ad.model}
+             {formatCarTitle(ad.brand, ad.model)}
             </h1>
             <div className="ad-detail-page__subtitle">
               {ad.year} &bull; {ad.mileage?.toLocaleString()} km &bull; {ad.fuel}
@@ -235,11 +236,11 @@ export default function AdDetailPage() {
               <h3>Základní údaje</h3>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Značka</span>
-                <span className="ad-detail-page__spec-value">{ad.brand ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{formatBrand(ad.brand) ?? '-'}</span>
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Model</span>
-                <span className="ad-detail-page__spec-value">{ad.model ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{formatModel(ad.brand, ad.model) ?? '-'}</span>
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Rok výroby</span>

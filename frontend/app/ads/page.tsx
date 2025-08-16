@@ -7,6 +7,7 @@ import FilterSidebar from '../components/FilterSidebar'
 import FavoriteButton from '../components/FavoriteButton'
 import Link from 'next/link'
 import '../styles/AdsPage.scss'
+import { formatCarTitle } from '../utils/CarFormatter'
 
 type Ad = {
   id: number
@@ -167,7 +168,7 @@ export default function AdsPage() {
                           <div className="ads-page__title-horizontal">{ad.title}</div>
                           <div className="ads-page__specs">
                             {ad.brand && ad.model && (
-                              <span className="ads-page__spec">{ad.brand} {ad.model}</span>
+                              <span className="ads-page__spec">  {formatCarTitle(ad.brand, ad.model)}</span>
                             )}
                             {ad.year && (
                               <span className="ads-page__spec">{ad.year}</span>
