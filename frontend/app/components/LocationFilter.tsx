@@ -153,6 +153,41 @@ export default function LocationFilter({ onLocationChange, initialDistance = 25,
 
   const distanceOptions = [5, 10, 25, 50, 100, 200]
 
+  // ✅ PŘIDÁNO - Inicializace z URL parametrů při refresh
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const nearLat = urlParams.get('nearLatitude')
+      const nearLng = urlParams.get('nearLongitude')
+      const nearDist = urlParams.get('nearDistance')
+
+      if (nearLat && nearLng && nearDist) {
+        const location = {
+          latitude: parseFloat(nearLat),
+          longitude: parseFloat(nearLng),
+          address: 'Obnovená lokalita' // Fallback text - nemáme address v URL
+        }
+        
+        setUserLocation(location)
+        setSelectedDistance(parseInt(nearDist))
+        setIsEnabled(true)
+
+        console.log('🔄 LocationFilter: Obnoveno z URL:', location)
+        
+        // Zavolej callback s kompletními daty
+        onLocationChange({
+          ...location,
+          distance: parseInt(nearDist)
+        })
+      } else {
+        // Pokud nejsou location parametry, vynuluj
+        setUserLocation(null)
+        setIsEnabled(false)
+        onLocationChange(null)
+      }
+    }
+  }, []) // ✅ Prázdné deps - spustí se pouze při mount
+
   return (
     <div className={`location-filter ${className}`}>
       <div className="location-filter__header">
@@ -164,7 +199,7 @@ export default function LocationFilter({ onLocationChange, initialDistance = 25,
             disabled={!userLocation}
           />
           <span className="location-filter__toggle-text">
-            📍 Filtrovat podle vzdálenosti
+            Filtrovat podle vzdálenosti
           </span>
         </label>
       </div>

@@ -22,8 +22,6 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    console.log('🔍 AuthService.login called with:', { email, password }); // Debug log
-    console.log('🔍 Email type:', typeof email); // Debug log
 
     if (!email) {
       throw new Error('Email is undefined or empty');
@@ -37,8 +35,6 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email };
     const token = this.jwt.sign(payload);
 
-    console.log('🎟️ Generated token:', token);
-    console.log('🧑 Payload:', payload);
 
     return {
       token,

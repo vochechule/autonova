@@ -15,9 +15,7 @@ export class AuthController {
 
   @Post('login')
   login(@Body() dto: LoginDto) {
-    console.log('🔍 Login DTO received:', dto);
-    console.log('🔍 Email from DTO:', dto.email);
-    console.log('🔍 Password from DTO:', dto.password);
+
     
     return this.authService.login(dto.email, dto.password);
   }
@@ -25,8 +23,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getProfile(@Request() req) {
-    console.log('🔐 Auth me endpoint called');
-    console.log('🧑 Request user:', req.user);
     return this.authService.findUserById(req.user.id);
   }
 
