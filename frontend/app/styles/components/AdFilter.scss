@@ -69,6 +69,21 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    
+    // ✅ OPRAVENO - Responzivní šířka podle velikosti displeje
+    &--full-width {
+      @media (min-width: 1200px) {
+        grid-column: span 2; // ✅ Zabere 2 sloupce nad 1200px
+      }
+      
+      @media (max-width: 1199px) {
+        grid-column: 1 / -1; // ✅ Full width pod 1200px
+      }
+      
+      .location-filter {
+        max-width: none;
+      }
+    }
   }
 
   &__label {
@@ -221,41 +236,85 @@
       padding: 0.875rem 0;
     }
   }
-}
 
-// Dark mode support - enhanced via CSS custom properties and specific overrides
-[data-theme="dark"] .ad-filter {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-  border-color: #333;
-
-  &__search-container {
-    background: #2a2a2a;
-    border-color: #444;
-  }
-
-  &__select,
-  &__input {
-    background: #2a2a2a;
-    border-color: #444;
-
-    &:focus {
-      border-color: #007AFF;
+  &__location {
+    // Styly specifické pro location filter v AdFilter
+    .location-filter__header {
+      margin-bottom: 12px;
+    }
+    
+    .location-filter__toggle-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .location-filter__current {
+      margin: 12px 0;
+      background: #f0f9ff;
+      border-color: #0ea5e9;
+    }
+    
+    .location-filter__distance-options {
+      gap: 6px;
+      justify-content: flex-start;
+    }
+    
+    .location-filter__distance-option {
+      padding: 4px 12px;
+      font-size: 12px;
+      min-width: 50px;
+    }
+    
+    .location-filter__actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      
+      @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .location-filter__button {
+      font-size: 13px;
+      padding: 8px 12px;
     }
   }
 
-  &__all-filters-toggle {
-    color: #aaa;
-    border-color: #444;
+  // Dark mode support - enhanced via CSS custom properties and specific overrides
+  [data-theme="dark"] .ad-filter {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    border-color: #333;
 
-    &:hover {
-      color: #007AFF;
-      border-color: #007AFF;
+    &__search-container {
+      background: #2a2a2a;
+      border-color: #444;
     }
-  }
 
-  &__no-results {
-    background: #2a2a2a;
-    border-color: #444;
-    color: #aaa;
+    &__select,
+    &__input {
+      background: #2a2a2a;
+      border-color: #444;
+
+      &:focus {
+        border-color: #007AFF;
+      }
+    }
+
+    &__all-filters-toggle {
+      color: #aaa;
+      border-color: #444;
+
+      &:hover {
+        color: #007AFF;
+        border-color: #007AFF;
+      }
+    }
+
+    &__no-results {
+      background: #2a2a2a;
+      border-color: #444;
+      color: #aaa;
+    }
   }
 }

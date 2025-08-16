@@ -70,7 +70,7 @@ export default function FilterSidebar({
         
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(params)
+          fetchAds(newParamsString) // ✅ String místo URLSearchParams
         }
       }
     }, 0)
@@ -89,7 +89,7 @@ export default function FilterSidebar({
         
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(params)
+          fetchAds(newParamsString) // ✅ String místo URLSearchParams
         }
       }
     }, 0)
@@ -111,7 +111,7 @@ export default function FilterSidebar({
         
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(params)
+          fetchAds(newParamsString) // ✅ String místo URLSearchParams
         }
       }
     }, 0)
@@ -129,7 +129,7 @@ export default function FilterSidebar({
         
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(params)
+          fetchAds(newParamsString) // ✅ String místo URLSearchParams
         }
       }
     }, 0)
@@ -148,7 +148,7 @@ export default function FilterSidebar({
         
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(params)
+          fetchAds(newParamsString) // ✅ String místo URLSearchParams
         }
       }
     }, 0)
@@ -167,7 +167,7 @@ export default function FilterSidebar({
         
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(params)
+          fetchAds(newParamsString) // ✅ String místo URLSearchParams
         }
       }
     }, 0)
@@ -259,7 +259,7 @@ export default function FilterSidebar({
     // Only update if params actually changed
     if (currentParamsString !== newParamsString) {
       router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-      await fetchAds(params)
+      await fetchAds(newParamsString) // ✅ String místo URLSearchParams
     }
   }, [router, buildParams, fetchAds, searchParams])
 
@@ -281,7 +281,7 @@ export default function FilterSidebar({
       // Only update if params actually changed
       if (currentParamsString !== newParamsString) {
         router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-        await fetchAds(params)
+        await fetchAds(newParamsString) // ✅ String místo URLSearchParams
       }
     }, 500) // 500ms debounce
   }, [router, buildParams, fetchAds, searchParams])
@@ -298,7 +298,7 @@ export default function FilterSidebar({
   // Load initial results - only once on mount
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString())
-    fetchAds(params)
+    fetchAds(params.toString()) // ✅ Převod na string
   }, []) // Removed dependencies to prevent infinite loop
 
   // Synchronizace state s URL parametry
@@ -340,7 +340,7 @@ export default function FilterSidebar({
         if (currentParamsString !== newParamsString) {
           console.log('🚀 Navigating to:', `/ads${newParamsString ? `?${newParamsString}` : ''}`) // ✅ PŘIDÁNO
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(params)
+          fetchAds(newParamsString) // ✅ String místo URLSearchParams
         } else {
           console.log('⚠️ Params unchanged, not fetching') // ✅ PŘIDÁNO
         }

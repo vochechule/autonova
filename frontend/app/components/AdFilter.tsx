@@ -7,6 +7,7 @@ import ModelSelect from './ModelSelect'
 import RangeFilter from './RangeFilter'
 import ColorSelect from './ColorSelect' // ✅ PŘIDÁNO
 import ColorFinishSelect from './ColorFinishSelect' // ✅ PŘIDÁNO
+import LocationFilter from './LocationFilter'
 import '../styles/components/AdFilter.scss'
 
 export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => void }) {
@@ -74,9 +75,11 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     address: string
     distance: number
   } | null) => {
+    console.log('🗺️ AdFilter: Location changed:', location)
     setLocationFilter(location)
-    // Trigger search s novým filtrem
-    handleSearch()
+    
+    // ❌ ODSTRANĚNO - auto submit
+    // Lokalita se pouze nastaví, submit se udělá manuálně
   }
 
   // Hledání a filtrování
@@ -142,12 +145,28 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     // Aktualizace state z URL parametrů
     setSelectedBrand(searchParams.get('brand') || '')
     setSelectedModel(searchParams.get('model') || '')
-    setSelectedColor(searchParams.get('color') || '') // ✅ PŘIDÁNO
-    setSelectedColorFinish(searchParams.get('colorFinish') || '') // ✅ PŘIDÁNO
+    setSelectedColor(searchParams.get('color') || '')
+    setSelectedColorFinish(searchParams.get('colorFinish') || '')
     setPriceFrom(parseInt(searchParams.get('priceFrom') || '0') || 0)
     setPriceTo(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
     setMileageFrom(parseInt(searchParams.get('mileageFrom') || '0') || 0)
     setMileageTo(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
+
+    // ✅ PŘIDÁNO - Inicializace location filter z URL
+    const nearLat = searchParams.get('nearLatitude')
+    const nearLng = searchParams.get('nearLongitude')
+    const nearDist = searchParams.get('nearDistance')
+    
+    if (nearLat && nearLng && nearDist) {
+      setLocationFilter({
+        latitude: parseFloat(nearLat),
+        longitude: parseFloat(nearLng),
+        address: 'Vybraná lokalita', // Fallback
+        distance: parseInt(nearDist)
+      })
+    } else {
+      setLocationFilter(null)
+    }
 
     // Fetch výsledků
     const params = searchParams.toString()
@@ -155,10 +174,10 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     fetch(`http://localhost:3000/ad?${params}`)
       .then(res => res.json())
       .then(data => {
-        setAds(data)
-        setNoResults(data.length === 0)
+        setAds(data.ads || data) // ✅ OPRAVENO - backend vrací { ads: [...] }
+        setNoResults((data.ads || data).length === 0)
         setLoading(false)
-        onResults?.(data)
+        onResults?.(data.ads || data)
       })
       .catch(error => {
         console.error('Chyba při načítání inzerátů:', error)
@@ -208,7 +227,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
             />
           </div>
 
-          
+         
 
           <div className="ad-filter__filter-group">
             <label className="ad-filter__label">Cena</label>
@@ -259,6 +278,14 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
         {showAllFilters && (
           <div className="ad-filter__all-filters">
             <div className="ad-filter__all-filters-grid">
+              {/* ✅ PŘESUNUTO - Location Filter do rozšířených */}
+              <div className="ad-filter__filter-group ad-filter__filter-group--full-width">
+                <LocationFilter 
+                  onLocationChange={handleLocationChange}
+                  className="ad-filter__location"
+                />
+              </div>
+
               <div className="ad-filter__filter-group">
                 <label className="ad-filter__label" htmlFor="fuel">Palivo</label>
                 <select id="fuel" name="fuel" className="ad-filter__select" defaultValue={searchParams.get('fuel') || ''}>
@@ -377,9 +404,18 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
           </div>
         )}
 
-        {/* ✅ PŘIDÁNO - Hidden inputs pro form submission */}
+        {/* ✅ Hidden inputs pro form submission */}
         <input type="hidden" name="color" value={selectedColor} />
         <input type="hidden" name="colorFinish" value={selectedColorFinish} />
+        
+        {/* ✅ PŘIDÁNO - Location hidden inputs */}
+        {locationFilter && (
+          <>
+            <input type="hidden" name="nearLatitude" value={locationFilter.latitude} />
+            <input type="hidden" name="nearLongitude" value={locationFilter.longitude} />
+            <input type="hidden" name="nearDistance" value={locationFilter.distance} />
+          </>
+        )}
       </form>
 
       {/* Loading a výsledky */}
