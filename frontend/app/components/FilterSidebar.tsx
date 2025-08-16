@@ -55,81 +55,138 @@ export default function FilterSidebar({
     distance: number
   } | null>(null)
 
+  // ✅ PŘIDÁNO - State pro ostatní inputs
+  const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
+  const [yearFrom, setYearFrom] = useState(searchParams.get('yearFrom') || '')
+  const [yearTo, setYearTo] = useState(searchParams.get('yearTo') || '')
+  
+  // ✅ PŘIDÁNO - State pro checkboxy
+  const [selectedFuels, setSelectedFuels] = useState<string[]>(searchParams.getAll('fuel'))
+  const [selectedBodyTypes, setSelectedBodyTypes] = useState<string[]>(searchParams.getAll('bodyType'))
+  const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>(searchParams.getAll('transmission'))
+  const [selectedDrivetrains, setSelectedDrivetrains] = useState<string[]>(searchParams.getAll('drivetrain'))
+  const [selectedConditions, setSelectedConditions] = useState<string[]>(searchParams.getAll('condition'))
+
   const modelsList = getModelsList(selectedBrand)
 
-  // ✅ PŘIDÁNO - Handler pro barvu
-  const handleColorChange = (colorValue: string) => {
-    setSelectedColor(colorValue)
-    // Trigger immediate filter update
-    setTimeout(() => {
-      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
-      if (form) {
-        const params = buildParams(form)
-        const newParamsString = params.toString()
-        const currentParamsString = searchParams.toString()
-        
-        if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(newParamsString) // ✅ String místo URLSearchParams
-        }
-      }
-    }, 0)
-  }
-
-  // ✅ PŘIDÁNO - Handler pro povrchovou úpravu
-  const handleColorFinishChange = (colorFinishValue: string) => {
-    setSelectedColorFinish(colorFinishValue)
-    // Trigger immediate filter update
-    setTimeout(() => {
-      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
-      if (form) {
-        const params = buildParams(form)
-        const newParamsString = params.toString()
-        const currentParamsString = searchParams.toString()
-        
-        if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(newParamsString) // ✅ String místo URLSearchParams
-        }
-      }
-    }, 0)
-  }
-
   // Handlery pro změny v komponentách
+  // ✅ OPRAVENÉ handlery - používají novou hodnotu přímo
   const handleBrandChange = (brandValue: string) => {
-    console.log('Selected brand:', brandValue) // Přidejte tento log
+    console.log('🏷️ Brand changing to:', brandValue)
     setSelectedBrand(brandValue)
-    setSelectedModel('') // Reset model when brand changes
-    // Trigger immediate filter update
+    setSelectedModel('') // Reset model
+    
+    // ✅ KLÍČOVÁ ZMĚNA - Okamžitě použij novou hodnotu
     setTimeout(() => {
       const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
       if (form) {
-        const params = buildParams(form)
-        console.log('Built params:', params.toString()) // Přidejte tento log
+        const formData = new FormData(form)
+        const params = new URLSearchParams()
+
+        // ✅ POUŽIJ NOVOU HODNOTU místo state
+        params.set('brand', brandValue) // ← TADY!
+        // model se resetuje, takže nepřidáváme
+        
+        // Ostatní hodnoty ze state (ty se nemění)
+        if (selectedColor) params.set('color', selectedColor)
+        if (selectedColorFinish) params.set('colorFinish', selectedColorFinish)
+        if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
+        if (priceTo < 2000000) params.set('priceTo', priceTo.toString())
+        if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
+        if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
+        
+        // Text inputs ze form data
+        const search = formData.get('search') as string
+        if (search) params.set('search', search)
+        const yearFrom = formData.get('yearFrom') as string
+        if (yearFrom) params.set('yearFrom', yearFrom)
+        const yearTo = formData.get('yearTo') as string
+        if (yearTo) params.set('yearTo', yearTo)
+
+        // Checkboxy ze form data
+        const fuelValues = formData.getAll('fuel')
+        fuelValues.forEach(fuel => params.append('fuel', fuel as string))
+        const bodyTypeValues = formData.getAll('bodyType')
+        bodyTypeValues.forEach(bodyType => params.append('bodyType', bodyType as string))
+        const transmissionValues = formData.getAll('transmission')
+        transmissionValues.forEach(transmission => params.append('transmission', transmission as string))
+        const drivetrainValues = formData.getAll('drivetrain')
+        drivetrainValues.forEach(drivetrain => params.append('drivetrain', drivetrain as string))
+        const conditionValues = formData.getAll('condition')
+        conditionValues.forEach(condition => params.append('condition', condition as string))
+
+        // Location filter
+        if (locationFilter) {
+          params.set('nearLatitude', locationFilter.latitude.toString())
+          params.set('nearLongitude', locationFilter.longitude.toString())
+          params.set('nearDistance', locationFilter.distance.toString())
+        }
+
         const newParamsString = params.toString()
         const currentParamsString = searchParams.toString()
         
+        console.log('🔄 Brand - Current:', currentParamsString)
+        console.log('🔄 Brand - New:', newParamsString)
+        
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(newParamsString) // ✅ String místo URLSearchParams
+          fetchAds(newParamsString)
         }
       }
     }, 0)
   }
 
   const handleModelChange = (modelValue: string) => {
+    console.log('🚗 Model changing to:', modelValue)
     setSelectedModel(modelValue)
-    // Trigger immediate filter update
+    
     setTimeout(() => {
       const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
       if (form) {
-        const params = buildParams(form)
+        const formData = new FormData(form)
+        const params = new URLSearchParams()
+
+        // ✅ POUŽIJ SOUČASNÉ + NOVOU HODNOTU
+        if (selectedBrand) params.set('brand', selectedBrand)
+        params.set('model', modelValue) // ← NOVÁ HODNOTA!
+        
+        if (selectedColor) params.set('color', selectedColor)
+        if (selectedColorFinish) params.set('colorFinish', selectedColorFinish)
+        if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
+        if (priceTo < 2000000) params.set('priceTo', priceTo.toString())
+        if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
+        if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
+        
+        const search = formData.get('search') as string
+        if (search) params.set('search', search)
+        const yearFrom = formData.get('yearFrom') as string
+        if (yearFrom) params.set('yearFrom', yearFrom)
+        const yearTo = formData.get('yearTo') as string
+        if (yearTo) params.set('yearTo', yearTo)
+
+        const fuelValues = formData.getAll('fuel')
+        fuelValues.forEach(fuel => params.append('fuel', fuel as string))
+        const bodyTypeValues = formData.getAll('bodyType')
+        bodyTypeValues.forEach(bodyType => params.append('bodyType', bodyType as string))
+        const transmissionValues = formData.getAll('transmission')
+        transmissionValues.forEach(transmission => params.append('transmission', transmission as string))
+        const drivetrainValues = formData.getAll('drivetrain')
+        drivetrainValues.forEach(drivetrain => params.append('drivetrain', drivetrain as string))
+        const conditionValues = formData.getAll('condition')
+        conditionValues.forEach(condition => params.append('condition', condition as string))
+
+        if (locationFilter) {
+          params.set('nearLatitude', locationFilter.latitude.toString())
+          params.set('nearLongitude', locationFilter.longitude.toString())
+          params.set('nearDistance', locationFilter.distance.toString())
+        }
+
         const newParamsString = params.toString()
         const currentParamsString = searchParams.toString()
         
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-          fetchAds(newParamsString) // ✅ String místo URLSearchParams
+          fetchAds(newParamsString)
         }
       }
     }, 0)
@@ -265,6 +322,13 @@ export default function FilterSidebar({
 
   // Handle text input changes (debounced)
   const handleTextInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    
+    // Update local state
+    if (name === 'search') setSearchValue(value)
+    else if (name === 'yearFrom') setYearFrom(value)
+    else if (name === 'yearTo') setYearTo(value)
+    
     const form = e.target.form!
     
     // Clear previous timer
@@ -278,28 +342,12 @@ export default function FilterSidebar({
       const newParamsString = params.toString()
       const currentParamsString = searchParams.toString()
       
-      // Only update if params actually changed
       if (currentParamsString !== newParamsString) {
         router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
-        await fetchAds(newParamsString) // ✅ String místo URLSearchParams
+        await fetchAds(newParamsString)
       }
-    }, 500) // 500ms debounce
+    }, 500)
   }, [router, buildParams, fetchAds, searchParams])
-
-  // Cleanup debounce timer
-  useEffect(() => {
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current)
-      }
-    }
-  }, [])
-
-  // Load initial results - only once on mount
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString())
-    fetchAds(params.toString()) // ✅ Převod na string
-  }, []) // Removed dependencies to prevent infinite loop
 
   // Synchronizace state s URL parametry
   useEffect(() => {
@@ -311,6 +359,16 @@ export default function FilterSidebar({
     setPriceTo(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
     setMileageFrom(parseInt(searchParams.get('mileageFrom') || '0') || 0)
     setMileageTo(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
+    
+    // ✅ PŘIDÁNO - Sync ostatních hodnot
+    setSearchValue(searchParams.get('search') || '')
+    setYearFrom(searchParams.get('yearFrom') || '')
+    setYearTo(searchParams.get('yearTo') || '')
+    setSelectedFuels(searchParams.getAll('fuel'))
+    setSelectedBodyTypes(searchParams.getAll('bodyType'))
+    setSelectedTransmissions(searchParams.getAll('transmission'))
+    setSelectedDrivetrains(searchParams.getAll('drivetrain'))
+    setSelectedConditions(searchParams.getAll('condition'))
   }, [searchParams])
 
   // ✅ OPRAVENO - Location change handler
@@ -348,6 +406,27 @@ export default function FilterSidebar({
     }, 0)
   }
 
+  // ✅ PŘIDEJTE useEffect pro automatic search při změně color/colorFinish
+  useEffect(() => {
+    const triggerSearch = () => {
+      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
+      if (form) {
+        const params = buildParams(form)
+        const newParamsString = params.toString()
+        const currentParamsString = searchParams.toString()
+        
+        if (currentParamsString !== newParamsString) {
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          fetchAds(newParamsString)
+        }
+      }
+    }
+    
+    // Trigger search po 100ms delay (aby se stihla aktualizovat komponenta)
+    const timeout = setTimeout(triggerSearch, 100)
+    return () => clearTimeout(timeout)
+  }, [selectedColor, selectedColorFinish]) // ✅ Trigger při změně barev
+
   return (
     <aside className={`filter-sidebar ${isVisible ? 'filter-sidebar--visible' : ''}`}>
       <div className="filter-sidebar__content">
@@ -358,8 +437,8 @@ export default function FilterSidebar({
           </button>
         </div>
 
-        {/* ✅ VRÁCENO - Search pole */}
         <form className="filter-sidebar__form">
+          {/* ✅ OPRAVENO - Search pole s value */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Hledat</label>
             <input
@@ -367,7 +446,7 @@ export default function FilterSidebar({
               name="search"
               className="filter-sidebar__input"
               placeholder="Zadejte značku, model..."
-              defaultValue={searchParams.get('search') || ''}
+              value={searchValue} // ✅ ZMĚNĚNO z defaultValue
               onChange={handleTextInputChange}
             />
           </div>
@@ -407,7 +486,11 @@ export default function FilterSidebar({
             <label className="filter-sidebar__label">Barva</label>
             <ColorSelect
               value={selectedColor}
-              onChange={handleColorChange}
+              onChange={(value) => {
+                console.log('🎨 Color changed to:', value)
+                setSelectedColor(value)
+                // Trigger search bude přes useEffect nebo buildParams
+              }}
               placeholder="Všechny barvy"
               className="filter-sidebar__color-select"
             />
@@ -418,7 +501,11 @@ export default function FilterSidebar({
             <label className="filter-sidebar__label">Povrchová úprava</label>
             <ColorFinishSelect
               value={selectedColorFinish}
-              onChange={handleColorFinishChange}
+              onChange={(value) => {
+                console.log('✨ ColorFinish changed to:', value)
+                setSelectedColorFinish(value)
+                // Trigger search bude přes useEffect nebo buildParams
+              }}
               placeholder="Všechny úpravy"
               className="filter-sidebar__color-finish-select"
             />
@@ -465,7 +552,7 @@ export default function FilterSidebar({
                 name="yearFrom"
                 className="filter-sidebar__input filter-sidebar__input--small"
                 placeholder="Od"
-                defaultValue={searchParams.get('yearFrom') || ''}
+                value={yearFrom} // ✅ ZMĚNĚNO z defaultValue
                 onChange={handleTextInputChange}
               />
               <span className="filter-sidebar__range-separator">-</span>
@@ -474,13 +561,13 @@ export default function FilterSidebar({
                 name="yearTo"
                 className="filter-sidebar__input filter-sidebar__input--small"
                 placeholder="Do"
-                defaultValue={searchParams.get('yearTo') || ''}
+                value={yearTo} // ✅ ZMĚNĚNO z defaultValue
                 onChange={handleTextInputChange}
               />
             </div>
           </div>
 
-          {/* Dropdowns */}
+          {/* ✅ OPRAVENO - Fuel checkboxy s checked */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Palivo</label>
             <div className="filter-sidebar__checkbox-group">
@@ -497,7 +584,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="fuel"
                     value={opt.value}
-                    defaultChecked={searchParams.getAll('fuel').includes(opt.value)}
+                    checked={selectedFuels.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
@@ -506,6 +593,7 @@ export default function FilterSidebar({
             </div>
           </div>
 
+          {/* ✅ OPRAVENO - BodyType checkboxy s checked */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Karoserie</label>
             <div className="filter-sidebar__checkbox-group">
@@ -525,7 +613,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="bodyType"
                     value={opt.value}
-                    defaultChecked={searchParams.getAll('bodyType').includes(opt.value)}
+                    checked={selectedBodyTypes.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
@@ -534,6 +622,7 @@ export default function FilterSidebar({
             </div>
           </div>
 
+          {/* ✅ OPRAVENO - Transmission checkboxy s checked */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Převodovka</label>
             <div className="filter-sidebar__checkbox-group">
@@ -547,7 +636,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="transmission"
                     value={opt.value}
-                    defaultChecked={searchParams.getAll('transmission').includes(opt.value)}
+                    checked={selectedTransmissions.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
@@ -556,6 +645,7 @@ export default function FilterSidebar({
             </div>
           </div>
 
+          {/* ✅ OPRAVENO - Drivetrain checkboxy s checked */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Pohon</label>
             <div className="filter-sidebar__checkbox-group">
@@ -570,7 +660,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="drivetrain"
                     value={opt.value}
-                    defaultChecked={searchParams.getAll('drivetrain').includes(opt.value)}
+                    checked={selectedDrivetrains.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
@@ -579,6 +669,7 @@ export default function FilterSidebar({
             </div>
           </div>
 
+          {/* ✅ OPRAVENO - Condition checkboxy s checked */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Stav</label>
             <div className="filter-sidebar__checkbox-group">
@@ -593,7 +684,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="condition"
                     value={opt.value}
-                    defaultChecked={searchParams.getAll('condition').includes(opt.value)}
+                    checked={selectedConditions.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
