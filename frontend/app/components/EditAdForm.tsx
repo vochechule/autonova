@@ -8,6 +8,9 @@ import BrandSelect from './BrandSelect';
 import ModelSelect from './ModelSelect';
 import ColorSelect from './ColorSelect'
 import ColorFinishSelect from './ColorFinishSelect'
+// ✅ PŘIDÁNO - Loading states a toast
+import { FormLoading, ButtonLoading } from './LoadingStates'
+import { useToast } from '../contexts/ToastContext'
 
 interface EditAdFormProps {
   adId: string
@@ -28,12 +31,17 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedColorFinish, setSelectedColorFinish] = useState<string>('standard')
   const [adData, setAdData] = useState<any>(null)
+  const [initialLoading, setInitialLoading] = useState(false)
+  // ✅ PŘIDÁNO - Toast hook
+  const { showSuccess, showError, showWarning } = useToast()
 
   // Načti data inzerátu
   useEffect(() => {
     if (initialData) {
       setAdData(initialData)
       populateFormData(initialData)
+      // ✅ PŘIDÁNO - Toast jen pro initialData
+      showSuccess('Data načtena', 'Formulář byl naplněn aktuálními údaji')
     } else if (adId) {
       fetchAdData()
     }
@@ -41,7 +49,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
 
   const fetchAdData = async () => {
     try {
-      setLoading(true)
+      setInitialLoading(true)
       const token = localStorage.getItem('token')
       const res = await fetch(`http://localhost:3000/ad/${adId}`, {
         headers: {
@@ -57,11 +65,14 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       const data = await res.json()
       setAdData(data)
       populateFormData(data)
+      // ✅ PŘIDÁNO - Toast jen pro fetch (ne pro initialData)
+      showSuccess('Data načtena', 'Formulář byl naplněn aktuálními údaji')
     } catch (err) {
       console.error('Error fetching ad data:', err)
       setError(err instanceof Error ? err.message : 'Chyba při načítání dat')
+      showError('Chyba při načítání', 'Nepodařilo se načíst data inzerátu')
     } finally {
-      setLoading(false)
+      setInitialLoading(false)
     }
   }
 
@@ -111,10 +122,16 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       errors.push(`Můžete mít maximálně 10 obrázků. Aktuálně máte ${existingImages.length + images.length}, snažíte se přidat ${validFiles.length}.`)
     } else {
       setImages(prev => [...prev, ...validFiles])
+      // ✅ PŘIDÁNO - Toast po přidání obrázků
+      if (validFiles.length > 0) {
+        showSuccess('Obrázky přidány', `Přidáno ${validFiles.length} ${validFiles.length === 1 ? 'obrázek' : 'obrázků'}`)
+      }
     }
 
     if (errors.length > 0) {
       setImageError(errors.join('\n'))
+      // ✅ PŘIDÁNO - Toast pro chyby obrázků
+      showWarning('Problém s obrázky', errors[0])
     } else {
       setImageError(null)
     }
@@ -145,10 +162,14 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
   const handleImageRemove = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index))
     setImageError(null)
+    // ✅ PŘIDÁNO - Toast po odebrání
+    showSuccess('Obrázek odebrán', 'Nový obrázek byl odebrán ze seznamu')
   }
 
   const handleExistingImageRemove = (imageId: string) => {
     setExistingImages(prev => prev.filter(img => img.id !== imageId))
+    // ✅ PŘIDÁNO - Toast po odebrání existujícího
+    showWarning('Obrázek bude smazán', 'Existující obrázek bude smazán při uložení')
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -162,6 +183,8 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       if (totalImages < 2) {
         setImageError('Musíte mít alespoň dva obrázky.')
         setLoading(false)
+        // ✅ PŘIDÁNO - Toast pro validační chybu
+        showError('Nedostatek obrázků', 'Inzerát musí mít alespoň 2 obrázky')
         return
       } else {
         setImageError(null)
@@ -174,6 +197,27 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       const form = e.currentTarget
       const formData = new FormData()
       const formValues = new FormData(form)
+
+      // ✅ PŘESUNUTO - Kontaktní údaje HNED na začátek
+      const contactPhone = formValues.get('contactPhone')
+      const contactEmail = formValues.get('contactEmail')
+
+      if (!contactPhone || !contactPhone.toString().trim()) {
+        throw new Error('Telefon je povinný')
+      }
+
+      if (!contactEmail || !contactEmail.toString().trim()) {
+        throw new Error('Email je povinný')
+      }
+
+      // Přidej kontaktní údaje do formData
+      formData.append('contactPhone', contactPhone.toString())
+      formData.append('contactEmail', contactEmail.toString())
+
+      const contactName = formValues.get('contactName')
+      if (contactName && contactName.toString().trim()) {
+        formData.append('contactName', contactName.toString())
+      }
 
       // Brand a model ze state
       formData.append('brand', selectedBrand)
@@ -246,28 +290,13 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       const imagesToDelete = adData.images.filter((img: any) => 
         !existingImages.find(existing => existing.id === img.id)
       )
-      console.log('🔍 Original images:', adData.images?.length || 0);
-      console.log('🔍 Existing images remaining:', existingImages.length);
-      console.log('🔍 Images to delete:', imagesToDelete.length, imagesToDelete.map(img => img.id));
-      console.log('🔍 New images to upload:', images.length);
       
       if (imagesToDelete.length > 0) {
         const idsToDelete = imagesToDelete.map((img: any) => img.id);
-        console.log('🗑️ Sending imagesToDelete:', idsToDelete);
         formData.append('imagesToDelete', JSON.stringify(idsToDelete));
       }
 
-      // ✅ PŘIDÁNO - Debug FormData contents
-      console.log('🔍 FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        if (key === 'imagesToDelete') {
-          console.log(key, '(parsed):', JSON.parse(value as string));
-        } else if (key === 'images') {
-          console.log(key, '(file):', (value as File).name);
-        } else {
-          console.log(key, value);
-        }
-      }
+      // ✅ ODSTRANĚNO - duplikát kontaktních údajů (byl tu druhý blok)
 
       const token = localStorage.getItem('token')
       const res = await fetch(`http://localhost:3000/ad/${adId}`, {
@@ -299,6 +328,9 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       const result = await res.json()
       setSuccess(true)
 
+      // ✅ PŘIDÁNO - Toast po úspěšném uložení
+      showSuccess('Inzerát aktualizován', 'Všechny změny byly úspěšně uloženy')
+
       // Redirect po 2 sekundách
       setTimeout(() => {
         router.push(`/ads/${adId}`)
@@ -308,27 +340,73 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       console.error('🔍 Submit error:', err)
       if (err instanceof Error) {
         setError(err.message)
+        // ✅ PŘIDÁNO - Toast pro chybu
+        showError('Chyba při ukládání', err.message)
       } else {
         setError('Neznámá chyba')
+        showError('Chyba při ukládání', 'Neznámá chyba')
       }
     } finally {
       setLoading(false)
     }
   }
 
-  if (loading && !adData) {
-    return <div className="loading">Načítám data inzerátu...</div>
+  // ✅ UPRAVENO - Loading states
+  if (initialLoading && !adData) {
+    return (
+      <div className="ad-create-form">
+        <div className="form-container">
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ 
+                width: '40px', 
+                height: '40px', 
+                border: '3px solid #e2e8f0', 
+                borderTop: '3px solid #0070f3',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto'
+              }}></div>
+            </div>
+            <h3 style={{ color: '#4a5568', margin: 0 }}>Načítám data inzerátu...</h3>
+            <p style={{ color: '#718096', marginTop: '8px' }}>Prosím čekejte</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!adData) {
-    return <div className="error">Nepodařilo se načíst data inzerátu</div>
+    return (
+      <div className="ad-create-form">
+        <div className="form-container">
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <h3 style={{ color: '#e53e3e', marginBottom: '16px' }}>Chyba při načítání</h3>
+            <p style={{ color: '#718096', marginBottom: '24px' }}>Nepodařilo se načíst data inzerátu</p>
+            <button 
+              onClick={() => window.location.reload()}
+              style={{
+                background: '#0070f3',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              Zkusit znovu
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const totalImages = existingImages.length + images.length
 
   return (
     <div className="ad-create-form">
-      <div className="form-container">
+      <div className="form-container" style={{ position: 'relative' }}>
         <h2>Upravit inzerát</h2>
         <p className="form-subtitle">Upravte údaje vašeho inzerátu</p>
 
@@ -768,7 +846,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Ukládám...' : 'Uložit změny'}
+            {loading ? <ButtonLoading /> : 'Uložit změny'}
           </button>
           
           {error && <div className="error">{error}</div>}
@@ -801,6 +879,9 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
             </div>
           )}
         </form>
+
+        {/* ✅ PŘIDÁNO - Loading overlay */}
+        {loading && <FormLoading message="Ukládám změny..." />}
 
         {/* Vysvětlivka pro povinná pole */}
         <div className="form-notice">

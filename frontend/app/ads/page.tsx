@@ -8,6 +8,9 @@ import FavoriteButton from '../components/FavoriteButton'
 import Link from 'next/link'
 import '../styles/AdsPage.scss'
 import { formatCarTitle } from '../utils/CarFormatter'
+import { CardsLoading, ButtonLoading } from '../components/LoadingStates'
+import { NetworkErrorPage } from '../components/ErrorPages'
+import { useToast } from '../contexts/ToastContext'
 
 type Ad = {
   id: number
@@ -49,57 +52,70 @@ export default function AdsPage() {
   const [pagination, setPagination] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const { showError: showToastError } = useToast()
 
   useEffect(() => {
-    setLoading(true)
-    setAds([])
-    
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('page', '1')
-    params.set('limit', '10')
-
-    fetch(`http://localhost:3000/ad?${params}`)
-      .then(res => res.json())
-      .then(data => {
-        // ✅ JEDINÁ OPRAVA - bezpečnostní kontrola
-        setAds(data?.ads || [])
-        setPagination(data?.pagination || null)
-        setLoading(false)
-      })
-      .catch(() => {
-        setLoading(false)
-        setAds([])
-      })
+    fetchAds(true)
   }, [searchParams])
 
-  const loadMore = async () => {
-    if (!pagination?.hasNext || loadingMore) return
-    
-    setLoadingMore(true)
-    
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('page', (pagination.page + 1).toString())
-    params.set('limit', '10')
-
+  const fetchAds = async (isInitialLoad = false) => {
     try {
-      const res = await fetch(`http://localhost:3000/ad?${params}`)
-      const data = await res.json()
+      if (isInitialLoad) {
+        setLoading(true)
+        setAds([])
+        setError(null)
+      }
       
-      // ✅ JEDINÁ OPRAVA - bezpečnostní kontrola
-      setAds(prevAds => [...prevAds, ...(data?.ads || [])])
+      const params = new URLSearchParams(searchParams.toString())
+      params.set('page', isInitialLoad ? '1' : (pagination.page + 1).toString())
+      params.set('limit', '10')
+
+      const response = await fetch(`http://localhost:3000/ad?${params}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      if (isInitialLoad) {
+        setAds(data?.ads || [])
+      } else {
+        setAds(prevAds => [...prevAds, ...(data?.ads || [])])
+      }
+      
       setPagination(data?.pagination || null)
     } catch (error) {
-      console.error('Error loading more ads:', error)
+      console.error('Error fetching ads:', error)
+      setError('network-error')
+      showToastError('Chyba při načítání', 'Nepodařilo se načíst seznam inzerátů')
     } finally {
+      setLoading(false)
       setLoadingMore(false)
     }
   }
 
+  const loadMore = async () => {
+    if (!pagination?.hasNext || loadingMore) return
+    setLoadingMore(true)
+    await fetchAds(false)
+  }
+
   const handleFilterResults = (newAdsData: PaginationResponse) => {
-    // ✅ JEDINÁ OPRAVA - bezpečnostní kontrola
     setAds(newAdsData?.ads || [])
     setPagination(newAdsData?.pagination || null)
+    setError(null)
+  }
+
+  const handleRetry = () => {
+    setError(null)
+    fetchAds(true)
+  }
+
+  if (error === 'network-error') {
+    return <NetworkErrorPage onRetry={handleRetry} />
   }
 
   return (
@@ -139,17 +155,20 @@ export default function AdsPage() {
           <ActiveFilters />
           
           <div className="ads-page__results">
-            {pagination && (
+            {pagination && !loading && (
               <div className="ads-page__results-info">
                 Zobrazeno {ads.length} z {pagination.total} inzerátů
               </div>
             )}
 
             {loading ? (
-              <div className="ads-page__loading">Načítání...</div>
+              <CardsLoading count={8} />
             ) : ads.length === 0 ? (
               <div className="ads-page__no-results">
                 <p>Žádné inzeráty nebyly nalezeny.</p>
+                <button onClick={handleRetry} className="retry-button">
+                  Zkusit znovu
+                </button>
               </div>
             ) : (
               <>
@@ -168,7 +187,7 @@ export default function AdsPage() {
                           <div className="ads-page__title-horizontal">{ad.title}</div>
                           <div className="ads-page__specs">
                             {ad.brand && ad.model && (
-                              <span className="ads-page__spec">  {formatCarTitle(ad.brand, ad.model)}</span>
+                              <span className="ads-page__spec">{formatCarTitle(ad.brand, ad.model)}</span>
                             )}
                             {ad.year && (
                               <span className="ads-page__spec">{ad.year}</span>
@@ -233,10 +252,7 @@ export default function AdsPage() {
                       disabled={loadingMore}
                     >
                       {loadingMore ? (
-                        <>
-                          <div className="loading-spinner"></div>
-                          Načítání...
-                        </>
+                        <ButtonLoading />
                       ) : (
                         <>
                           Zobrazit další inzeráty 

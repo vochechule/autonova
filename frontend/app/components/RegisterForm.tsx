@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import '../styles/LoginForm.scss'
+// ✅ PŘIDÁNO - Loading states a toast
+import { ButtonLoading } from './LoadingStates'
+import { useToast } from '../contexts/ToastContext'
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -16,6 +19,8 @@ export default function RegisterForm() {
     hasUppercase: false,
     hasNumber: false
   })
+  // ✅ PŘIDÁNO - Toast hook
+  const { showSuccess, showError, showInfo } = useToast()
 
   // Update password strength indicators in real-time
   useEffect(() => {
@@ -38,6 +43,8 @@ export default function RegisterForm() {
     
     if (!isPasswordStrong()) {
       setError('Heslo musí splňovat všechny požadavky')
+      // ✅ PŘIDÁNO - Toast pro slabé heslo
+      showError('Slabé heslo', 'Heslo musí mít alespoň 8 znaků, velké písmeno a číslo')
       return
     }
     
@@ -72,10 +79,17 @@ export default function RegisterForm() {
       
       setSuccess(true)
       setLoading(false)
+      
+      // ✅ PŘIDÁNO - Toast po úspěšné registraci
+      showSuccess('Registrace úspěšná', `Vítejte, ${name}! Přesměrovávám na hlavní stránku...`)
+      
       setTimeout(() => router.push('/'), 1000)
     } catch (err: any) {
       setError(err.message || 'Došlo k chybě při registraci')
       setLoading(false)
+      
+      // ✅ PŘIDÁNO - Toast pro chybu registrace
+      showError('Chyba registrace', err.message || 'Došlo k chybě při registraci')
     }
   }
 
@@ -91,6 +105,7 @@ export default function RegisterForm() {
         required 
         placeholder="Jméno" 
         minLength={2}
+        disabled={loading}
       />
       
       <label htmlFor="email">Email</label>
@@ -100,6 +115,7 @@ export default function RegisterForm() {
         type="email" 
         required 
         placeholder="Email" 
+        disabled={loading}
       />
       
       <label htmlFor="password">Heslo</label>
@@ -113,6 +129,7 @@ export default function RegisterForm() {
           value={password}
           onChange={e => setPassword(e.target.value)}
           minLength={8}
+          disabled={loading}
         />
         <button
           type="button"
@@ -120,6 +137,7 @@ export default function RegisterForm() {
           tabIndex={-1}
           onClick={() => setShowPassword(v => !v)}
           aria-label={showPassword ? 'Skrýt heslo' : 'Zobrazit heslo'}
+          disabled={loading}
         >
           {showPassword ? '👁️' : '👁'}
         </button>
@@ -144,7 +162,7 @@ export default function RegisterForm() {
       >
         {loading ? (
           <>
-            <span className="spinner"></span> Registruji...
+            <ButtonLoading /> Registruji...
           </>
         ) : success ? (
           'Úspěšně registrováno!'

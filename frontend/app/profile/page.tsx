@@ -3,6 +3,10 @@ import { ChangePasswordModal, EditProfileModal, DeleteAccountModal } from '../co
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import '../styles/ProfilePage.scss'
+// ✅ PŘIDÁNO - Loading states a error handling
+import { PageLoading, ButtonLoading } from '../components/LoadingStates'
+import { UnauthorizedPage, NetworkErrorPage } from '../components/ErrorPages'
+import { useToast } from '../contexts/ToastContext'
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
@@ -11,49 +15,160 @@ export default function ProfilePage() {
   const [reviews, setReviews] = useState<any[]>([])
   const [avgRating, setAvgRating] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [showAllReviews, setShowAllReviews] = useState(false)
+  const [deletingAdId, setDeletingAdId] = useState<string | null>(null)
+  const [removingSavedId, setRemovingSavedId] = useState<string | null>(null)
 
   // Nové stavy pro modály
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
+  // ✅ PŘIDÁNO - Toast hook
+  const { showSuccess, showError } = useToast()
+
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) return
-    fetch('http://localhost:3000/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => res.ok ? res.json() : null)
-      .then(user => {
-        setUser(user)
-        if (user) {
-          Promise.all([
-            fetch(`http://localhost:3000/ad/my`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }).then(res => res.ok ? res.json() : []),
-            fetch(`http://localhost:3000/saved-ads`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }).then(res => res.ok ? res.json() : []),
-            fetch(`http://localhost:3000/user/${user.id}/reviews`).then(res => res.ok ? res.json() : []),
-            fetch(`http://localhost:3000/user/${user.id}/average-rating`).then(res => res.ok ? res.json() : { averageRating: null }),
-          ]).then(([ads, savedAds, reviews, avg]) => {
-            setAds(ads)
-            setSavedAds(savedAds)
-            setReviews(reviews)
-            setAvgRating(avg.averageRating)
-          })
-        }
-      })
-      .catch(err => setError('Nepodařilo se načíst profil: ' + err.message))
+    fetchProfileData()
   }, [])
+
+  // ✅ NOVÁ FUNKCE - Centralizované načítání dat
+  const fetchProfileData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setError('unauthorized')
+        return
+      }
+
+      const userResponse = await fetch('http://localhost:3000/auth/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (userResponse.status === 401) {
+        setError('unauthorized')
+        return
+      }
+
+      if (!userResponse.ok) {
+        throw new Error('Failed to fetch user data')
+      }
+
+      const userData = await userResponse.json()
+      setUser(userData)
+
+      if (userData) {
+        // Paralelní načítání všech dat
+        const [adsResponse, savedAdsResponse, reviewsResponse, avgRatingResponse] = await Promise.allSettled([
+          fetch(`http://localhost:3000/ad/my`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:3000/saved-ads`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:3000/user/${userData.id}/reviews`),
+          fetch(`http://localhost:3000/user/${userData.id}/average-rating`)
+        ])
+
+        // Zpracování výsledků s error handling
+        if (adsResponse.status === 'fulfilled' && adsResponse.value.ok) {
+          const adsData = await adsResponse.value.json()
+          setAds(adsData)
+        }
+
+        if (savedAdsResponse.status === 'fulfilled' && savedAdsResponse.value.ok) {
+          const savedAdsData = await savedAdsResponse.value.json()
+          setSavedAds(savedAdsData)
+        }
+
+        if (reviewsResponse.status === 'fulfilled' && reviewsResponse.value.ok) {
+          const reviewsData = await reviewsResponse.value.json()
+          setReviews(reviewsData)
+        }
+
+        if (avgRatingResponse.status === 'fulfilled' && avgRatingResponse.value.ok) {
+          const avgData = await avgRatingResponse.value.json()
+          setAvgRating(avgData.averageRating)
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err)
+      setError('network-error')
+      showError('Chyba při načítání profilu', 'Nepodařilo se načíst data profilu')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ✅ NOVÁ FUNKCE - Smazání inzerátu s loading
+  const handleDeleteAd = async (adId: string) => {
+    if (!confirm('Opravdu chcete inzerát smazat?')) return
+
+    setDeletingAdId(adId)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`http://localhost:3000/ad/${adId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (res.ok) {
+        setAds(ads => ads.filter(a => a.id !== adId))
+        showSuccess('Inzerát smazán', 'Inzerát byl úspěšně smazán')
+      } else {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Smazání se nezdařilo')
+      }
+    } catch (error) {
+      showError('Chyba při mazání', error instanceof Error ? error.message : 'Smazání se nezdařilo')
+    } finally {
+      setDeletingAdId(null)
+    }
+  }
+
+  // ✅ NOVÁ FUNKCE - Odebrání z uložených s loading
+  const handleRemoveSaved = async (savedAdId: string, adId: string) => {
+    if (!confirm('Remove this ad from saved?')) return
+
+    setRemovingSavedId(savedAdId)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`http://localhost:3000/saved-ads/${adId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (res.ok) {
+        setSavedAds(savedAds => savedAds.filter(sa => sa.id !== savedAdId))
+        showSuccess('Odebráno z uložených', 'Inzerát byl odebrán z uložených')
+      } else {
+        throw new Error('Failed to remove from saved')
+      }
+    } catch (error) {
+      showError('Chyba při odebírání', 'Failed to remove from saved')
+    } finally {
+      setRemovingSavedId(null)
+    }
+  }
+
+  const handleRetry = () => {
+    setError(null)
+    fetchProfileData()
+  }
+
+  // ✅ UPRAVENO - Error handling
+  if (loading) return <PageLoading message="Načítám váš profil..." />
+  if (error === 'unauthorized') return <UnauthorizedPage />
+  if (error === 'network-error') return <NetworkErrorPage onRetry={handleRetry} />
 
   if (!user) {
     return (
       <main className="profile-page">
         <h2>Nejste přihlášeni</h2>
         <Link href="/login" className="profile-page__login-btn">Přihlásit se</Link>
-        {error && <div style={{ color: 'red' }}>{error}</div>}
       </main>
     )
   }
@@ -126,21 +241,10 @@ export default function ProfilePage() {
                     </Link>
                     <button
                       className="profile-page__ad-action delete"
-                      onClick={async () => {
-                        if (!confirm('Opravdu chcete inzerát smazat?')) return;
-                        const token = localStorage.getItem('token');
-                        const res = await fetch(`http://localhost:3000/ad/${ad.id}`, {
-                          method: 'DELETE',
-                          headers: { Authorization: `Bearer ${token}` },
-                        });
-                        if (res.ok) {
-                          setAds(ads => ads.filter(a => a.id !== ad.id));
-                        } else {
-                          alert('Smazání se nezdařilo');
-                        }
-                      }}
+                      onClick={() => handleDeleteAd(ad.id)}
+                      disabled={deletingAdId === ad.id}
                     >
-                      Smazat
+                      {deletingAdId === ad.id ? <ButtonLoading /> : 'Smazat'}
                     </button>
                   </div>
                 </td>
@@ -162,8 +266,8 @@ export default function ProfilePage() {
         <div className="profile-page__saved-list">
           {savedAds.slice(0, 3).map(savedAd => (
             <div key={savedAd.id} className="profile-page__saved-ad">
-                             <Link href={`/ads/${savedAd.ad.id}`} className="profile-page__saved-link">
-                 <img src={savedAd.ad.images?.[0]?.url || '/default-car.png'} alt="" />
+              <Link href={`/ads/${savedAd.ad.id}`} className="profile-page__saved-link">
+                <img src={savedAd.ad.images?.[0]?.url || '/default-car.png'} alt="" />
                 <div className="profile-page__saved-info">
                   <div className="profile-page__saved-title">{savedAd.ad.title}</div>
                   <div className="profile-page__saved-brand">{savedAd.ad.brand} {savedAd.ad.model}</div>
@@ -172,21 +276,10 @@ export default function ProfilePage() {
               </Link>
               <button 
                 className="profile-page__saved-remove"
-                onClick={async () => {
-                  if (!confirm('Remove this ad from saved?')) return;
-                  const token = localStorage.getItem('token');
-                  const res = await fetch(`http://localhost:3000/saved-ads/${savedAd.ad.id}`, {
-                    method: 'DELETE',
-                    headers: { Authorization: `Bearer ${token}` },
-                  });
-                  if (res.ok) {
-                    setSavedAds(savedAds => savedAds.filter(sa => sa.id !== savedAd.id));
-                  } else {
-                    alert('Failed to remove from saved');
-                  }
-                }}
+                onClick={() => handleRemoveSaved(savedAd.id, savedAd.ad.id)}
+                disabled={removingSavedId === savedAd.id}
               >
-                Remove
+                {removingSavedId === savedAd.id ? <ButtonLoading /> : 'Remove'}
               </button>
             </div>
           ))}
@@ -199,7 +292,7 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      {/* Zobrazit sekci hodnocení pouze pokud má uživatel nějaká hodnocení */}
+      {/* Zbytek sections zůstává stejný... */}
       {reviews.length > 0 && (
         <section className="profile-page__reviews">
           <h2>Reviews Received</h2>
@@ -277,7 +370,8 @@ export default function ProfilePage() {
             className="profile-page__logout-btn"
             onClick={() => {
               localStorage.removeItem('token')
-              window.location.reload()
+              showSuccess('Odhlášení', 'Byli jste úspěšně odhlášeni')
+              setTimeout(() => window.location.reload(), 1000)
             }}
           >
             Odhlásit se
@@ -285,11 +379,11 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      {/* Modály */}
+      {/* ✅ UPRAVENO - Toast notifikace místo alert */}
       <ChangePasswordModal
         isOpen={showChangePassword}
         onClose={() => setShowChangePassword(false)}
-        onSuccess={() => alert('Heslo bylo úspěšně změněno!')}
+        onSuccess={() => {}} // Toast už je v komponentě
       />
 
       <EditProfileModal
@@ -298,7 +392,7 @@ export default function ProfilePage() {
         user={user}
         onSuccess={(updatedUser) => {
           setUser(updatedUser)
-          alert('Profil byl úspěšně aktualizován!')
+          // Toast už je v komponentě
         }}
       />
 

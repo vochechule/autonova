@@ -1,6 +1,9 @@
 'use client'
 import { useState } from 'react'
 import '../styles/components/ProfileModals.scss'
+// ✅ PŘIDÁNO - Loading states a toast
+import { FormLoading, ButtonLoading } from './LoadingStates'
+import { useToast } from '../contexts/ToastContext'
 
 interface ChangePasswordModalProps {
   isOpen: boolean
@@ -14,6 +17,8 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // ✅ PŘIDÁNO - Toast hook
+  const { showSuccess, showError } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,6 +51,8 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
       })
 
       if (res.ok) {
+        // ✅ UPRAVENO - Toast místo onSuccess callback
+        showSuccess('Heslo změněno', 'Vaše heslo bylo úspěšně změněno')
         onSuccess()
         onClose()
         setCurrentPassword('')
@@ -53,10 +60,15 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
         setConfirmPassword('')
       } else {
         const errorData = await res.json()
-        setError(errorData.message || 'Změna hesla se nezdařila')
+        const errorMessage = errorData.message || 'Změna hesla se nezdařila'
+        setError(errorMessage)
+        // ✅ PŘIDÁNO - Toast pro chybu
+        showError('Chyba při změně hesla', errorMessage)
       }
     } catch (err) {
-      setError('Nepodařilo se změnit heslo')
+      const errorMessage = 'Nepodařilo se změnit heslo'
+      setError(errorMessage)
+      showError('Chyba sítě', errorMessage)
     } finally {
       setLoading(false)
     }
@@ -66,7 +78,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
 
   return (
     <div className="profile-modal__backdrop" onClick={onClose}>
-      <div className="profile-modal__content" onClick={e => e.stopPropagation()}>
+      <div className="profile-modal__content" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
         <div className="profile-modal__header">
           <h3>Změnit heslo</h3>
           <button className="profile-modal__close" onClick={onClose}>
@@ -88,6 +100,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
               value={currentPassword}
               onChange={e => setCurrentPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
@@ -100,6 +113,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
               onChange={e => setNewPassword(e.target.value)}
               required
               minLength={6}
+              disabled={loading}
             />
           </div>
 
@@ -111,18 +125,22 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
           <div className="profile-modal__actions">
-            <button type="button" onClick={onClose} className="profile-modal__btn secondary">
+            <button type="button" onClick={onClose} className="profile-modal__btn secondary" disabled={loading}>
               Zrušit
             </button>
             <button type="submit" disabled={loading} className="profile-modal__btn primary">
-              {loading ? 'Měním...' : 'Změnit heslo'}
+              {loading ? <ButtonLoading /> : 'Změnit heslo'}
             </button>
           </div>
         </form>
+
+        {/* ✅ PŘIDÁNO - Loading overlay */}
+        {loading && <FormLoading message="Měním heslo..." />}
       </div>
     </div>
   )
@@ -140,6 +158,8 @@ export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfi
   const [email, setEmail] = useState(user?.email || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // ✅ PŘIDÁNO - Toast hook
+  const { showSuccess, showError } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -159,14 +179,20 @@ export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfi
 
       if (res.ok) {
         const updatedUser = await res.json()
+        // ✅ UPRAVENO - Toast místo alert
+        showSuccess('Profil aktualizován', 'Vaše údaje byly úspěšně aktualizovány')
         onSuccess(updatedUser)
         onClose()
       } else {
         const errorData = await res.json()
-        setError(errorData.message || 'Aktualizace se nezdařila')
+        const errorMessage = errorData.message || 'Aktualizace se nezdařila'
+        setError(errorMessage)
+        showError('Chyba při aktualizaci', errorMessage)
       }
     } catch (err) {
-      setError('Nepodařilo se aktualizovat profil')
+      const errorMessage = 'Nepodařilo se aktualizovat profil'
+      setError(errorMessage)
+      showError('Chyba sítě', errorMessage)
     } finally {
       setLoading(false)
     }
@@ -176,7 +202,7 @@ export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfi
 
   return (
     <div className="profile-modal__backdrop" onClick={onClose}>
-      <div className="profile-modal__content" onClick={e => e.stopPropagation()}>
+      <div className="profile-modal__content" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
         <div className="profile-modal__header">
           <h3>Upravit profil</h3>
           <button className="profile-modal__close" onClick={onClose}>
@@ -198,6 +224,7 @@ export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfi
               value={name}
               onChange={e => setName(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
@@ -209,18 +236,22 @@ export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfi
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
           <div className="profile-modal__actions">
-            <button type="button" onClick={onClose} className="profile-modal__btn secondary">
+            <button type="button" onClick={onClose} className="profile-modal__btn secondary" disabled={loading}>
               Zrušit
             </button>
             <button type="submit" disabled={loading} className="profile-modal__btn primary">
-              {loading ? 'Ukládám...' : 'Uložit změny'}
+              {loading ? <ButtonLoading /> : 'Uložit změny'}
             </button>
           </div>
         </form>
+
+        {/* ✅ PŘIDÁNO - Loading overlay */}
+        {loading && <FormLoading message="Ukládám změny..." />}
       </div>
     </div>
   )
@@ -236,6 +267,8 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
   const [confirmText, setConfirmText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // ✅ PŘIDÁNO - Toast hook
+  const { showError, showWarning } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -261,13 +294,21 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
 
       if (res.ok) {
         localStorage.removeItem('token')
-        window.location.href = '/login?message=Account deleted successfully'
+        // ✅ PŘIDÁNO - Toast před redirectem
+        showWarning('Účet smazán', 'Váš účet byl trvale smazán')
+        setTimeout(() => {
+          window.location.href = '/login?message=Account deleted successfully'
+        }, 1500)
       } else {
         const errorData = await res.json()
-        setError(errorData.message || 'Smazání účtu se nezdařilo')
+        const errorMessage = errorData.message || 'Smazání účtu se nezdařilo'
+        setError(errorMessage)
+        showError('Chyba při mazání účtu', errorMessage)
       }
     } catch (err) {
-      setError('Nepodařilo se smazat účet')
+      const errorMessage = 'Nepodařilo se smazat účet'
+      setError(errorMessage)
+      showError('Chyba sítě', errorMessage)
     } finally {
       setLoading(false)
     }
@@ -277,7 +318,7 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
 
   return (
     <div className="profile-modal__backdrop" onClick={onClose}>
-      <div className="profile-modal__content danger" onClick={e => e.stopPropagation()}>
+      <div className="profile-modal__content danger" onClick={e => e.stopPropagation()} style={{ position: 'relative' }}>
         <div className="profile-modal__header">
           <h3>Smazat účet</h3>
           <button className="profile-modal__close" onClick={onClose}>
@@ -310,6 +351,7 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
@@ -324,18 +366,22 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
               onChange={e => setConfirmText(e.target.value)}
               placeholder="SMAZAT"
               required
+              disabled={loading}
             />
           </div>
 
           <div className="profile-modal__actions">
-            <button type="button" onClick={onClose} className="profile-modal__btn secondary">
+            <button type="button" onClick={onClose} className="profile-modal__btn secondary" disabled={loading}>
               Zrušit
             </button>
             <button type="submit" disabled={loading} className="profile-modal__btn danger">
-              {loading ? 'Mažu...' : 'Smazat účet'}
+              {loading ? <ButtonLoading /> : 'Smazat účet'}
             </button>
           </div>
         </form>
+
+        {/* ✅ PŘIDÁNO - Loading overlay */}
+        {loading && <FormLoading message="Mažu účet..." />}
       </div>
     </div>
   )

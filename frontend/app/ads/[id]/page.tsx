@@ -7,35 +7,63 @@ import ShareButton from '../../components/ShareButton'
 import '../../styles/AdDetailPage.scss'
 import Link from 'next/link'
 import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatter'
+// ✅ PŘIDÁNO - Import loading states a error pages
+import { PageLoading } from '../../components/LoadingStates'
+import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
+import { useToast } from '../../contexts/ToastContext'
 
 export default function AdDetailPage() {
   const { id } = useParams()
   const [ad, setAd] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [imgIndex, setImgIndex] = useState(0)
+  // ✅ PŘIDÁNO - Toast hook
+  const { showError } = useToast()
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    
-    const fetchAd = () => {
-      fetch(`http://localhost:3000/ad/${id}`)
-        .then(res => res.json())
-        .then(data => {
-          setAd(data);
-          setLoading(false);
-        });
-    };
-    
+    const fetchAd = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const response = await fetch(`http://localhost:3000/ad/${id}`)
+        
+        if (response.status === 404) {
+          setError('not-found')
+          return
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        setAd(data)
+      } catch (error) {
+        console.error('Error fetching ad:', error)
+        setError('network-error')
+        showError('Chyba při načítání', 'Nepodařilo se načíst detail inzerátu')
+      } finally {
+        setLoading(false)
+      }
+    }
+
     // Debounce - počkej 100ms před voláním
-    timeoutId = setTimeout(fetchAd, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [id])
+    const timeoutId = setTimeout(fetchAd, 100)
+    return () => clearTimeout(timeoutId)
+  }, [id, showError])
+
+  const handleRetry = () => {
+    setError(null)
+    window.location.reload()
+  }
 
   const handlePrev = () => {
     if (!ad?.images) return
     setImgIndex((prev) => prev === 0 ? ad.images.length - 1 : prev - 1)
   }
+  
   const handleNext = () => {
     if (!ad?.images) return
     setImgIndex((prev) => prev === ad.images.length - 1 ? 0 : prev + 1)
@@ -47,8 +75,11 @@ export default function AdDetailPage() {
     trackMouse: true,
   })
 
-  if (loading) return <main className="ad-detail-page">Načítám...</main>
-  if (!ad) return <main className="ad-detail-page">Inzerát nebyl nalezen.</main>
+  // ✅ UPRAVENO - Lepší loading a error handling
+  if (loading) return <PageLoading message="Načítám detail inzerátu..." />
+  if (error === 'not-found') return <NotFoundPage />
+  if (error === 'network-error') return <NetworkErrorPage onRetry={handleRetry} />
+  if (!ad) return <NotFoundPage />
 
   return (
     <main className="ad-detail-page">

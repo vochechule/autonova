@@ -1,0 +1,153 @@
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+  width: 100%;
+
+  @media (max-width: 480px) {
+    left: 20px;
+    right: 20px;
+    top: 20px;
+    max-width: none;
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e2e8f0;
+  animation: toastSlideIn 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+  }
+
+  &--success {
+    &::before {
+      background: #10b981;
+    }
+    .toast__icon {
+      color: #10b981;
+    }
+  }
+
+  &--error {
+    &::before {
+      background: #ef4444;
+    }
+    .toast__icon {
+      color: #ef4444;
+    }
+  }
+
+  &--warning {
+    &::before {
+      background: #f59e0b;
+    }
+    .toast__icon {
+      color: #f59e0b;
+    }
+  }
+
+  &--info {
+    &::before {
+      background: #3b82f6;
+    }
+    .toast__icon {
+      color: #3b82f6;
+    }
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.toast__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast__title {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.toast__message {
+  color: #4a5568;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.toast__close {
+  background: none;
+  border: none;
+  color: #718096;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    color: #4a5568;
+    background: #f7fafc;
+  }
+}
+
+// Dark mode
+[data-theme="dark"] {
+  .toast {
+    background: #1a202c;
+    border-color: #4a5568;
+  }
+
+  .toast__title {
+    color: #e2e8f0;
+  }
+
+  .toast__message {
+    color: #a0aec0;
+  }
+
+  .toast__close {
+    color: #a0aec0;
+
+    &:hover {
+      color: #e2e8f0;
+      background: #2d3748;
+    }
+  }
+}

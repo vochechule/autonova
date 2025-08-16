@@ -67,11 +67,12 @@
 
   &__no-results {
     text-align: center;
-    padding: 2rem;
-    color: #6b7280;
+    padding: 60px 20px;
     
     p {
-      font-size: 1.125rem;
+      font-size: 1.2rem;
+      color: #4a5568;
+      margin-bottom: 20px;
     }
   }
 
@@ -435,4 +436,21 @@
   background: linear-gradient(90deg, #3b82f6, #1d4ed8);
   border-radius: 1px;
   transition: width 0.3s ease;
+}
+
+.retry-button {
+  background: #0070f3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #0056cc;
+    transform: translateY(-1px);
+  }
 }

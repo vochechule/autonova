@@ -1,0 +1,151 @@
+.error-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #f7f8fa;
+}
+
+.error-page__content {
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.error-page__code {
+  font-size: 6rem;
+  font-weight: 900;
+  color: #0070f3;
+  line-height: 1;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0, 112, 243, 0.1);
+  
+  @media (max-width: 480px) {
+    font-size: 4rem;
+  }
+}
+
+.error-page__title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 16px;
+  line-height: 1.2;
+  
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+  }
+}
+
+.error-page__message {
+  font-size: 1.1rem;
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 32px;
+  
+  @media (max-width: 480px) {
+    font-size: 1rem;
+  }
+}
+
+.error-page__actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.error-page__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &--primary {
+    background: #0070f3;
+    color: white;
+    
+    &:hover {
+      background: #0056cc;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 112, 243, 0.3);
+      color: white;
+      text-decoration: none;
+    }
+  }
+  
+  &--secondary {
+    background: #fff;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+    
+    &:hover {
+      background: #f7fafc;
+      border-color: #cbd5e0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      color: #4a5568;
+      text-decoration: none;
+    }
+  }
+}
+
+// Dark mode
+[data-theme="dark"] {
+  .error-page {
+    background: #0f0f0f;
+  }
+  
+  .error-page__code {
+    color: #3182ce;
+  }
+  
+  .error-page__title {
+    color: #e2e8f0;
+  }
+  
+  .error-page__message {
+    color: #a0aec0;
+  }
+  
+  .error-page__btn--primary {
+    background: #3182ce;
+    
+    &:hover {
+      background: #2c5aa0;
+    }
+  }
+  
+  .error-page__btn--secondary {
+    background: #1a202c;
+    color: #e2e8f0;
+    border-color: #4a5568;
+    
+    &:hover {
+      background: #2d3748;
+      border-color: #718096;
+      color: #e2e8f0;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .error-page__actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .error-page__btn {
+    width: 100%;
+    max-width: 250px;
+    justify-content: center;
+  }
+}
