@@ -1,8 +1,118 @@
+'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import '../styles/components/Footer.scss'
 
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
+// Import cookies settings component
+function CookiesModal({ 
+  isOpen, 
+  onClose 
+}: { 
+  isOpen: boolean
+  onClose: () => void 
+}) {
+  const [analytics, setAnalytics] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cookies-analytics') === 'true'
+    }
+    return false
+  })
+  
+  const [marketing, setMarketing] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('cookies-marketing') === 'true'
+    }
+    return false
+  })
+
+  const handleSave = () => {
+    localStorage.setItem('cookies-analytics', analytics.toString())
+    localStorage.setItem('cookies-marketing', marketing.toString())
+    
+    // Update consent if analytics available
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('consent', 'update', {
+        analytics_storage: analytics ? 'granted' : 'denied',
+        ad_storage: marketing ? 'granted' : 'denied'
+      })
+    }
+    
+    onClose()
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <>
+      <div className="footer__modal-overlay" onClick={onClose} />
+      <div className="footer__modal">
+        <div className="footer__modal-content">
+          <div className="footer__modal-header">
+            <h3>Nastavení cookies</h3>
+            <button onClick={onClose} className="footer__modal-close">✕</button>
+          </div>
+
+          <div className="footer__modal-settings">
+            <div className="footer__modal-setting">
+              <div>
+                <h4>Nezbytné cookies</h4>
+                <p>Potřebné pro základní fungování webu</p>
+              </div>
+              <span className="footer__modal-required">Vždy zapnuto</span>
+            </div>
+
+            <div className="footer__modal-setting">
+              <div>
+                <h4>Analytické cookies</h4>
+                <p>Pomáhají nám zlepšovat web</p>
+              </div>
+              <label className="footer__toggle">
+                <input 
+                  type="checkbox" 
+                  checked={analytics}
+                  onChange={(e) => setAnalytics(e.target.checked)}
+                />
+                <span className="footer__toggle-slider"></span>
+              </label>
+            </div>
+
+            <div className="footer__modal-setting">
+              <div>
+                <h4>Marketingové cookies</h4>
+                <p>Pro budoucí personalizaci</p>
+              </div>
+              <label className="footer__toggle">
+                <input 
+                  type="checkbox" 
+                  checked={marketing}
+                  onChange={(e) => setMarketing(e.target.checked)}
+                />
+                <span className="footer__toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <button 
+            onClick={handleSave}
+            className="footer__modal-save"
+          >
+            Uložit nastavení
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
 export default function Footer() {
   const currentYear = new Date().getFullYear()
+  const [showCookiesModal, setShowCookiesModal] = useState(false)
 
   return (
     <footer className="footer">
@@ -18,7 +128,7 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Jen co skutečně funguje */}
+        {/* Navigace */}
         <div className="footer__section">
           <h4 className="footer__title">Navigace</h4>
           <ul className="footer__links">
@@ -29,7 +139,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Contact - reálný nebo placeholder */}
+        {/* Kontakt */}
         <div className="footer__section">
           <h4 className="footer__title">Kontakt</h4>
           <div className="footer__contact">
@@ -41,8 +151,24 @@ export default function Footer() {
               <span className="footer__contact-label">Telefon:</span> 
               <a href="tel:+420733302123" style={{ whiteSpace: 'nowrap' }}>+420 733 302 123</a>
             </p>
-            {/* Zatím žádný telefon/social */}
           </div>
+        </div>
+
+        {/* ✅ PŘIDÁNO - Právní sekce s cookies */}
+        <div className="footer__section">
+          <h4 className="footer__title">Soukromí</h4>
+          <ul className="footer__links">
+            <li>
+              <button 
+                onClick={() => setShowCookiesModal(true)}
+                className="footer__cookie-button"
+              >
+                🍪 Nastavení cookies
+              </button>
+            </li>
+            {/* <li><Link href="/privacy">Ochrana soukromí</Link></li>
+            <li><Link href="/terms">Podmínky užití</Link></li> */}
+          </ul>
         </div>
 
         {/* Coming Soon sekce */}
@@ -50,14 +176,13 @@ export default function Footer() {
           <h4 className="footer__title">Připravujeme</h4>
           <ul className="footer__coming-soon">
             <li>📋 Nápověda a FAQ</li>
-            <li>📞 Telefonní podpora</li>
             <li>⚖️ Právní dokumenty</li>
             <li>📱 Mobilní aplikace</li>
           </ul>
         </div>
       </div>
 
-      {/* Bottom Bar - simplified */}
+      {/* Bottom Bar */}
       <div className="footer__bottom">
         <div className="footer__container">
           <div className="footer__bottom-content">
@@ -70,6 +195,12 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      {/* ✅ PŘIDÁNO - Cookies modal */}
+      <CookiesModal 
+        isOpen={showCookiesModal}
+        onClose={() => setShowCookiesModal(false)}
+      />
     </footer>
   )
 }

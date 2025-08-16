@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import BottomNavbar from "./components/BottomNavbar";
 import { ToastProvider } from "./contexts/ToastContext";
 import Footer from "./components/Footer";
+import CookiesPopup from "./components/CookiesPopup";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,12 +30,13 @@ export default function RootLayout({
   return (
     <html lang="cs">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ToastProvider> {/* ✅ OPRAVENO - ToastProvider wrappuje všechno */}
+        <ToastProvider>
           <div className="app-wrapper">
             <Header />
             <main className="main-content">{children}</main>
             <Footer />
             <BottomNavbar />
+            <CookiesPopup />
           </div>
         </ToastProvider>
       </body>
