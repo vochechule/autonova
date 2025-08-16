@@ -1,0 +1,294 @@
+.location-filter {
+  &__header {
+    margin-bottom: 12px;
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    
+    input[type="checkbox"] {
+      margin: 0;
+    }
+  }
+
+  &__toggle-text {
+    font-weight: 500;
+    color: #4a5568;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+    color: #4a5568;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #f7fafc;
+      border-color: #cbd5e0;
+    }
+
+    &--primary {
+      background: #0070f3;
+      color: white;
+      border-color: #0070f3;
+
+      &:hover {
+        background: #0051cc;
+      }
+
+      &:disabled {
+        background: #a0aec0;
+        border-color: #a0aec0;
+        cursor: not-allowed;
+      }
+    }
+
+    &--secondary {
+      background: #f7fafc;
+      color: #4a5568;
+    }
+  }
+
+  &__button-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  &__error {
+    background: #fed7d7;
+    border: 1px solid #fc8181;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #742a2a;
+    font-size: 14px;
+    margin: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__retry {
+    background: none;
+    border: none;
+    color: #2b6cb0;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  &__current {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e6fffa;
+    border: 1px solid #38b2ac;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 8px 0;
+  }
+
+  &__location {
+    color: #234e52;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  &__clear {
+    background: none;
+    border: none;
+    color: #38b2ac;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  &__distance {
+    margin: 12px 0;
+  }
+
+  &__distance-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 8px;
+  }
+
+  &__distance-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  &__distance-option {
+    padding: 4px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: white;
+    color: #4a5568;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #f7fafc;
+      border-color: #cbd5e0;
+    }
+
+    &--active {
+      background: #0070f3;
+      color: white;
+      border-color: #0070f3;
+    }
+  }
+
+  // Mapa overlay
+ &__map-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 999999 !important; // ✅ EXTRÉMNĚ VYSOKÝ
+    backdrop-filter: blur(4px);
+  }
+
+  &__map-modal {
+    background: white !important;
+    border-radius: 12px;
+    width: 90vw !important;
+    max-width: 900px !important;
+    height: 80vh !important;
+    max-height: 80vh !important;
+    position: relative !important;
+    z-index: 1000000 !important; // ✅ JEŠTĚ VYŠŠÍ
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    
+    // ✅ PŘIDÁNO - Responzivní velikost
+    @media (max-width: 768px) {
+      width: 95% !important;
+      max-height: 90vh !important;
+      margin: 20px;
+    }
+    
+    @media (min-width: 1200px) {
+      max-width: 1000px; // ✅ Větší na velkých obrazovkách
+    }
+  }
+
+  &__map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px; // ✅ ZVĚTŠENO
+    border-bottom: 1px solid #e2e8f0;
+    background: white;
+    position: relative;
+    z-index: 10001;
+
+    h3 {
+      margin: 0;
+      color: #1a202c;
+      font-size: 18px; // ✅ PŘIDÁNO
+      font-weight: 600;
+    }
+  }
+
+  &__map-close {
+    background: none;
+    border: none;
+    font-size: 24px; // ✅ ZVĚTŠENO
+    cursor: pointer;
+    color: #4a5568;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    
+    &:hover {
+      background: #f7fafc;
+      color: #2d3748;
+    }
+  }
+
+  &__map-container {
+    height: 500px; // ✅ ZVĚTŠENO z 400px
+    position: relative;
+    
+    // ✅ RESPONZIVNÍ výška
+    @media (max-width: 768px) {
+      height: 400px;
+    }
+    
+    @media (min-width: 1200px) {
+      height: 600px; // ✅ Větší na velkých obrazovkách
+    }
+  }
+
+  &__map-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: #f7fafc;
+    
+    p {
+      margin-top: 16px;
+      color: #4a5568;
+      font-size: 14px;
+    }
+  }
+
+  &__spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top: 3px solid #0070f3;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  &__map-hint {
+    padding: 12px 20px;
+    background: #e6fffa;
+    border-top: 1px solid #38b2ac;
+    color: #234e52;
+    font-size: 14px;
+    text-align: center;
+    
+    @media (min-width: 768px) {
+      display: none; // ✅ Skryj na desktopu
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

@@ -11,6 +11,7 @@ import ColorFinishSelect from './ColorFinishSelect'
 // ✅ PŘIDÁNO - Loading states a toast
 import { FormLoading, ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
+import MapSelector from './MapSelector'
 
 export default function AdCreateForm() {
   const router = useRouter()
@@ -25,6 +26,11 @@ export default function AdCreateForm() {
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedColorFinish, setSelectedColorFinish] = useState<string>('standard')
+  const [location, setLocation] = useState<{
+    latitude: number
+    longitude: number
+    address: string
+  } | null>(null)
   // ✅ PŘIDÁNO - Toast hook
   const { showSuccess, showError, showWarning } = useToast()
 
@@ -70,6 +76,14 @@ export default function AdCreateForm() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     validateAndAddFiles(files)
+  }
+
+  const handleLocationSelect = (selectedLocation: {
+    latitude: number
+    longitude: number
+    address: string
+  }) => {
+    setLocation(selectedLocation)
   }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -241,6 +255,15 @@ export default function AdCreateForm() {
         formData.append('contactName', contactName.toString())
       }
 
+      // ✅ PŘIDÁNO - Přidání lokace
+      if (!location) {
+        throw new Error('Vyberte lokalitu vozidla na mapě')
+      }
+
+      formData.append('latitude', location.latitude.toString())
+      formData.append('longitude', location.longitude.toString())
+      formData.append('address', location.address)
+
       const token = localStorage.getItem('token')
       const res = await fetch('http://localhost:3000/ad', {
         method: 'POST',
@@ -306,6 +329,8 @@ export default function AdCreateForm() {
       setLoading(false)
     }
   }
+
+  
 
   // V fillTestData funkci změňte:
   function fillTestData(form: HTMLFormElement) {
@@ -791,6 +816,36 @@ export default function AdCreateForm() {
               </div>
             )}
           </div>
+
+          {/* Nová sekce pro mapu - Lokalita vozidla */}
+          <section className="form-section">
+            <h3>Lokalita vozidla</h3>
+            <MapSelector 
+              onLocationSelect={handleLocationSelect}
+              height="300px"
+            />
+            {location && (
+              <input 
+                type="hidden" 
+                name="latitude" 
+                value={location.latitude} 
+              />
+            )}
+            {location && (
+              <input 
+                type="hidden" 
+                name="longitude" 
+                value={location.longitude} 
+              />
+            )}
+            {location && (
+              <input 
+                type="hidden" 
+                name="address" 
+                value={location.address} 
+              />
+            )}
+          </section>
 
           <button type="submit" disabled={loading}>
             {loading ? <ButtonLoading /> : 'Přidat inzerát'}

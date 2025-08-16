@@ -71,6 +71,12 @@ model Ad {
   contactEmail         String       // Email pro tento inzerát
   contactName          String?      // Volitelné jméno kontaktní osoby
   
+  latitude  Float?
+  longitude Float?
+  address   String?
+
+  @@index([latitude, longitude])
+  @@index([createdAt])
 }
 
 model CarFeature {

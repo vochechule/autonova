@@ -29,6 +29,14 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
   const [mileageFrom, setMileageFrom] = useState(parseInt(searchParams.get('mileageFrom') || '0') || 0)
   const [mileageTo, setMileageTo] = useState(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
 
+  // Do state přidejte:
+  const [locationFilter, setLocationFilter] = useState<{
+    latitude: number
+    longitude: number
+    address: string
+    distance: number
+  } | null>(null)
+
   const modelsList = getModelsList(selectedBrand)
 
   const handleBrandChange = (brandValue: string) => {
@@ -57,6 +65,18 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
   const handleMileageChange = (from: number, to: number) => {
     setMileageFrom(from)
     setMileageTo(to)
+  }
+
+  // Handler pro location change:
+  const handleLocationChange = (location: {
+    latitude: number
+    longitude: number
+    address: string
+    distance: number
+  } | null) => {
+    setLocationFilter(location)
+    // Trigger search s novým filtrem
+    handleSearch()
   }
 
   // Hledání a filtrování
@@ -88,6 +108,13 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     // Přidat mileage range (přepsat hidden inputy) - správný název parametru
     if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
     if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
+
+    // ✅ PŘIDÁNO - Location filter
+    if (locationFilter) {
+      params.set('nearLatitude', locationFilter.latitude.toString())
+      params.set('nearLongitude', locationFilter.longitude.toString())
+      params.set('nearDistance', locationFilter.distance.toString())
+    }
 
     console.log('Odesílané parametry:', params.toString()) // Debug
 

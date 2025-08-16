@@ -27,11 +27,15 @@ type Ad = {
   power?: number
   color?: string
   description?: string
+  latitude?: number
+  longitude?: number
+  address?: string
   images: { url: string }[]
   user?: {
     name: string
     averageRating: number
   }
+  distance?: number // ✅ PŘIDÁNO
 }
 
 type PaginationResponse = {
@@ -54,7 +58,44 @@ export default function AdsPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  // ✅ PŘIDÁNO - Location filter state
+  const [locationFilter, setLocationFilter] = useState<{
+    latitude: number
+    longitude: number
+    address: string
+    distance: number
+  } | null>(null)
   const { showError: showToastError } = useToast()
+
+  // ✅ PŘIDÁNO - Location change handler
+  const handleLocationChange = (location: {
+    latitude: number
+    longitude: number
+    address: string
+    distance: number
+  } | null) => {
+    setLocationFilter(location)
+    console.log('🗺️ Location filter changed:', location)
+    
+    // Přidej location parametry do URL
+    const newSearchParams = new URLSearchParams(searchParams.toString())
+    
+    if (location) {
+      newSearchParams.set('nearLatitude', location.latitude.toString())
+      newSearchParams.set('nearLongitude', location.longitude.toString())
+      newSearchParams.set('nearDistance', location.distance.toString())
+    } else {
+      newSearchParams.delete('nearLatitude')
+      newSearchParams.delete('nearLongitude')
+      newSearchParams.delete('nearDistance')
+    }
+    
+    // Trigger nové vyhledávání
+    window.history.pushState(null, '', `?${newSearchParams.toString()}`)
+    
+    // Fetch new data
+    fetchAds(true)
+  }
 
   useEffect(() => {
     fetchAds(true)
@@ -127,10 +168,11 @@ export default function AdsPage() {
 
       <div className="ads-page__layout">
         <FilterSidebar 
-          key={searchParams.toString()}
           onResults={handleFilterResults}
           isVisible={showMobileFilters}
           onClose={() => setShowMobileFilters(false)}
+          // ✅ PŘIDÁNO - Předej location handler
+          onLocationChange={handleLocationChange}
         />
 
         <div className="ads-page__main">
@@ -217,6 +259,17 @@ export default function AdsPage() {
                               <div className="ads-page__detail-row">
                                 <span className="ads-page__label">Barva:</span>
                                 <span className="ads-page__value">{ad.color}</span>
+                              </div>
+                            )}
+                            {ad.address && (
+                              <div className="ads-page__detail-row">
+                                <span className="ads-page__label">Lokalita:</span>
+                                <span className="ads-page__value">
+                                  📍 {ad.address}
+                                  {ad.distance && (
+                                    <span className="ads-page__distance"> • {ad.distance} km</span>
+                                  )}
+                                </span>
                               </div>
                             )}
                           </div>

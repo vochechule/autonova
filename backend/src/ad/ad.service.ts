@@ -83,6 +83,11 @@ export class AdService {
       contactEmail: dto.contactEmail,
       contactName: dto.contactName || undefined,
       
+      // ✅ PŘIDÁNO - Lokační údaje
+      latitude: dto.latitude ? Number(dto.latitude) : undefined,
+      longitude: dto.longitude ? Number(dto.longitude) : undefined,
+      address: dto.address || undefined,
+      
       // Místo userId použij user.connect
       user: {
         connect: { id: userId }
@@ -183,156 +188,289 @@ export class AdService {
   }
 
   async findWithFilters(query: any) {
-    // ✅ PŘIDEJTE PAGINATION PARAMETRY
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 10;
-    const skip = (page - 1) * limit;
+  console.log('🔍 Backend received ALL query params:', JSON.stringify(query, null, 2));
+  
+  // ✅ PŘIDÁNO - Více detailní debug
+  const nearLatitude = query.nearLatitude;
+  const nearLongitude = query.nearLongitude;
+  const nearDistance = query.nearDistance;
+  
+  console.log('🗺️ Location params check:', {
+    nearLatitude: nearLatitude,
+    nearLongitude: nearLongitude,
+    nearDistance: nearDistance,
+    hasLat: !!nearLatitude,
+    hasLng: !!nearLongitude,
+    hasDist: !!nearDistance
+  });
 
-    const {
-      search,
-      title,
-      brand,
-      model,
-      priceFrom,
-      priceTo,
-      mileage,
-      mileageFrom,
-      mileageTo,
-      yearFrom,
-      yearTo,
-      fuel,
-      bodyType,
-      color,
-      colorFinish, // ✅ PŘIDÁNO
-      powerFrom,
-      powerTo,
-      transmission,
-      drivetrain,
-      doorCount,
-      seatCount,
-      condition,
-    } = query;
+  // ✅ PŘIDÁNO PAGINATION PARAMETRY
+  const page = parseInt(query.page) || 1;
+  const limit = parseInt(query.limit) || 10;
+  const skip = (page - 1) * limit;
 
-    const where: any = {
-      title: title ? { contains: title, mode: 'insensitive' } : undefined,
-      brand: brand ? { contains: brand, mode: 'insensitive' } : undefined,
-      model: model ? { contains: model, mode: 'insensitive' } : undefined,
-      price: {
-        gte: priceFrom ? Number(priceFrom) : undefined,
-        lte: priceTo ? Number(priceTo) : undefined,
-      },
-      mileage: {
-        gte: mileageFrom ? Number(mileageFrom) : (mileage ? undefined : undefined),
-        lte: mileageTo ? Number(mileageTo) : (mileage ? Number(mileage) : undefined),
-      },
-      year: {
-        gte: yearFrom ? Number(yearFrom) : undefined,
-        lte: yearTo ? Number(yearTo) : undefined,
-      },
-      power: {
-        gte: powerFrom ? Number(powerFrom) : undefined,
-        lte: powerTo ? Number(powerTo) : undefined,
-      },
-      doorCount: doorCount ? Number(doorCount) : undefined,
-      seatCount: seatCount ? Number(seatCount) : undefined,
-    };
+  const {
+    search,
+    title,
+    brand,
+    model,
+    priceFrom,
+    priceTo,
+    mileage,
+    mileageFrom,
+    mileageTo,
+    yearFrom,
+    yearTo,
+    fuel,
+    bodyType,
+    color,
+    colorFinish,
+    powerFrom,
+    powerTo,
+    transmission,
+    drivetrain,
+    doorCount,
+    seatCount,
+    condition,
+  } = query;
 
-    // Helper funkce pro zpracování multi-select filtrů
-    const addMultiSelectFilter = (field: string, values: string | string[]) => {
-      if (!values) return;
-      
-      let valuesArray: string[];
-      
-      // Pokud už je to pole, použij ho přímo
-      if (Array.isArray(values)) {
-        valuesArray = values.filter(v => v && v.trim()); // Remove empty values
-      } else if (typeof values === 'string') {
-        // Pokud je to string, může to být buď jednotlivá hodnota nebo JSON array
-        try {
-          const parsed = JSON.parse(values);
-          valuesArray = Array.isArray(parsed) ? parsed : [values];
-        } catch {
-          // Není to JSON, tak je to prostě string - rozdělíme čárkami pro jistotu
-          valuesArray = values.split(',').map(v => v.trim()).filter(v => v);
-        }
-      } else {
-        return; // Neznámý typ
-      }
-      
-      if (valuesArray.length > 0) {
-        where[field] = { in: valuesArray };
-      }
-    };
+  // ✅ DISTANCE FILTERING LOGIKA
+  let distanceFilteredAds: string[] | null = null;
+  
+  if (nearLatitude && nearLongitude && nearDistance) {
+    const lat = parseFloat(nearLatitude);
+    const lng = parseFloat(nearLongitude);
+    const distance = parseFloat(nearDistance);
 
-    // Aplikuj multi-select filtry
-    addMultiSelectFilter('fuel', fuel);
-    addMultiSelectFilter('bodyType', bodyType);
-    addMultiSelectFilter('transmission', transmission);
-    addMultiSelectFilter('drivetrain', drivetrain);
-    addMultiSelectFilter('condition', condition);
+    console.log(`🗺️ Starting distance filtering: ${distance}km from (${lat}, ${lng})`);
 
-    // Jednoduchý filtr pro barvu (zatím zůstává single-select)
-    if (color) {
-      where.color = color;
-    }
-
-    // ✅ PŘIDÁNO - Filtr pro povrchovou úpravu barvy
-    if (colorFinish) {
-      where.colorFinish = colorFinish;
-    }
-
-    // Přidej fulltextové vyhledávání
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { brand: { contains: search, mode: 'insensitive' } },
-        { model: { contains: model, mode: 'insensitive' } },
-      ];
-    }
-
-    // Odstraň undefined hodnoty
-    Object.keys(where).forEach(key => {
-      if (where[key] === undefined) {
-        delete where[key];
+    // Nejdřív zkontrolujte kolik inzerátů má lokaci
+    const adsWithLocation = await this.prisma.ad.count({
+      where: {
+        latitude: { not: null },
+        longitude: { not: null }
       }
     });
+    
+    console.log(`📊 Total ads with location: ${adsWithLocation}`);
 
-    console.log('Filter where clause:', JSON.stringify(where, null, 2));
-
-    // ✅ PŘIDEJTE PAGINATION A COUNT
-    const [ads, total] = await Promise.all([
-      this.prisma.ad.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        include: { images: true, user: true, features: true },
-        skip,      // ← PAGINATION
-        take: limit // ← LIMIT
-      }),
-      this.prisma.ad.count({ where }) // ← TOTAL COUNT
-    ]);
-
-    // Attach average rating to each ad's user
-    for (const ad of ads) {
-      const avg = await this.prisma.review.aggregate({
-        where: { targetId: ad.userId },
-        _avg: { rating: true },
-      });
-      (ad.user as any).averageRating = avg._avg.rating;
+    if (adsWithLocation === 0) {
+      console.log('⚠️ No ads have location data!');
+      return {
+        ads: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false
+        }
+      };
     }
 
-    // ✅ VRAŤ PAGINATION DATA
-    return {
-      ads,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1
+    // ✅ OPRAVENÉ SQL - bez HAVING, s WHERE
+    const distanceQuery = `
+      SELECT id, 
+             (6371 * acos(
+               cos(radians($1)) * cos(radians(latitude)) * 
+               cos(radians(longitude) - radians($2)) + 
+               sin(radians($1)) * sin(radians(latitude))
+             )) AS distance
+      FROM "Ad" 
+      WHERE latitude IS NOT NULL 
+        AND longitude IS NOT NULL
+        AND (6371 * acos(
+              cos(radians($1)) * cos(radians(latitude)) * 
+              cos(radians(longitude) - radians($2)) + 
+              sin(radians($1)) * sin(radians(latitude))
+            )) <= $3
+      ORDER BY distance ASC
+    `;
+
+    try {
+      console.log('🗄️ Executing distance query...');
+      const nearbyAds = await this.prisma.$queryRawUnsafe(
+        distanceQuery,
+        lat,
+        lng,
+        distance
+      ) as { id: string; distance: number }[];
+
+      console.log(`✅ Distance query result: ${nearbyAds.length} ads found`);
+      console.log('📍 First 3 results:', nearbyAds.slice(0, 3));
+
+      distanceFilteredAds = nearbyAds.map(ad => ad.id);
+      
+    } catch (error) {
+      console.error('❌ Distance filtering SQL error:', error);
+      // Pokud distance filtering selže, pokračujeme bez něj
+      distanceFilteredAds = null;
+    }
+  }
+
+  const where: any = {
+    title: title ? { contains: title, mode: 'insensitive' } : undefined,
+    brand: brand ? { contains: brand, mode: 'insensitive' } : undefined,
+    model: model ? { contains: model, mode: 'insensitive' } : undefined,
+    price: {
+      gte: priceFrom ? Number(priceFrom) : undefined,
+      lte: priceTo ? Number(priceTo) : undefined,
+    },
+    mileage: {
+      gte: mileageFrom ? Number(mileageFrom) : (mileage ? undefined : undefined),
+      lte: mileageTo ? Number(mileageTo) : (mileage ? Number(mileage) : undefined),
+    },
+    year: {
+      gte: yearFrom ? Number(yearFrom) : undefined,
+      lte: yearTo ? Number(yearTo) : undefined,
+    },
+    power: {
+      gte: powerFrom ? Number(powerFrom) : undefined,
+      lte: powerTo ? Number(powerTo) : undefined,
+    },
+    doorCount: doorCount ? Number(doorCount) : undefined,
+    seatCount: seatCount ? Number(seatCount) : undefined,
+    
+    // ✅ DISTANCE FILTER DO WHERE
+    ...(distanceFilteredAds !== null && { id: { in: distanceFilteredAds } }),
+  };
+
+  // Helper funkce pro zpracování multi-select filtrů
+  const addMultiSelectFilter = (field: string, values: string | string[]) => {
+    if (!values) return;
+    
+    let valuesArray: string[];
+    
+    if (Array.isArray(values)) {
+      valuesArray = values.filter(v => v && v.trim());
+    } else if (typeof values === 'string') {
+      try {
+        const parsed = JSON.parse(values);
+        valuesArray = Array.isArray(parsed) ? parsed : [values];
+      } catch {
+        valuesArray = values.split(',').map(v => v.trim()).filter(v => v);
       }
-    };
+    } else {
+      return;
+    }
+    
+    if (valuesArray.length > 0) {
+      where[field] = { in: valuesArray };
+    }
+  };
+
+  // Aplikuj multi-select filtry
+  addMultiSelectFilter('fuel', fuel);
+  addMultiSelectFilter('bodyType', bodyType);
+  addMultiSelectFilter('transmission', transmission);
+  addMultiSelectFilter('drivetrain', drivetrain);
+  addMultiSelectFilter('condition', condition);
+
+  // Jednoduchý filtr pro barvu
+  if (color) {
+    where.color = color;
+  }
+
+  if (colorFinish) {
+    where.colorFinish = colorFinish;
+  }
+
+  // Přidej fulltextové vyhledávání
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: 'insensitive' } },
+      { description: { contains: search, mode: 'insensitive' } },
+      { brand: { contains: search, mode: 'insensitive' } },
+      { model: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  // Odstraň undefined hodnoty
+  Object.keys(where).forEach(key => {
+    if (where[key] === undefined) {
+      delete where[key];
+    }
+  });
+
+  console.log('🔍 Final WHERE clause:', JSON.stringify(where, null, 2));
+
+
+
+  // ✅ PŘIDEJTE PAGINATION A COUNT
+  const [ads, total] = await Promise.all([
+    this.prisma.ad.findMany({
+      where,
+      orderBy: distanceFilteredAds ? 
+        // Pokud filtrujeme podle vzdálenosti, seřadíme podle vzdálenosti
+        { id: 'asc' } : // Placeholder - skutečné řazení podle vzdálenosti je v SQL query
+        { createdAt: 'desc' }, // Jinak podle data vytvoření
+      include: { images: true, user: true, features: true },
+      skip,
+      take: limit
+    }),
+    this.prisma.ad.count({ where })
+  ]);
+  console.log(`📊 Final result: ${ads.length} ads returned, ${total} total`);
+
+
+  // ✅ PŘIDÁNO - Přidej vzdálenost k výsledkům pokud filtrujeme podle lokace
+  if (distanceFilteredAds && nearLatitude && nearLongitude) {
+    const lat = parseFloat(nearLatitude);
+    const lng = parseFloat(nearLongitude);
+
+    for (const ad of ads) {
+      if (ad.latitude && ad.longitude) {
+        // Výpočet vzdálenosti pomocí Haversine formula
+        const R = 6371; // Poloměr Země v km
+        const dLat = (ad.latitude - lat) * Math.PI / 180;
+        const dLon = (ad.longitude - lng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat * Math.PI / 180) * Math.cos(ad.latitude * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+
+        (ad as any).distance = Math.round(distance * 10) / 10; // Zaokrouhli na 1 desetinné místo
+      }
+    }
+
+    // Seřaď podle vzdálenosti
+    ads.sort((a: any, b: any) => (a.distance || 999) - (b.distance || 999));
+  }
+
+  // Attach average rating to each ad's user
+  for (const ad of ads) {
+    const avg = await this.prisma.review.aggregate({
+      where: { targetId: ad.userId },
+      _avg: { rating: true },
+    });
+    (ad.user as any).averageRating = avg._avg.rating;
+  }
+
+  console.log(`📊 FINAL RESULT: ${ads.length} ads returned out of ${total} total`);
+  console.log('🔍 First 2 ad IDs:', ads.slice(0, 2).map(ad => ({ id: ad.id, title: ad.title, hasLocation: !!(ad.latitude && ad.longitude) })));
+
+  return {
+    ads,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasNext: page < Math.ceil(total / limit),
+      hasPrev: page > 1
+    },
+    // Info o distance filtru
+    ...(distanceFilteredAds && {
+      distanceInfo: {
+        centerLatitude: parseFloat(nearLatitude),
+        centerLongitude: parseFloat(nearLongitude),
+        radiusKm: parseFloat(nearDistance),
+        foundAds: distanceFilteredAds.length
+      }
+    })
+  };
   }
 
   findAll = async () => {
@@ -548,6 +686,11 @@ export class AdService {
       contactPhone: dto.contactPhone,
       contactEmail: dto.contactEmail,
       contactName: dto.contactName || undefined,
+      
+      // ✅ PŘIDÁNO - Lokační údaje  
+      latitude: dto.latitude ? Number(dto.latitude) : undefined,
+      longitude: dto.longitude ? Number(dto.longitude) : undefined,
+      address: dto.address || undefined,
     };
 
     // Odstraň undefined hodnoty

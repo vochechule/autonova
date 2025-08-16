@@ -182,4 +182,19 @@ export class CreateAdDto {
   @IsOptional()
   @IsString()
   contactName?: string;
+
+  // ✅ PŘIDÁNO - Lokační údaje
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  longitude?: number;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
 }

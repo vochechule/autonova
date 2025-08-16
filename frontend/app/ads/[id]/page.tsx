@@ -11,6 +11,7 @@ import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatt
 import { PageLoading } from '../../components/LoadingStates'
 import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
 import { useToast } from '../../contexts/ToastContext'
+import AdMap from '../../components/AdMap'
 
 export default function AdDetailPage() {
   const { id } = useParams()
@@ -416,6 +417,18 @@ export default function AdDetailPage() {
             <div className="ad-detail-page__description-content">
               <p>{ad.description}</p>
             </div>
+          </section>
+        )}
+
+        {/* ✅ PŘIDÁNO - Mapa lokace */}
+        {ad.latitude && ad.longitude && ad.address && (
+          <section className="ad-detail-page__location">
+            <AdMap 
+              latitude={ad.latitude}
+              longitude={ad.longitude}
+              address={ad.address}
+              height="300px"
+            />
           </section>
         )}
 

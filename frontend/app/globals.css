@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
 
 :root {
   --background: #ffffff;
@@ -24,4 +26,16 @@ body {
   @media (max-width: 768px) {
     padding-bottom: 4.5rem;
   }
+}
+
+/* Fix pro Leaflet ikony */
+.leaflet-container {
+  height: 400px;
+  width: 100%;
+  z-index: 1;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

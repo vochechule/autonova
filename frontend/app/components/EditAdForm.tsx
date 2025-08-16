@@ -11,6 +11,7 @@ import ColorFinishSelect from './ColorFinishSelect'
 // ✅ PŘIDÁNO - Loading states a toast
 import { FormLoading, ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
+import MapSelector from './MapSelector'
 
 interface EditAdFormProps {
   adId: string
@@ -32,6 +33,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
   const [selectedColorFinish, setSelectedColorFinish] = useState<string>('standard')
   const [adData, setAdData] = useState<any>(null)
   const [initialLoading, setInitialLoading] = useState(false)
+  const [location, setLocation] = useState<{ latitude: number, longitude: number, address: string } | null>(null)
   // ✅ PŘIDÁNO - Toast hook
   const { showSuccess, showError, showWarning } = useToast()
 
@@ -83,6 +85,15 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
     setSelectedColor(data.color || '')
     setSelectedColorFinish(data.colorFinish || 'standard')
     setExistingImages(data.images || [])
+
+    // ✅ PŘIDÁNO - Lokace
+    if (data.latitude && data.longitude && data.address) {
+      setLocation({
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: data.address
+      })
+    }
   }
 
   const handleBrandChange = (brand: string) => {
@@ -170,6 +181,10 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
     setExistingImages(prev => prev.filter(img => img.id !== imageId))
     // ✅ PŘIDÁNO - Toast po odebrání existujícího
     showWarning('Obrázek bude smazán', 'Existující obrázek bude smazán při uložení')
+  }
+
+  const handleLocationSelect = (loc: { latitude: number, longitude: number, address: string }) => {
+    setLocation(loc)
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -297,6 +312,13 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       }
 
       // ✅ ODSTRANĚNO - duplikát kontaktních údajů (byl tu druhý blok)
+
+      // ✅ PŘIDÁNO - Lokace
+      if (location) {
+        formData.append('latitude', location.latitude.toString())
+        formData.append('longitude', location.longitude.toString())
+        formData.append('address', location.address)
+      }
 
       const token = localStorage.getItem('token')
       const res = await fetch(`http://localhost:3000/ad/${adId}`, {
@@ -721,6 +743,23 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
                 Můžete použít jiné kontakty než ty z vašeho profilu.
               </p>
             </div>
+          </div>
+
+          {/* Lokalita vozidla */}
+          <div className="form-section">
+            <h3 className="form-section__title">Lokalita vozidla</h3>
+            <MapSelector 
+              onLocationSelect={handleLocationSelect}
+              height="300px"
+              initialPosition={location ? [location.latitude, location.longitude] : undefined}
+            />
+            {location && (
+              <>
+                <input type="hidden" name="latitude" value={location.latitude} />
+                <input type="hidden" name="longitude" value={location.longitude} />
+                <input type="hidden" name="address" value={location.address} />
+              </>
+            )}
           </div>
 
           {/* Image Upload Section */}
