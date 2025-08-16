@@ -1,0 +1,138 @@
+.hero-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 3rem 1.5rem 2rem;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
+  
+  @media (max-width: 768px) {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  &__container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  &__title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    color: #1a202c;
+    
+    @media (max-width: 768px) {
+      font-size: 2rem;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 1.5rem;
+    }
+  }
+
+  &__brand {
+    color: #3b82f6;
+    font-weight: 800;
+  }
+
+  &__separator {
+    color: #64748b;
+  }
+
+  &__description {
+    color: #374151;
+  }
+
+  &__rotating-text {
+    color: #3b82f6;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+    min-width: 120px; // ✅ Prevents layout shift
+    text-align: left;
+    
+    // ✅ Smooth fade-in animation
+    animation: fadeInSlide 0.6s ease-in-out;
+    
+    @media (max-width: 480px) {
+      min-width: 100px;
+    }
+  }
+
+  &__subtitle {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin: 0;
+    font-weight: 400;
+    
+    @media (max-width: 768px) {
+      font-size: 1rem;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// ✅ Smooth animations
+@keyframes fadeInSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ✅ Typing effect (alternative)
+@keyframes typing {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+// ✅ Alternative - gradient text effect
+.hero-section__rotating-text--gradient {
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// ✅ Dark mode support
+[data-theme="dark"] .hero-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-bottom-color: #334155;
+
+  &__title {
+    color: #f8fafc;
+  }
+
+  &__description {
+    color: #cbd5e1;
+  }
+
+  &__separator {
+    color: #94a3b8;
+  }
+
+  &__rotating-text {
+    color: #60a5fa;
+  }
+
+  &__subtitle {
+    color: #94a3b8;
+  }
+}
+
+// ✅ Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .hero-section__rotating-text {
+    animation: none;
+  }
+}
