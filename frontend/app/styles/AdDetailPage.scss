@@ -798,3 +798,21 @@
     font-size: 0.9rem;
   }
 }
+
+.ad-detail-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ad-detail-page__share-btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .ad-detail-page__header {
+    .ad-detail-page__actions {
+      gap: 8px;
+    }
+  }
+}

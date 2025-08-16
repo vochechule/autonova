@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useSwipeable } from 'react-swipeable'
 import FavoriteButton from '../../components/FavoriteButton'
+import ShareButton from '../../components/ShareButton'
 import '../../styles/AdDetailPage.scss'
 import Link from 'next/link'
 import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatter'
@@ -67,7 +68,14 @@ export default function AdDetailPage() {
           
           <div className="ad-detail-page__price">{ad.price?.toLocaleString()} Kč</div>
           
-          <FavoriteButton adId={ad.id} className="ad-detail-page__favorite-btn" />
+          <div className="ad-detail-page__actions">
+            <ShareButton 
+              title={formatCarTitle(ad.brand, ad.model)}
+              url={window.location.href}
+              className="ad-detail-page__share-btn"
+            />
+            <FavoriteButton adId={ad.id} className="ad-detail-page__favorite-btn" />
+          </div>
         </div>
 
         {/* Layout s obrázky a základními info */}

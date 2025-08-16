@@ -1,0 +1,247 @@
+.share-button {
+  position: relative;
+  display: inline-block;
+}
+
+.share-button__trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    color: #2d3748;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.share-button__backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.share-button__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  z-index: 1001;
+  min-width: 240px;
+  overflow: hidden;
+  animation: shareDropdownIn 0.2s ease-out;
+
+  @media (max-width: 480px) {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 320px;
+  }
+}
+
+@keyframes shareDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.share-button__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+}
+
+.share-button__close {
+  background: none;
+  border: none;
+  color: #718096;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f7fafc;
+    color: #4a5568;
+  }
+}
+
+.share-button__options {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.share-button__option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+
+  &:hover {
+    background: #f7fafc;
+    color: #2d3748;
+  }
+
+  &.copy {
+    border-top: 1px solid #f0f0f0;
+    margin-top: 4px;
+    padding-top: 16px;
+    
+    &:hover {
+      background: #e6fffa;
+      color: #1a202c;
+    }
+  }
+}
+
+.share-button__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.facebook {
+    background: #1877f2;
+    color: white;
+  }
+
+  &.twitter {
+    background: #1da1f2;
+    color: white;
+  }
+
+  &.whatsapp {
+    background: #25d366;
+    color: white;
+  }
+
+  &.email {
+    background: #ea4335;
+    color: white;
+  }
+
+  // Default icon styling for copy button
+  &:not(.facebook):not(.twitter):not(.whatsapp):not(.email) {
+    background: #f7fafc;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+  }
+}
+
+// Dark mode
+[data-theme="dark"] {
+  .share-button__trigger {
+    background: #1a202c;
+    border-color: #4a5568;
+    color: #e2e8f0;
+
+    &:hover {
+      background: #2d3748;
+      border-color: #718096;
+    }
+  }
+
+  .share-button__backdrop {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .share-button__dropdown {
+    background: #1a202c;
+    border-color: #4a5568;
+  }
+
+  .share-button__header {
+    border-bottom-color: #4a5568;
+
+    h3 {
+      color: #e2e8f0;
+    }
+  }
+
+  .share-button__close {
+    color: #a0aec0;
+
+    &:hover {
+      background: #2d3748;
+      color: #e2e8f0;
+    }
+  }
+
+  .share-button__option {
+    color: #e2e8f0;
+
+    &:hover {
+      background: #2d3748;
+    }
+
+    &.copy {
+      border-top-color: #4a5568;
+
+      &:hover {
+        background: #065f46;
+      }
+    }
+  }
+
+  .share-button__icon:not(.facebook):not(.twitter):not(.whatsapp):not(.email) {
+    background: #2d3748;
+    color: #e2e8f0;
+    border-color: #4a5568;
+  }
+}
