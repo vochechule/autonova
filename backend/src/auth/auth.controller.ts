@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Req, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req, Request, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from '../user/dto/register.dto';
 import { LoginDto } from '../user/dto/login.dto';
@@ -28,5 +28,21 @@ export class AuthController {
     console.log('🔐 Auth me endpoint called');
     console.log('🧑 Request user:', req.user);
     return this.authService.findUserById(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(@Request() req, @Body() body: { currentPassword: string; newPassword: string }) {
+    const { currentPassword, newPassword } = body;
+    
+    if (!currentPassword || !newPassword) {
+      throw new BadRequestException('Current password and new password are required');
+    }
+    
+    if (newPassword.length < 6) {
+      throw new BadRequestException('New password must be at least 6 characters long');
+    }
+    
+    return this.authService.changePassword(req.user.id, currentPassword, newPassword);
   }
 }

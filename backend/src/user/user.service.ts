@@ -76,4 +76,60 @@ export class UserService {
     const count = await this.prisma.ad.count({ where: { userId } });
     return count > 0;
   }
+
+  async updatePassword(userId: string, hashedPassword: string) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+  }
+
+  async updateProfile(userId: string, name: string, email: string) {
+    // Check if email is already taken by another user
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser && existingUser.id !== userId) {
+      throw new Error('Email is already taken by another user');
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { name, email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isDealer: true,
+        createdAt: true,
+      },
+    });
+
+    return updatedUser;
+  }
+
+  async deleteAccount(userId: string, password: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Verify password before deletion
+    const bcrypt = require('bcrypt');
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new Error('Password is incorrect');
+    }
+
+    // Delete user and all related data (Prisma will handle cascading)
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
+
+    return { message: 'Account deleted successfully' };
+  }
 }

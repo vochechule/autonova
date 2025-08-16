@@ -1,4 +1,5 @@
 'use client'
+import { ChangePasswordModal, EditProfileModal, DeleteAccountModal } from '../components/ProfileModals'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import '../styles/ProfilePage.scss'
@@ -11,6 +12,11 @@ export default function ProfilePage() {
   const [avgRating, setAvgRating] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showAllReviews, setShowAllReviews] = useState(false)
+
+  // Nové stavy pro modály
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [showEditProfile, setShowEditProfile] = useState(false)
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -114,27 +120,29 @@ export default function ProfilePage() {
                   </span>
                 </td>
                 <td>
-                  <Link href={`/ads/${ad.id}/edit`}>Edit</Link> |{' '}
-                  <button
-                    className="profile-page__ad-action"
-                    onClick={async () => {
-                      if (!confirm('Opravdu chcete inzerát smazat?')) return;
-                      const token = localStorage.getItem('token');
-                      const res = await fetch(`http://localhost:3000/ad/${ad.id}`, {
-                        method: 'DELETE',
-                        headers: { Authorization: `Bearer ${token}` },
-                      });
-                      if (res.ok) {
-                        setAds(ads => ads.filter(a => a.id !== ad.id));
-                      } else {
-                        alert('Smazání se nezdařilo');
-                      }
-                    }}
-                  >
-                    Delete
-                  </button> |{' '}
-                  <button className="profile-page__ad-action">Extend</button> |{' '}
-                  <button className="profile-page__ad-action">Promote</button>
+                  <div className="profile-page__ad-actions">
+                    <Link href={`/ads/${ad.id}/edit`} className="profile-page__ad-action edit">
+                      Upravit
+                    </Link>
+                    <button
+                      className="profile-page__ad-action delete"
+                      onClick={async () => {
+                        if (!confirm('Opravdu chcete inzerát smazat?')) return;
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`http://localhost:3000/ad/${ad.id}`, {
+                          method: 'DELETE',
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
+                        if (res.ok) {
+                          setAds(ads => ads.filter(a => a.id !== ad.id));
+                        } else {
+                          alert('Smazání se nezdařilo');
+                        }
+                      }}
+                    >
+                      Smazat
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -252,22 +260,52 @@ export default function ProfilePage() {
         </section>
       )}
 
+      {/* Sekce pro nastavení účtu */}
       <section className="profile-page__settings">
         <h2>Account Settings</h2>
         <div className="profile-page__settings-list">
-          <button>Change Password</button>
-          <button>Update Profile Info</button>
-          <button>Delete Account</button>
-          <button className="profile-page__logout-btn"
+          <button onClick={() => setShowChangePassword(true)}>
+            Změnit heslo
+          </button>
+          <button onClick={() => setShowEditProfile(true)}>
+            Upravit údaje na profilu
+          </button>
+          <button onClick={() => setShowDeleteAccount(true)}>
+            Smazat účet
+          </button>
+          <button 
+            className="profile-page__logout-btn"
             onClick={() => {
               localStorage.removeItem('token')
               window.location.reload()
             }}
           >
-            Log Out
+            Odhlásit se
           </button>
         </div>
       </section>
+
+      {/* Modály */}
+      <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+        onSuccess={() => alert('Heslo bylo úspěšně změněno!')}
+      />
+
+      <EditProfileModal
+        isOpen={showEditProfile}
+        onClose={() => setShowEditProfile(false)}
+        user={user}
+        onSuccess={(updatedUser) => {
+          setUser(updatedUser)
+          alert('Profil byl úspěšně aktualizován!')
+        }}
+      />
+
+      <DeleteAccountModal
+        isOpen={showDeleteAccount}
+        onClose={() => setShowDeleteAccount(false)}
+      />
     </main>
   )
 }

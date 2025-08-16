@@ -59,7 +59,7 @@ model Ad {
   features            CarFeature[]   @relation("AdFeatures")
   images              Image[]
   savedBy             SavedAd[]
-  user                User           @relation(fields: [userId], references: [id])
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId              String
   createdAt           DateTime       @default(now())
   expiresAt           DateTime?
@@ -82,7 +82,7 @@ model CarFeature {
 model Image {
   id    String @id @default(uuid())
   url   String
-  ad    Ad     @relation(fields: [adId], references: [id])
+  ad    Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
   adId  String
 }
 
@@ -90,9 +90,9 @@ model Review {
   id        String   @id @default(uuid())
   rating    Int      // 1–5
   comment   String?
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  target    User     @relation("TargetReviews", fields: [targetId], references: [id])
+  target    User     @relation("TargetReviews", fields: [targetId], references: [id], onDelete: Cascade)
   targetId  String
   createdAt DateTime @default(now())
 
@@ -101,9 +101,9 @@ model Review {
 
 model SavedAd {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  ad        Ad       @relation(fields: [adId], references: [id])
+  ad        Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
   adId      String
   createdAt DateTime @default(now())
 

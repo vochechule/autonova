@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Req, Body, Param, Post, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Body, Param, Post, BadRequestException, NotFoundException, Logger, Put, Delete } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserService } from './user.service';
 
@@ -56,5 +56,51 @@ export class UserController {
     // ✅ OPRAVENO - Vraťte celého uživatele včetně inzerátů
     Logger.log(`User found: ${user.id}, ads count: ${user.ads?.length || 0}`);
     return user; // Vrátit celý objekt místo jen vybraných polí
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('update-profile')
+  async updateProfile(@Req() req, @Body() body: { name: string; email: string }) {
+    const { name, email } = body;
+    
+    if (!name || !email) {
+      throw new BadRequestException('Name and email are required');
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new BadRequestException('Invalid email format');
+    }
+
+    try {
+      const updatedUser = await this.userService.updateProfile(req.user.id, name, email);
+      Logger.log(`Profile updated for user: ${req.user.id}`);
+      return updatedUser;
+    } catch (error) {
+      if (error.message.includes('Email is already taken')) {
+        throw new BadRequestException('Email is already taken by another user');
+      }
+      throw new BadRequestException('Failed to update profile');
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('delete-account')
+  async deleteAccount(@Req() req, @Body() body: { password: string }) {
+    const { password } = body;
+    
+    if (!password) {
+      throw new BadRequestException('Password is required');
+    }
+
+    try {
+      const result = await this.userService.deleteAccount(req.user.id, password);
+      Logger.log(`Account deleted for user: ${req.user.id}`);
+      return result;
+    } catch (error) {
+      if (error.message.includes('Password is incorrect')) {
+        throw new BadRequestException('Password is incorrect');
+      }
+      throw new BadRequestException('Failed to delete account');
+    }
   }
 }
