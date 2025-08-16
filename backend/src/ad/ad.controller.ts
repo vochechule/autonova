@@ -60,18 +60,20 @@ export class AdController {
     // Log příchozích query parametrů pro debugging
     console.log('Received query params:', JSON.stringify(query, null, 2));
     
-    // Normalizuj multi-select filtry - ensure they are arrays
+    // Normalizuj multi-select filtry
     const multiSelectFields = ['fuel', 'bodyType', 'transmission', 'drivetrain', 'condition'];
     multiSelectFields.forEach(field => {
       if (query[field] && typeof query[field] === 'string') {
-        query[field] = [query[field]]; // Convert single string to array
+        query[field] = [query[field]];
       }
     });
     
     console.log('Normalized query params:', JSON.stringify(query, null, 2));
     
-    if (Object.keys(query).length === 0) {
-      return this.adService.findAll();
+    // ✅ OPRAVENO - Předej query i do findAll
+    if (Object.keys(query).filter(key => !['sortBy', 'sortOrder'].includes(key)).length === 0) {
+      // Pokud jsou jen sort parametry, použij findAll s query
+      return this.adService.findAll(query);
     }
     return this.adService.findWithFilters(query);
   }

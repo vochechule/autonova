@@ -11,6 +11,7 @@ import { formatCarTitle } from '../utils/CarFormatter'
 import { CardsLoading, ButtonLoading } from '../components/LoadingStates'
 import { NetworkErrorPage } from '../components/ErrorPages'
 import { useToast } from '../contexts/ToastContext'
+import SortBar from '../components/SortBar'
 
 type Ad = {
   id: number
@@ -100,6 +101,36 @@ export default function AdsPage() {
   useEffect(() => {
     fetchAds(true)
   }, [searchParams])
+
+  // V page.tsx přidejte useEffect pro URL monitoring:
+  useEffect(() => {
+    console.log('🔄 AdsPage: URL searchParams changed:', searchParams.toString())
+    
+    // Fetch ads když se změní URL (včetně sort)
+    const handleUrlChange = async () => {
+      setLoading(true)
+      try {
+        const paramsString = searchParams.toString()
+        const url = `http://localhost:3000/ad${paramsString ? `?${paramsString}` : ''}`
+        
+        console.log('🚀 AdsPage: Fetching URL:', url)
+        
+        const res = await fetch(url)
+        const data = await res.json()
+        
+        console.log('📦 AdsPage: Received data:', data)
+        
+        setAds(data.ads || data)
+        setPagination(data.pagination)
+      } catch (error) {
+        console.error('❌ AdsPage: Fetch error:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    handleUrlChange()
+  }, [searchParams]) // ✅ Reaguje na JAKOUKOLIV změnu URL
 
   const fetchAds = async (isInitialLoad = false) => {
     try {
@@ -197,12 +228,9 @@ export default function AdsPage() {
           <ActiveFilters />
           
           <div className="ads-page__results">
-            {pagination && !loading && (
-              <div className="ads-page__results-info">
-                Zobrazeno {ads.length} z {pagination.total} inzerátů
-              </div>
-            )}
-
+            {/* ✅ NAHRAZENO - results-info + SortBar */}
+            <SortBar totalCount={pagination?.total} />
+            
             {loading ? (
               <CardsLoading count={8} />
             ) : ads.length === 0 ? (

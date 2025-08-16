@@ -819,7 +819,7 @@ export default function AdCreateForm() {
 
           {/* Nová sekce pro mapu - Lokalita vozidla */}
           <section className="form-section">
-            <h3>Lokalita vozidla</h3>
+            <h3>Lokalita vozidla <span className="required">*</span></h3>
             <MapSelector 
               onLocationSelect={handleLocationSelect}
               height="300px"

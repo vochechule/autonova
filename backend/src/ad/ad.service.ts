@@ -190,6 +190,11 @@ export class AdService {
   async findWithFilters(query: any) {
   console.log('🔍 Backend received ALL query params:', JSON.stringify(query, null, 2));
   
+  const sortBy = query.sortBy || 'newest';
+  const sortOrder = query.sortOrder || 'desc';
+  
+  console.log('🔄 Sort params:', { sortBy, sortOrder });
+
   // ✅ PŘIDÁNO - Více detailní debug
   const nearLatitude = query.nearLatitude;
   const nearLongitude = query.nearLongitude;
@@ -395,33 +400,70 @@ export class AdService {
 
   console.log('🔍 Final WHERE clause:', JSON.stringify(where, null, 2));
 
+  // ✅ PŘIDÁNO - Dynamické řazení
+  const getOrderBy = () => {
+    switch (sortBy) {
+      case 'price':
+        console.log('💰 Sorting by price:', sortOrder);
+        return { price: sortOrder as 'asc' | 'desc' }; // ✅ Type assertion
+      case 'mileage':
+        console.log('🏃‍♂️ Sorting by mileage:', sortOrder);
+        return { mileage: sortOrder as 'asc' | 'desc' };
+      case 'year':
+        console.log('🚀 Sorting by year:', sortOrder);
+        return { year: sortOrder as 'asc' | 'desc' };
+      case 'views':
+        console.log('👀 Sorting by views:', sortOrder);
+        return { views: sortOrder as 'asc' | 'desc' };
+      case 'title':
+        console.log('🔤 Sorting by title:', sortOrder);
+        return { title: sortOrder as 'asc' | 'desc' };
+      case 'oldest':
+        console.log('📅 Sorting by oldest');
+        return { createdAt: 'asc' as const };
+      case 'newest':
+      default:
+        console.log('🆕 Sorting by newest');
+        return { createdAt: 'desc' as const };
+    }
+  };
 
+  const orderBy = getOrderBy();
+  console.log('📊 Final orderBy object:', JSON.stringify(orderBy, null, 2)); // ✅ DEBUG
 
-  // ✅ PŘIDEJTE PAGINATION A COUNT
   const [ads, total] = await Promise.all([
     this.prisma.ad.findMany({
       where,
-      orderBy: distanceFilteredAds ? 
-        // Pokud filtrujeme podle vzdálenosti, seřadíme podle vzdálenosti
-        { id: 'asc' } : // Placeholder - skutečné řazení podle vzdálenosti je v SQL query
-        { createdAt: 'desc' }, // Jinak podle data vytvoření
+      orderBy: orderBy, // ✅ Používáme orderBy
       include: { images: true, user: true, features: true },
       skip,
       take: limit
     }),
     this.prisma.ad.count({ where })
   ]);
+
+  // ✅ DEBUG - Výpis prvních 3 inzerátů pro kontrolu řazení
+  console.log('📋 First 3 ads after sorting:');
+  ads.slice(0, 3).forEach((ad, index) => {
+    const sortValue = sortBy === 'price' ? ad.price : 
+                     sortBy === 'mileage' ? ad.mileage :
+                     sortBy === 'year' ? ad.year :
+                     sortBy === 'views' ? ad.views :
+                     sortBy === 'title' ? ad.title :
+                     ad.createdAt;
+    console.log(`  ${index + 1}. ${ad.title} - ${sortBy}: ${sortValue}`);
+  });
+
   console.log(`📊 Final result: ${ads.length} ads returned, ${total} total`);
-
-
-  // ✅ PŘIDÁNO - Přidej vzdálenost k výsledkům pokud filtrujeme podle lokace
+  
+  // ✅ SPECIÁLNÍ HANDLING pro distance sorting
   if (distanceFilteredAds && nearLatitude && nearLongitude) {
     const lat = parseFloat(nearLatitude);
     const lng = parseFloat(nearLongitude);
 
+    // Přidej vzdálenost k výsledkům
     for (const ad of ads) {
       if (ad.latitude && ad.longitude) {
-        // Výpočet vzdálenosti pomocí Haversine formula
         const R = 6371; // Poloměr Země v km
         const dLat = (ad.latitude - lat) * Math.PI / 180;
         const dLon = (ad.longitude - lng) * Math.PI / 180;
@@ -431,12 +473,18 @@ export class AdService {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         const distance = R * c;
 
-        (ad as any).distance = Math.round(distance * 10) / 10; // Zaokrouhli na 1 desetinné místo
+        (ad as any).distance = Math.round(distance * 10) / 10;
       }
     }
 
-    // Seřaď podle vzdálenosti
-    ads.sort((a: any, b: any) => (a.distance || 999) - (b.distance || 999));
+    // ✅ POKUD je řazení podle vzdálenosti, seřaď podle distance
+    if (sortBy === 'distance' || (sortBy === 'newest' && distanceFilteredAds)) {
+      ads.sort((a: any, b: any) => {
+        const distA = a.distance || 999;
+        const distB = b.distance || 999;
+        return sortOrder === 'asc' ? distA - distB : distB - distA;
+      });
+    }
   }
 
   // Attach average rating to each ad's user
@@ -461,6 +509,11 @@ export class AdService {
       hasNext: page < Math.ceil(total / limit),
       hasPrev: page > 1
     },
+    // ✅ PŘIDÁNO - Sort info
+    sortInfo: {
+      sortBy,
+      sortOrder
+    },
     // Info o distance filtru
     ...(distanceFilteredAds && {
       distanceInfo: {
@@ -473,20 +526,46 @@ export class AdService {
   };
   }
 
-  findAll = async () => {
-    const ads = await this.prisma.ad.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: { user: true, images: true, features: true },
-    });
-    for (const ad of ads) {
-      const avg = await this.prisma.review.aggregate({
-        where: { targetId: ad.userId },
-        _avg: { rating: true },
-      });
-      (ad.user as any).averageRating = avg._avg.rating;
+  findAll = async (query?: any) => {
+  // ✅ PŘIDÁNO - Sort parametry i pro findAll
+  const sortBy = query?.sortBy || 'newest';
+  const sortOrder = query?.sortOrder || 'desc';
+  
+  const getOrderBy = () => {
+    switch (sortBy) {
+      case 'price':
+        return { price: sortOrder as 'asc' | 'desc' };
+      case 'mileage':
+        return { mileage: sortOrder as 'asc' | 'desc' };
+      case 'year':
+        return { year: sortOrder as 'asc' | 'desc' };
+      case 'views':
+        return { views: sortOrder as 'asc' | 'desc' };
+      case 'title':
+        return { title: sortOrder as 'asc' | 'desc' };
+      case 'oldest':
+        return { createdAt: 'asc' as const };
+      case 'newest':
+      default:
+        return { createdAt: 'desc' as const };
     }
-    return ads;
+  };
+
+  const ads = await this.prisma.ad.findMany({
+    orderBy: getOrderBy(), // ✅ ZMĚNĚNO
+    include: { user: true, images: true, features: true },
+  });
+  
+  for (const ad of ads) {
+    const avg = await this.prisma.review.aggregate({
+      where: { targetId: ad.userId },
+      _avg: { rating: true },
+    });
+    (ad.user as any).averageRating = avg._avg.rating;
   }
+  
+  return ads;
+}
 
   async incrementViews(id: string): Promise<void> {
     try {
