@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import '../styles/Admin.scss'; // Import stylů pro admin panel'
 
 interface Stats {
@@ -45,11 +46,17 @@ interface User {
   };
 }
 
+// ✅ Dynamic import pro AdminMap (kvůli Leaflet)
+const DynamicAdminMap = dynamic(() => import('../components/AdminMap'), {
+  ssr: false,
+  loading: () => <div className="admin-loading">Načítání mapy...</div>
+})
+
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [ads, setAds] = useState<Ad[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [activeTab, setActiveTab] = useState<'stats' | 'ads' | 'users'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'ads' | 'users' | 'map'>('stats');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -153,6 +160,12 @@ export default function AdminPage() {
           >
             👥 Uživatelé ({users.length})
           </button>
+          <button 
+            className={activeTab === 'map' ? 'active' : ''}
+            onClick={() => setActiveTab('map')}
+          >
+            🗺️ Mapa inzerátů
+          </button>
         </nav>
       </header>
 
@@ -236,6 +249,12 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'map' && (
+          <div className="admin-map-tab">
+            <DynamicAdminMap ads={ads} />
           </div>
         )}
       </main>
