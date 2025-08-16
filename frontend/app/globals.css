@@ -19,12 +19,20 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ✅ App wrapper pro správný layout */
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .main-content {
+  flex: 1;
   min-height: calc(100vh - 60px); /* Subtract header height */
   
   /* Add bottom padding only on mobile for bottom navbar */
   @media (max-width: 768px) {
-    padding-bottom: 4.5rem;
+    padding-bottom: 2rem; /* Jen základní spacing */
   }
 }
 
@@ -38,4 +46,11 @@ body {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* ✅ Footer mobile spacing */
+@media (max-width: 768px) {
+  .footer {
+    margin-bottom: 80px; /* Výška bottom navbar */
+  }
 }
