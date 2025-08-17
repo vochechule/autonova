@@ -5,8 +5,8 @@ import { getModelsList } from '../data/carData'
 import BrandSelect from './BrandSelect'
 import ModelSelect from './ModelSelect'
 import RangeFilter from './RangeFilter'
-import ColorSelect from './ColorSelect' // ✅ PŘIDÁNO
-import ColorFinishSelect from './ColorFinishSelect' // ✅ PŘIDÁNO
+import ColorSelect from './ColorSelect'
+import ColorFinishSelect from './ColorFinishSelect'
 import LocationFilter from './LocationFilter'
 import '../styles/components/AdFilter.scss'
 
@@ -14,23 +14,18 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
   const router = useRouter()
   const searchParams = useSearchParams()
   const [showAllFilters, setShowAllFilters] = useState(false)
-  const [ads, setAds] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [noResults, setNoResults] = useState(false)
   
-  // State pro brand/model filtry
+  // State pro všechny filtry
   const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || '')
   const [selectedModel, setSelectedModel] = useState(searchParams.get('model') || '')
-  const [selectedColor, setSelectedColor] = useState(searchParams.get('color') || '') // ✅ PŘIDÁNO
-  const [selectedColorFinish, setSelectedColorFinish] = useState(searchParams.get('colorFinish') || '') // ✅ PŘIDÁNO
-  
-  // State pro range filtry
+  const [selectedColor, setSelectedColor] = useState(searchParams.get('color') || '')
+  const [selectedColorFinish, setSelectedColorFinish] = useState(searchParams.get('colorFinish') || '')
   const [priceFrom, setPriceFrom] = useState(parseInt(searchParams.get('priceFrom') || '0') || 0)
   const [priceTo, setPriceTo] = useState(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
   const [mileageFrom, setMileageFrom] = useState(parseInt(searchParams.get('mileageFrom') || '0') || 0)
   const [mileageTo, setMileageTo] = useState(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
-
-  // Do state přidejte:
   const [locationFilter, setLocationFilter] = useState<{
     latitude: number
     longitude: number
@@ -40,6 +35,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
 
   const modelsList = getModelsList(selectedBrand)
 
+  // Handlers
   const handleBrandChange = (brandValue: string) => {
     setSelectedBrand(brandValue)
     setSelectedModel('') // Reset model when brand changes
@@ -49,7 +45,6 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     setSelectedModel(modelValue)
   }
 
-  // ✅ PŘIDÁNO - Handlery pro barvy
   const handleColorChange = (colorValue: string) => {
     setSelectedColor(colorValue)
   }
@@ -68,25 +63,21 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     setMileageTo(to)
   }
 
-  // Handler pro location change:
   const handleLocationChange = (location: {
     latitude: number
     longitude: number
     address: string
     distance: number
   } | null) => {
-    console.log('🗺️ AdFilter: Location changed:', location)
     setLocationFilter(location)
-    
-    // ❌ ODSTRANĚNO - auto submit
-    // Lokalita se pouze nastaví, submit se udělá manuálně
   }
 
-  // Hledání a filtrování
+  // Submit handler
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setNoResults(false)
+    
     const form = e.currentTarget
     const params = new URLSearchParams()
 
@@ -98,51 +89,43 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
       }
     }
 
-    // Přidat brand/model/color z state (přepsat hidden inputy)
+    // Přidat custom komponenty z state
     if (selectedBrand) params.set('brand', selectedBrand)
     if (selectedModel) params.set('model', selectedModel)
-    if (selectedColor) params.set('color', selectedColor) // ✅ PŘIDÁNO
-    if (selectedColorFinish) params.set('colorFinish', selectedColorFinish) // ✅ PŘIDÁNO
-    
-    // Přidat price range (přepsat hidden inputy)
+    if (selectedColor) params.set('color', selectedColor)
+    if (selectedColorFinish) params.set('colorFinish', selectedColorFinish)
     if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
     if (priceTo < 2000000) params.set('priceTo', priceTo.toString())
-    
-    // Přidat mileage range (přepsat hidden inputy) - správný název parametru
     if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
     if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
 
-    // ✅ PŘIDÁNO - Location filter
     if (locationFilter) {
       params.set('nearLatitude', locationFilter.latitude.toString())
       params.set('nearLongitude', locationFilter.longitude.toString())
       params.set('nearDistance', locationFilter.distance.toString())
     }
 
-    console.log('Odesílané parametry:', params.toString()) // Debug
-
-    // Změna URL (kvůli sdílení/filtrování)
+    // Update URL
     router.push(`/ads?${params.toString()}`)
 
-    // Fetch výsledků
+    // Fetch results
     try {
       const res = await fetch(`http://localhost:3000/ad?${params.toString()}`)
       const data = await res.json()
-      setAds(data)
-      setNoResults(data.length === 0)
-      onResults?.(data)
+      const ads = data.ads || data
+      setNoResults(ads.length === 0)
+      onResults?.(ads)
     } catch (error) {
       console.error('Chyba při načítání inzerátů:', error)
-      setAds([])
       setNoResults(true)
     } finally {
       setLoading(false)
     }
   }
 
-  // Pro načtení výsledků při změně URL/searchParams
+  // Effect pro načtení dat při změně URL
   useEffect(() => {
-    // Aktualizace state z URL parametrů
+    // Update state from URL
     setSelectedBrand(searchParams.get('brand') || '')
     setSelectedModel(searchParams.get('model') || '')
     setSelectedColor(searchParams.get('color') || '')
@@ -152,7 +135,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     setMileageFrom(parseInt(searchParams.get('mileageFrom') || '0') || 0)
     setMileageTo(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
 
-    // ✅ PŘIDÁNO - Inicializace location filter z URL
+    // Location filter from URL
     const nearLat = searchParams.get('nearLatitude')
     const nearLng = searchParams.get('nearLongitude')
     const nearDist = searchParams.get('nearDistance')
@@ -161,36 +144,37 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
       setLocationFilter({
         latitude: parseFloat(nearLat),
         longitude: parseFloat(nearLng),
-        address: 'Vybraná lokalita', // Fallback
+        address: 'Vybraná lokalita',
         distance: parseInt(nearDist)
       })
     } else {
       setLocationFilter(null)
     }
 
-    // Fetch výsledků
+    // Fetch results
     const params = searchParams.toString()
-    setLoading(true)
-    fetch(`http://localhost:3000/ad?${params}`)
-      .then(res => res.json())
-      .then(data => {
-        setAds(data.ads || data) // ✅ OPRAVENO - backend vrací { ads: [...] }
-        setNoResults((data.ads || data).length === 0)
-        setLoading(false)
-        onResults?.(data.ads || data)
-      })
-      .catch(error => {
-        console.error('Chyba při načítání inzerátů:', error)
-        setAds([])
-        setNoResults(true)
-        setLoading(false)
-      })
+    if (params) {
+      setLoading(true)
+      fetch(`http://localhost:3000/ad?${params}`)
+        .then(res => res.json())
+        .then(data => {
+          const ads = data.ads || data
+          setNoResults(ads.length === 0)
+          setLoading(false)
+          onResults?.(ads)
+        })
+        .catch(error => {
+          console.error('Chyba při načítání inzerátů:', error)
+          setNoResults(true)
+          setLoading(false)
+        })
+    }
   }, [searchParams, onResults])
 
   return (
     <section className="ad-filter">
       <form className="ad-filter__form" onSubmit={handleSubmit}>
-        {/* Search bar - nahoře */}
+        {/* Search bar */}
         <div className="ad-filter__search-section">
           <div className="ad-filter__search-container">
             <svg className="ad-filter__search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -207,7 +191,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
           </div>
         </div>
 
-        {/* Hlavní filtry */}
+        {/* Main filters */}
         <div className="ad-filter__main-filters">
           <div className="ad-filter__filter-group">
             <label className="ad-filter__label">Značka</label>
@@ -226,8 +210,6 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
               disabled={!selectedBrand}
             />
           </div>
-
-         
 
           <div className="ad-filter__filter-group">
             <label className="ad-filter__label">Cena</label>
@@ -260,7 +242,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
           </div>
         </div>
 
-        {/* Tlačítka */}
+        {/* Actions */}
         <div className="ad-filter__actions">
           <button type="submit" className="ad-filter__submit">
             Vyhledat
@@ -274,15 +256,29 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
           </button>
         </div>
 
-        {/* Všechny filtry - skryté */}
+        {/* All filters */}
         {showAllFilters && (
           <div className="ad-filter__all-filters">
             <div className="ad-filter__all-filters-grid">
-              {/* ✅ PŘESUNUTO - Location Filter do rozšířených */}
               <div className="ad-filter__filter-group ad-filter__filter-group--full-width">
                 <LocationFilter 
                   onLocationChange={handleLocationChange}
-                  className="ad-filter__location"
+                />
+              </div>
+
+              <div className="ad-filter__filter-group">
+                <label className="ad-filter__label">Barva</label>
+                <ColorSelect
+                  value={selectedColor}
+                  onChange={handleColorChange}
+                />
+              </div>
+
+              <div className="ad-filter__filter-group">
+                <label className="ad-filter__label">Povrchová úprava</label>
+                <ColorFinishSelect
+                  value={selectedColorFinish}
+                  onChange={handleColorFinishChange}
                 />
               </div>
 
@@ -316,27 +312,6 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
                 </select>
               </div>
 
-              {/* ✅ PŘIDÁNO - Color Filter */}
-          <div className="ad-filter__filter-group">
-            <label className="ad-filter__label">Barva</label>
-            <ColorSelect
-              value={selectedColor}
-              onChange={handleColorChange}
-              placeholder="Všechny barvy"
-              className="ad-filter__color-select"
-            />
-          </div>
-
-          {/* ✅ PŘIDÁNO - Color Finish Filter */}
-          <div className="ad-filter__filter-group">
-            <label className="ad-filter__label">Povrchová úprava</label>
-            <ColorFinishSelect
-              value={selectedColorFinish}
-              onChange={handleColorFinishChange}
-              className="ad-filter__color-finish-select"
-            />
-          </div>
-
               <div className="ad-filter__filter-group">
                 <label className="ad-filter__label" htmlFor="transmission">Převodovka</label>
                 <select id="transmission" name="transmission" className="ad-filter__select" defaultValue={searchParams.get('transmission') || ''}>
@@ -368,8 +343,6 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
                   <option value="demo">Demo</option>
                 </select>
               </div>
-
-              {/* ✅ ODSTRANIT starý color select - nahrazený ColorSelect komponentou */}
 
               <div className="ad-filter__filter-group">
                 <label className="ad-filter__label" htmlFor="doorCount">Počet dveří</label>
@@ -404,11 +377,11 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
           </div>
         )}
 
-        {/* ✅ Hidden inputs pro form submission */}
+        {/* Hidden inputs */}
+        <input type="hidden" name="brand" value={selectedBrand} />
+        <input type="hidden" name="model" value={selectedModel} />
         <input type="hidden" name="color" value={selectedColor} />
         <input type="hidden" name="colorFinish" value={selectedColorFinish} />
-        
-        {/* ✅ PŘIDÁNO - Location hidden inputs */}
         {locationFilter && (
           <>
             <input type="hidden" name="nearLatitude" value={locationFilter.latitude} />
@@ -418,7 +391,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
         )}
       </form>
 
-      {/* Loading a výsledky */}
+      {/* Loading & results */}
       {loading && <div className="ad-filter__loading">Načítám...</div>}
       {noResults && (
         <div className="ad-filter__no-results">
