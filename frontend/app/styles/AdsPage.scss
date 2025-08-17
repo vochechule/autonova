@@ -24,10 +24,8 @@
     flex: 1;
     padding: 2rem;
     min-width: 0;
-    // ✅ ZMĚNĚNO - Neomezovat šířku na desktop
     width: 100%;
     
-    // ✅ PŘIDÁNO - Container wrapper pro centrování obsahu
     .ads-page__container {
       max-width: 1400px;
       margin: 0 auto;
@@ -109,13 +107,12 @@
     }
   }
 
-  // ✅ CARDS CONTAINER - Fixed grid layout
+  // ✅ CARDS CONTAINER
   &__list {
     &--grid {
       display: grid;
       gap: 1.5rem;
       
-      // ✅ OPRAVENO - Lepší breakpointy pro grid
       @media (min-width: 1400px) {
         grid-template-columns: repeat(4, 1fr);
       }
@@ -145,7 +142,6 @@
     }
   }
 
-  // ✅ REST OF THE STYLES (buttons, overlays, etc.) - no changes needed
   &__load-more {
     text-align: center;
     margin: 3rem 0 2rem;
@@ -180,7 +176,7 @@
   }
 }
 
-// ✅ SORT BAR & BUTTONS (keep existing styles)
+// ✅ SORT BAR - kompletní styling
 .sort-bar {
   display: flex;
   align-items: center;
@@ -205,10 +201,137 @@
     margin-bottom: 1.5rem;
   }
 
-  // ... rest of existing sort-bar styles
+  &__info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+
+    @media (max-width: 768px) {
+      justify-content: center;
+      text-align: center;
+    }
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+  }
+
+  &__sort {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__sort-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
+  &__sort-select {
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 180px;
+
+    &:hover {
+      border-color: #9ca3af;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      width: 100%;
+      min-width: unset;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+    }
+  }
+
+  &__view-toggle {
+    display: flex;
+    background: rgba(243, 244, 246, 0.8);
+    border-radius: 10px;
+    padding: 0.25rem;
+    gap: 0.25rem;
+
+    @media (max-width: 768px) {
+      justify-content: center;
+    }
+  }
+
+  &__view-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #6b7280;
+
+    &--active {
+      background: white;
+      color: #3b82f6;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    &:hover:not(&--active) {
+      background: rgba(255, 255, 255, 0.7);
+      color: #374151;
+    }
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      stroke-width: 2;
+    }
+
+    @media (max-width: 768px) {
+      padding: 0.625rem 0.75rem;
+      
+      svg {
+        width: 1.125rem;
+        height: 1.125rem;
+      }
+    }
+  }
 }
 
-// ✅ MOBILE CONTROLS & OVERLAYS (keep existing)
+// ✅ MOBILE CONTROLS & OVERLAYS
 .mobile-filter-button {
   display: none;
   align-items: center;
@@ -265,7 +388,7 @@
   }
 }
 
-// ✅ LOAD MORE BUTTON (keep existing)
+// ✅ LOAD MORE BUTTON
 .load-more-button {
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   color: #374151;
@@ -377,6 +500,47 @@
   .sort-bar {
     background: rgba(15, 23, 42, 0.95);
     border-color: rgba(71, 85, 105, 0.3);
+
+    &__info {
+      color: #94a3b8;
+    }
+
+    &__sort-label {
+      color: #cbd5e1;
+    }
+
+    &__sort-select {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: rgba(71, 85, 105, 0.5);
+      color: #f1f5f9;
+
+      &:hover {
+        border-color: rgba(148, 163, 184, 0.5);
+      }
+
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+    }
+
+    &__view-toggle {
+      background: rgba(30, 41, 59, 0.6);
+    }
+
+    &__view-button {
+      color: #94a3b8;
+
+      &--active {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+      }
+
+      &:hover:not(&--active) {
+        background: rgba(51, 65, 85, 0.5);
+        color: #cbd5e1;
+      }
+    }
   }
 
   .mobile-filter-button {

@@ -62,19 +62,19 @@ export default function SortBar({ totalCount, onViewChange }: SortBarProps) {
       </div>
 
       <div className="sort-bar__controls">
-        {/* Mobile View Toggle */}
+        {/* View Toggle */}
         <div className="sort-bar__view-toggle">
           <ViewToggle onViewChange={handleViewChange} />
         </div>
 
         {/* Sort Controls */}
         <div className="sort-bar__sort">
-          <label htmlFor="sort" className="sort-bar__label">
+          <label htmlFor="sort" className="sort-bar__sort-label">
             Řadit podle:
           </label>
           <select 
             id="sort"
-            className="sort-bar__select" 
+            className="sort-bar__sort-select" 
             value={`${sortBy}:${sortOrder}`}
             onChange={handleSortChange}
           >
