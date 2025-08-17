@@ -7,15 +7,34 @@ import '../styles/components/Header.scss'
 export default function Header() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
+  const [authLoaded, setAuthLoaded] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    setLoggedIn(!!token)
+    // ✅ DARK MODE - Safe for SSR
+    const savedMode = localStorage.getItem('darkMode')
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     
+    if (savedMode !== null) {
+      setIsDarkMode(savedMode === 'true')
+    } else {
+      setIsDarkMode(systemPrefersDark)
+    }
+  }, [])
+
+  useEffect(() => {
+    // ✅ AUTH CHECK - Immediate on mount
+    const checkAuth = () => {
+      const token = localStorage.getItem('token')
+      setLoggedIn(!!token)
+      setAuthLoaded(true) // ✅ Mark as loaded
+    }
+
+    checkAuth()
+
     const handleAuthChange = () => {
-      const newToken = localStorage.getItem('token')
-      setLoggedIn(!!newToken)
+      const token = localStorage.getItem('token')
+      setLoggedIn(!!token)
     }
     
     window.addEventListener('storage', handleAuthChange)
@@ -28,17 +47,7 @@ export default function Header() {
   }, [pathname])
 
   useEffect(() => {
-    const savedMode = localStorage.getItem('darkMode')
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    
-    if (savedMode !== null) {
-      setIsDarkMode(savedMode === 'true')
-    } else {
-      setIsDarkMode(systemPrefersDark)
-    }
-  }, [])
-
-  useEffect(() => {
+    // ✅ APPLY DARK MODE
     if (isDarkMode) {
       document.documentElement.setAttribute('data-theme', 'dark')
     } else {
@@ -70,12 +79,22 @@ export default function Header() {
         <nav className="header__nav">
           <a href="/" className="header__link">Domů</a>
           <a href="/ads" className="header__link">Inzeráty</a>
-          {loggedIn && (
+          
+          {/* ✅ CONDITIONAL LINK - Only show when loaded and logged in */}
+          {authLoaded && loggedIn && (
             <a href="/saved-ads" className="header__link">Oblíbené</a>
           )}
           
-          <div className="header__desktop-nav">
-            {loggedIn ? (
+          {/* ✅ AUTH BUTTONS - Always present but with loading states */}
+          <div className={`header__desktop-nav ${!authLoaded ? 'header__desktop-nav--loading' : ''}`}>
+            {!authLoaded ? (
+              // ✅ LOADING STATE - Same layout as real buttons
+              <>
+                <div className="header__button-skeleton header__button-skeleton--secondary"></div>
+                <div className="header__button-skeleton header__button-skeleton--primary"></div>
+              </>
+            ) : loggedIn ? (
+              // ✅ LOGGED IN STATE
               <>
                 <a href="/ads/create" className="header__button header__button--primary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -84,7 +103,6 @@ export default function Header() {
                   Přidat inzerát
                 </a>
                 <a href="/profile" className="header__button header__button--secondary">
-                  {/* ✅ NOVÝ - Stylový user icon */}
                   <div className="header__profile-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -94,6 +112,7 @@ export default function Header() {
                 </a>
               </>
             ) : (
+              // ✅ NOT LOGGED IN STATE
               <>
                 <a href="/login" className="header__button header__button--secondary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

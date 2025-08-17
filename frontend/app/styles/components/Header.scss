@@ -132,13 +132,21 @@
     }
   }
 
+  // ✅ DESKTOP NAV - Updated with loading state
   &__desktop-nav {
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    min-height: 38px; // ✅ Prevent layout shift
+    transition: all 0.2s ease-out;
 
     @media (max-width: 768px) {
       display: none;
+    }
+
+    // ✅ Loading state
+    &--loading {
+      pointer-events: none; // Prevent clicks during loading
     }
   }
 
@@ -193,6 +201,9 @@
     position: relative;
     overflow: hidden;
 
+    // ✅ Smooth appear
+    animation: fadeIn 0.3s ease-out;
+
     &::before {
       content: '';
       position: absolute;
@@ -239,18 +250,66 @@
     }
   }
 
-  // ✅ NOVÝ - Profile icon místo emoji
+  // ✅ BUTTON SKELETON - Exact same size as real buttons
+  &__button-skeleton {
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    
+    // ✅ Subtle shimmer effect
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.4), 
+        transparent
+      );
+      animation: shimmer 1.5s infinite;
+    }
+
+    &--secondary {
+      width: 108px; // ✅ Same as "Přihlásit se" button
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.15);
+    }
+
+    &--primary {
+      width: 132px; // ✅ Same as "Registrovat se" button  
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(29, 78, 216, 0.8) 100%);
+    }
+  }
+
+  // ✅ Profile icon
   &__profile-icon {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #f59e0b, #f97316);
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 600;
-    font-size: 0.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+    
+    svg {
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+    }
+
+    // ✅ Hover effect pro parent button
+    .header__button--secondary:hover & {
+      background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      transform: scale(1.05);
+    }
   }
 
   &__theme-toggle {
@@ -319,9 +378,37 @@
       border-radius: 8px;
     }
   }
+
+  // ✅ ANIMATIONS
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-2px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  // ✅ Scroll behavior
+  &.scrolled {
+    backdrop-filter: blur(12px);
+    border-bottom-color: rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
 }
 
-// ✅ Dark mode - much better colors
+// ✅ Dark mode
 [data-theme="dark"] {
   .header {
     background: rgba(15, 23, 42, 0.95);
@@ -329,6 +416,11 @@
 
     &::before {
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    }
+
+    &.scrolled {
+      border-bottom-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
   }
 
@@ -369,6 +461,35 @@
     }
   }
 
+  .header__button-skeleton {
+    &--secondary {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.25);
+    }
+
+    &--primary {
+      background: linear-gradient(135deg, rgba(96, 165, 250, 0.6) 0%, rgba(59, 130, 246, 0.6) 100%);
+    }
+
+    &::before {
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent
+      );
+    }
+  }
+
+  .header__profile-icon {
+    background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 100%);
+    box-shadow: 0 2px 6px rgba(96, 165, 250, 0.3);
+    
+    .header__button--secondary:hover & {
+      background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+      box-shadow: 0 4px 12px rgba(96, 165, 250, 0.5);
+    }
+  }
+
   .header__theme-toggle {
     background: rgba(59, 130, 246, 0.1);
     border-color: rgba(59, 130, 246, 0.2);
@@ -381,21 +502,7 @@
   }
 }
 
-// ✅ PŘIDÁNO - Scroll behavior
-.header {
-  &.scrolled {
-    backdrop-filter: blur(12px);
-    border-bottom-color: rgba(0, 0, 0, 0.15);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-
-    [data-theme="dark"] & {
-      border-bottom-color: rgba(255, 255, 255, 0.15);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-  }
-}
-
-// Reduced motion
+// ✅ Reduced motion
 @media (prefers-reduced-motion: reduce) {
   .header {
     &::before,
@@ -411,6 +518,14 @@
     &__button:hover,
     &__theme-toggle:hover {
       transform: none;
+    }
+
+    &__button-skeleton::before {
+      animation: none;
+    }
+    
+    &__button {
+      animation: none;
     }
   }
 }
