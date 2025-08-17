@@ -7,17 +7,17 @@ import '../styles/components/Header.scss'
 export default function Header() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
-  const pathname = usePathname()  // Get current path for route changes
+  const pathname = usePathname()
 
   useEffect(() => {
-    // Check login status on mount and route changes
-    setLoggedIn(!!localStorage.getItem('token'))
+    const token = localStorage.getItem('token')
+    setLoggedIn(!!token)
     
     const handleAuthChange = () => {
-      setLoggedIn(!!localStorage.getItem('token'))
+      const newToken = localStorage.getItem('token')
+      setLoggedIn(!!newToken)
     }
     
-    // Listen to storage changes and custom events
     window.addEventListener('storage', handleAuthChange)
     window.addEventListener('authChange', handleAuthChange)
     
@@ -25,10 +25,9 @@ export default function Header() {
       window.removeEventListener('storage', handleAuthChange)
       window.removeEventListener('authChange', handleAuthChange)
     }
-  }, [pathname])  // Re-run on route change
+  }, [pathname])
 
   useEffect(() => {
-    // Initialize from system preference or saved setting
     const savedMode = localStorage.getItem('darkMode')
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     
@@ -40,7 +39,6 @@ export default function Header() {
   }, [])
 
   useEffect(() => {
-    // Apply dark mode
     if (isDarkMode) {
       document.documentElement.setAttribute('data-theme', 'dark')
     } else {
@@ -58,12 +56,11 @@ export default function Header() {
     <header className="header">
       <div className="header__container">
         <a href="/" className="header__logo">
-          {/* ✅ PŘIDÁNO - SVG logo s podmíněným zobrazením podle dark mode */}
           <Image
             src={isDarkMode ? "/carta-logo-negative.svg" : "/carta-logo.svg"}
             alt="Carta.cz"
-            width={40}
-            height={40}
+            width={36}
+            height={36}
             priority
             className="header__logo-image"
           />
@@ -81,18 +78,33 @@ export default function Header() {
             {loggedIn ? (
               <>
                 <a href="/ads/create" className="header__button header__button--primary">
-                  + Přidat inzerát
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Přidat inzerát
                 </a>
                 <a href="/profile" className="header__button header__button--secondary">
-                  👤 Profil
+                  {/* ✅ NOVÝ - Stylový user icon */}
+                  <div className="header__profile-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                  </div>
+                  Profil
                 </a>
               </>
             ) : (
               <>
                 <a href="/login" className="header__button header__button--secondary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                   Přihlásit se
                 </a>
                 <a href="/register" className="header__button header__button--primary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M12.5 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM20 8v6M23 11h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                   Registrovat se
                 </a>
               </>
@@ -105,19 +117,12 @@ export default function Header() {
             aria-label={isDarkMode ? 'Přepnout na světlé téma' : 'Přepnout na tmavé téma'}
           >
             {isDarkMode ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2"/>
-                <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" strokeWidth="2"/>
-                <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" strokeWidth="2"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" strokeWidth="2"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" strokeWidth="2"/>
-                <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" strokeWidth="2"/>
-                <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" strokeWidth="2"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" strokeWidth="2"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" strokeWidth="2"/>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2"/>
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke="currentColor" strokeWidth="2"/>
               </svg>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" strokeWidth="2"/>
               </svg>
             )}

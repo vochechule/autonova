@@ -1,12 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .header {
   width: 100%;
   margin: auto;
-  border-bottom: 1px solid #ddd;
-  padding: 1rem 1.5rem;
-  background: var(--background, #fff);
-  transition: all 0.3s ease;
+  background: var(--background, rgba(255, 255, 255, 0.95));
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.75rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // ✅ Glass morphism effect
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 1rem;
+    backdrop-filter: blur(8px);
+  }
 
   &__container {
     display: flex;
@@ -14,33 +35,63 @@
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
   }
 
   &__logo {
-    display: flex;           // ✅ PŘIDÁNO - flex pro logo + text
-    align-items: center;     // ✅ PŘIDÁNO - centrování vertikálně
-    gap: 12px;              // ✅ PŘIDÁNO - mezera mezi logem a textem
-    font-size: 24px;
-    font-family: 'Merriweather Sans', sans-serif;  
-    font-weight: 800;
-    color: var(--foreground, #333);
-    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    color: var(--foreground, #1a1a1a);
     text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
 
-    &:hover {               // ✅ PŘIDÁNO - hover efekt
-      opacity: 0.9;
-      text-decoration: none;
+    // ✅ Subtle glow effect
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #3b82f6, #06b6d4, #8b5cf6);
+      opacity: 0;
+      z-index: -1;
+      transition: opacity 0.3s ease;
     }
 
-    // ✅ PŘIDÁNO - styling pro logo obrázek
+    &:hover {
+      transform: translateY(-1px);
+      
+      &::after {
+        opacity: 0.1;
+      }
+
+      @media (max-width: 768px) {
+        transform: none;
+        
+        &::after {
+          opacity: 0;
+        }
+      }
+    }
+
     &-image {
-      width: 40px;
-      height: 40px;
-      flex-shrink: 0;        // Zabráníme zmenšování loga
-      transition: transform 0.2s ease;
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
       
       &:hover {
-        transform: scale(1.05);
+        filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.3));
+
+        @media (max-width: 768px) {
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
       }
     }
 
@@ -48,34 +99,36 @@
       margin: 0;
       font-size: inherit;
       font-weight: inherit;
-      transition: color 0.3s ease;
+      background: linear-gradient(135deg, #1a1a1a 0%, #4a5568 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    // ✅ PŘIDÁNO - responsivní chování
     @media (max-width: 768px) {
       gap: 8px;
-      font-size: 20px;
+      font-size: 18px;
       
       &-image {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
       }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 320px) {
       h1 {
-        display: none;       // Na velmi malých displejích skryjeme text
+        display: none;
       }
     }
   }
 
   &__nav {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     align-items: center;
 
     @media (max-width: 768px) {
-      gap: 0.5rem;
+      gap: 0;
     }
   }
 
@@ -89,128 +142,275 @@
     }
   }
 
+  &__link {
+    color: var(--foreground, #4a5568);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6, #06b6d4);
+      transform: translateX(-50%);
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    &:hover {
+      color: #3b82f6;
+      background: rgba(59, 130, 246, 0.05);
+      
+      &::before {
+        width: 80%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+
   &__button {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
     padding: 0.5rem 1rem;
-    border-radius: 6px;
+    border-radius: 8px;
     text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    &:hover::before {
+      left: 100%;
+    }
 
     &--primary {
-      background: #007AFF;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
       color: white;
-      border: 1px solid #007AFF;
+      border: none;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 
       &:hover {
-        background: #0056CC;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
       }
     }
 
     &--secondary {
-      background: transparent;
-      color: var(--foreground, #333);
-      border: 1px solid #d0d0d0;
+      background: rgba(59, 130, 246, 0.05);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.2);
 
       &:hover {
-        background: rgba(0, 122, 255, 0.05);
-        border-color: #007AFF;
-        color: #007AFF;
+        background: rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
       }
     }
   }
 
-  &__link {
-    color: var(--foreground, #333);
-    text-decoration: none;
-    transition: color 0.3s ease;
-
-    &:hover {
-      color: #0070f3;
-    }
+  // ✅ NOVÝ - Profile icon místo emoji
+  &__profile-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
   }
 
   &__theme-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    color: #4a5568;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
     cursor: pointer;
     padding: 8px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    width: 36px;
-    height: 36px;
-    margin-left: 1rem;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 38px;
+    height: 38px;
+    margin-left: 0.75rem;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
 
     &:hover {
-      background: #edf2f7;
-      border-color: #cbd5e0;
-      color: #2d3748;
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.3);
       transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+      
+      &::before {
+        opacity: 1;
+      }
+
+      @media (max-width: 768px) {
+        transform: none;
+        box-shadow: none;
+        background: rgba(59, 130, 246, 0.1);
+      }
+    }
+
+    &:active {
+      transform: scale(0.95);
+      
+      @media (max-width: 768px) {
+        transform: scale(0.9);
+      }
     }
 
     svg {
-      transition: transform 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      z-index: 1;
     }
 
-    &:hover svg {
-      transform: scale(1.1);
+    @media (max-width: 768px) {
+      margin-left: 0;
+      width: 32px;
+      height: 32px;
+      padding: 6px;
+      border-radius: 8px;
     }
   }
 }
 
-// Dark mode styly pro header
+// ✅ Dark mode - much better colors
 [data-theme="dark"] {
   .header {
-    background: #1a202c;
-    border-bottom-color: #4a5568;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+
+    &::before {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    }
   }
 
   .header__logo {
-    color: #e2e8f0;
+    color: #f8fafc;
 
     h1 {
-      color: #e2e8f0;      // ✅ PŘIDÁNO - dark mode pro text loga
+      background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    &::after {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
     }
   }
 
   .header__link {
-    color: #e2e8f0;
+    color: #cbd5e1;
 
     &:hover {
-      color: #90cdf4;
+      color: #60a5fa;
+      background: rgba(59, 130, 246, 0.1);
     }
   }
 
   .header__button {
     &--secondary {
-      color: #e2e8f0;
-      border-color: #4a5568;
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      border-color: rgba(59, 130, 246, 0.3);
 
       &:hover {
-        background: rgba(0, 122, 255, 0.1);
-        border-color: #007AFF;
-        color: #007AFF;
+        background: rgba(59, 130, 246, 0.15);
+        border-color: #60a5fa;
       }
     }
   }
 
   .header__theme-toggle {
-    background: #2d3748;
-    border-color: #4a5568;
-    color: #e2e8f0;
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
 
     &:hover {
-      background: #4a5568;
-      border-color: #718096;
+      background: rgba(59, 130, 246, 0.15);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+  }
+}
+
+// ✅ PŘIDÁNO - Scroll behavior
+.header {
+  &.scrolled {
+    backdrop-filter: blur(12px);
+    border-bottom-color: rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    [data-theme="dark"] & {
+      border-bottom-color: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    &::before,
+    &__logo,
+    &__logo-image,
+    &__link,
+    &__button,
+    &__theme-toggle {
+      transition: none;
+    }
+    
+    &__logo:hover,
+    &__button:hover,
+    &__theme-toggle:hover {
+      transform: none;
     }
   }
 }

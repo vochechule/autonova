@@ -52,8 +52,13 @@ export default function QuickCategories() {
           className="home-page__quick-btn"
           onClick={() => handleQuickFilter(cat.query)}
         >
-          <img src={cat.image} alt={cat.label} className="home-page__quick-img" />
-          <span>{cat.label}</span>
+          <img 
+            src={cat.image} 
+            alt={cat.label} 
+            className="home-page__quick-img"
+            loading={cat.loading as "lazy" | "eager"}
+          />
+          <span className="quick-category-text">{cat.label}</span>
         </button>
       ))}
     </div>

@@ -6,13 +6,34 @@
   margin-bottom: 2rem;
   border: 1px solid transparent;
 
+  // ✅ ULTRA COMPACT - Much smaller mobile
+  @media (max-width: 768px) {
+    padding: 0.75rem;
+    margin: 0 0 0.75rem 0;
+    border-radius: 6px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.5rem;
+    margin: 0 -0.5rem 0.5rem -0.5rem;
+    border-radius: 0;
+    box-shadow: none;
+    border-top: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
   &__form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+
+    @media (max-width: 768px) {
+      gap: 0.5rem; // ✅ Much tighter spacing
+    }
   }
 
-  // Search section
+  // ✅ COMPACT - Search section
   &__search-section {
     width: 100%;
   }
@@ -27,6 +48,12 @@
     padding: 0 1rem;
     transition: all 0.2s ease;
 
+    @media (max-width: 768px) {
+      padding: 0 0.5rem;
+      border-radius: 4px;
+      min-height: 40px; // ✅ Fixed compact height
+    }
+
     &:focus-within {
       border-color: #007AFF;
       box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
@@ -37,6 +64,12 @@
     color: #666;
     margin-right: 0.75rem;
     flex-shrink: 0;
+    font-size: 1.1rem;
+
+    @media (max-width: 768px) {
+      font-size: 0.9rem;
+      margin-right: 0.3rem;
+    }
   }
 
   &__search-input {
@@ -48,20 +81,30 @@
     color: var(--foreground, #333);
     outline: none;
 
+    @media (max-width: 768px) {
+      padding: 0.5rem 0;
+      font-size: 0.85rem;
+    }
+
     &::placeholder {
       color: #999;
     }
   }
 
-  // Main filters
+  // ✅ COMPACT GRID - Tighter layout
   &__main-filters {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
 
     @media (max-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem; // ✅ Much tighter
+    }
+
+    @media (max-width: 480px) {
       grid-template-columns: 1fr;
-      gap: 1rem;
+      gap: 0.3rem;
     }
   }
 
@@ -70,14 +113,17 @@
     flex-direction: column;
     gap: 0.5rem;
     
-    // ✅ OPRAVENO - Responzivní šířka podle velikosti displeje
+    @media (max-width: 768px) {
+      gap: 0.2rem; // ✅ Tighter spacing
+    }
+    
     &--full-width {
-      @media (min-width: 1200px) {
-        grid-column: span 2; // ✅ Zabere 2 sloupce nad 1200px
+      @media (min-width: 769px) {
+        grid-column: span 2;
       }
       
-      @media (max-width: 1199px) {
-        grid-column: 1 / -1; // ✅ Full width pod 1200px
+      @media (max-width: 768px) {
+        grid-column: 1 / -1;
       }
       
       .location-filter {
@@ -91,9 +137,15 @@
     font-weight: 600;
     color: var(--foreground, #333);
     margin-bottom: 0.25rem;
+
+    @media (max-width: 768px) {
+      font-size: 0.75rem; // ✅ Smaller text
+      margin-bottom: 0.1rem;
+      font-weight: 500;
+    }
   }
 
-  // Actions
+  // ✅ COMPACT ACTIONS - Stacked with minimal spacing
   &__actions {
     display: flex;
     gap: 1rem;
@@ -102,7 +154,8 @@
 
     @media (max-width: 768px) {
       flex-direction: column;
-      gap: 0.75rem;
+      gap: 0.3rem; // ✅ Much tighter
+      margin-top: 0.3rem;
     }
   }
 
@@ -118,18 +171,31 @@
     transition: all 0.2s ease;
     min-width: 140px;
 
+    @media (max-width: 768px) {
+      width: 100%;
+      padding: 0.5rem 1rem; // ✅ Compact padding
+      font-size: 0.85rem;
+      border-radius: 4px;
+      min-width: unset;
+      min-height: 36px; // ✅ Fixed compact height
+    }
+
     &:hover {
       background: #0056CC;
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+
+      @media (max-width: 768px) {
+        transform: none; // ✅ No hover effects on mobile
+      }
     }
 
     &:active {
       transform: translateY(0);
-    }
-
-    @media (max-width: 768px) {
-      width: 100%;
+      
+      @media (max-width: 768px) {
+        transform: scale(0.98);
+      }
     }
   }
 
@@ -143,14 +209,18 @@
     cursor: pointer;
     transition: all 0.2s ease;
 
+    @media (max-width: 768px) {
+      width: 100%;
+      padding: 0.5rem 1rem; // ✅ Compact padding
+      font-size: 0.8rem;
+      border-radius: 4px;
+      min-height: 36px;
+    }
+
     &:hover {
       border-color: #007AFF;
       color: #007AFF;
       background: rgba(0, 122, 255, 0.03);
-    }
-
-    @media (max-width: 768px) {
-      width: 100%;
     }
   }
 
@@ -159,6 +229,11 @@
     border-top: 1px solid #e0e0e0;
     padding-top: 1.5rem;
     margin-top: 0.5rem;
+
+    @media (max-width: 768px) {
+      padding-top: 0.5rem; // ✅ Compact spacing
+      margin-top: 0.3rem;
+    }
   }
 
   &__all-filters-grid {
@@ -167,7 +242,13 @@
     gap: 1rem;
 
     @media (max-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem; // ✅ Tighter grid
+    }
+
+    @media (max-width: 480px) {
       grid-template-columns: 1fr;
+      gap: 0.3rem;
     }
   }
 
@@ -182,6 +263,13 @@
     color: var(--foreground, #333);
     transition: border-color 0.2s ease;
 
+    @media (max-width: 768px) {
+      padding: 0.4rem 0.5rem; // ✅ Compact padding
+      font-size: 0.8rem;
+      border-radius: 3px;
+      min-height: 32px; // ✅ Consistent compact height
+    }
+
     &:focus {
       border-color: #007AFF;
       outline: none;
@@ -195,74 +283,79 @@
 
   &__select {
     cursor: pointer;
+    
+    @media (max-width: 768px) {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.4rem center;
+      background-size: 0.8rem; // ✅ Smaller arrow
+      padding-right: 2rem;
+    }
 
     option {
       color: #333;
     }
   }
 
-  // Loading states
-  &__loading {
-    text-align: center;
-    padding: 2rem;
-    color: #666;
-    font-style: italic;
-  }
-
-  &__no-results {
-    text-align: center;
-    padding: 2rem;
-    color: #666;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-  }
-
-  // Responsive improvements
-  @media (max-width: 480px) {
-    padding: 1rem;
-    margin: 0 -1rem 1rem -1rem;
-    border-radius: 0;
-
-    &__main-filters {
-      gap: 0.75rem;
-    }
-
-    &__search-container {
-      padding: 0 0.75rem;
-    }
-
-    &__search-input {
-      padding: 0.875rem 0;
-    }
-  }
-
+  // ✅ COMPACT LOCATION FILTER
   &__location {
-    // Styly specifické pro location filter v AdFilter
     .location-filter__header {
-      margin-bottom: 12px;
+      margin-bottom: 6px;
+
+      @media (max-width: 768px) {
+        margin-bottom: 4px;
+      }
     }
     
     .location-filter__toggle-text {
       font-size: 14px;
       font-weight: 500;
+
+      @media (max-width: 768px) {
+        font-size: 12px;
+      }
     }
     
     .location-filter__current {
       margin: 12px 0;
       background: #f0f9ff;
       border-color: #0ea5e9;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+
+      @media (max-width: 768px) {
+        margin: 6px 0;
+        padding: 0.3rem 0.4rem; // ✅ Much more compact
+        font-size: 0.75rem;
+        border-radius: 3px;
+      }
     }
     
     .location-filter__distance-options {
       gap: 6px;
       justify-content: flex-start;
+      flex-wrap: wrap;
+
+      @media (max-width: 768px) {
+        gap: 3px; // ✅ Tighter
+      }
     }
     
     .location-filter__distance-option {
       padding: 4px 12px;
       font-size: 12px;
       min-width: 50px;
+      border-radius: 4px;
+
+      @media (max-width: 768px) {
+        padding: 2px 6px; // ✅ Very compact
+        font-size: 10px;
+        min-width: 35px;
+        border-radius: 2px;
+      }
     }
     
     .location-filter__actions {
@@ -272,17 +365,53 @@
       
       @media (max-width: 640px) {
         grid-template-columns: 1fr;
+        gap: 4px; // ✅ Tighter
       }
     }
     
     .location-filter__button {
       font-size: 13px;
       padding: 8px 12px;
+      border-radius: 4px;
+
+      @media (max-width: 768px) {
+        font-size: 10px;
+        padding: 4px 8px; // ✅ Very compact
+        border-radius: 3px;
+      }
     }
   }
 
-  // Dark mode support - enhanced via CSS custom properties and specific overrides
-  [data-theme="dark"] .ad-filter {
+  // Loading states
+  &__loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-style: italic;
+
+    @media (max-width: 768px) {
+      padding: 1rem;
+      font-size: 0.8rem;
+    }
+  }
+
+  &__no-results {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+
+    @media (max-width: 768px) {
+      padding: 1rem;
+      font-size: 0.8rem;
+      border-radius: 4px;
+    }
+  }
+
+  // Dark mode support
+  [data-theme="dark"] & {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
     border-color: #333;
 
