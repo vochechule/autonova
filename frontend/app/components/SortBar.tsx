@@ -1,12 +1,16 @@
 'use client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import ViewToggle from './ViewToggle'
+
+type ViewMode = 'grid' | 'list'
 
 interface SortBarProps {
   totalCount?: number
+  onViewChange?: (view: ViewMode) => void
 }
 
-export default function SortBar({ totalCount }: SortBarProps) {
+export default function SortBar({ totalCount, onViewChange }: SortBarProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'newest')
@@ -36,38 +40,61 @@ export default function SortBar({ totalCount }: SortBarProps) {
     router.push(`/ads${newParams.toString() ? `?${newParams.toString()}` : ''}`)
   }
 
+  const handleViewChange = (view: ViewMode) => {
+    onViewChange?.(view)
+  }
+
+  const formatCount = (count: number) => {
+    if (count === 0) return 'Žádné výsledky'
+    if (count === 1) return '1 inzerát'
+    if (count < 5) return `${count.toLocaleString()} inzeráty`
+    return `${count.toLocaleString()} inzerátů`
+  }
+
   return (
     <div className="sort-bar">
       <div className="sort-bar__info">
         {totalCount !== undefined && (
           <span className="sort-bar__count">
-            📊 {totalCount.toLocaleString()} inzerátů
+            {formatCount(totalCount)}
           </span>
         )}
       </div>
-      
+
       <div className="sort-bar__controls">
-        <label className="sort-bar__label">
-          Řadit podle:
-        </label>
-        <select
-          value={`${sortBy}:${sortOrder}`}
-          onChange={handleSortChange}
-          className="sort-bar__select"
-        >
-          <option value="newest:desc">🆕 Nejnovější</option>
-          <option value="oldest:asc">📅 Nejstarší</option>
-          <option value="price:asc">💰 Nejlevnější</option>
-          <option value="price:desc">💎 Nejdražší</option>
-          <option value="mileage:asc">🏃‍♂️ Nejméně km</option>
-          <option value="mileage:desc">🚗 Nejvíce km</option>
-          <option value="year:desc">🚀 Nejnovější rok</option>
-          <option value="year:asc">🏛️ Nejstarší rok</option>
-          <option value="views:desc">👀 Nejprohlíženější</option>
-          <option value="views:asc">😴 Nejméně zobrazované</option>
-          <option value="title:asc">🔤 A-Z (název)</option>
-          <option value="title:desc">🔤 Z-A (název)</option>
-        </select>
+        {/* Mobile View Toggle */}
+        <div className="sort-bar__view-toggle">
+          <ViewToggle onViewChange={handleViewChange} />
+        </div>
+
+        {/* Sort Controls */}
+        <div className="sort-bar__sort">
+          <label htmlFor="sort" className="sort-bar__label">
+            Řadit podle:
+          </label>
+          <select 
+            id="sort"
+            className="sort-bar__select" 
+            value={`${sortBy}:${sortOrder}`}
+            onChange={handleSortChange}
+          >
+            <option value="newest:desc">Nejnovější</option>
+            <option value="oldest:asc">Nejstarší</option>
+            <option value="price:asc">Cena (od nejlevnějších)</option>
+            <option value="price:desc">Cena (od nejdražších)</option>
+            <option value="mileage:asc">Nájezd (od nejmenších)</option>
+            <option value="mileage:desc">Nájezd (od největších)</option>
+            <option value="year:desc">Rok výroby (od nejnovějších)</option>
+            <option value="year:asc">Rok výroby (od nejstarších)</option>
+            <option value="views:desc">Nejprohlíženější</option>
+            <option value="views:asc">Nejméně zobrazované</option>
+            <option value="title:asc">A-Z (název)</option>
+            <option value="title:desc">Z-A (název)</option>
+            {searchParams.get('nearLatitude') && (
+              <option value="distance:asc">Vzdálenost (od nejbližších)</option>
+            )}
+          </select>
+        </div>
       </div>
     </div>
   )

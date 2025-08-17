@@ -112,3 +112,16 @@
     height: 16px;
   }
 } 
+
+//make the button much smaller under 1200px width
+@media (max-width: 1200px) {
+  .favorite-button {
+    width: 32px;
+    height: 32px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}

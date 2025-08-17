@@ -1,17 +1,16 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import AdFilter from '../components/AdFilter'
 import ActiveFilters from '../components/ActiveFilters'
 import FilterSidebar from '../components/FilterSidebar'
-import FavoriteButton from '../components/FavoriteButton'
-import Link from 'next/link'
+import AdCard from '../components/AdCard'
 import '../styles/AdsPage.scss'
-import { formatCarTitle } from '../utils/CarFormatter'
 import { CardsLoading, ButtonLoading } from '../components/LoadingStates'
 import { NetworkErrorPage } from '../components/ErrorPages'
 import { useToast } from '../contexts/ToastContext'
 import SortBar from '../components/SortBar'
+
+type ViewMode = 'grid' | 'list'
 
 type Ad = {
   id: number
@@ -36,7 +35,7 @@ type Ad = {
     name: string
     averageRating: number
   }
-  distance?: number // ✅ PŘIDÁNO
+  distance?: number
 }
 
 type PaginationResponse = {
@@ -59,7 +58,7 @@ export default function AdsPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
-  // ✅ PŘIDÁNO - Location filter state
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [locationFilter, setLocationFilter] = useState<{
     latitude: number
     longitude: number
@@ -68,7 +67,10 @@ export default function AdsPage() {
   } | null>(null)
   const { showError: showToastError } = useToast()
 
-  // ✅ PŘIDÁNO - Location change handler
+  const handleViewChange = (view: ViewMode) => {
+    setViewMode(view)
+  }
+
   const handleLocationChange = (location: {
     latitude: number
     longitude: number
@@ -78,7 +80,6 @@ export default function AdsPage() {
     setLocationFilter(location)
     console.log('🗺️ Location filter changed:', location)
     
-    // Přidej location parametry do URL
     const newSearchParams = new URLSearchParams(searchParams.toString())
     
     if (location) {
@@ -91,46 +92,13 @@ export default function AdsPage() {
       newSearchParams.delete('nearDistance')
     }
     
-    // Trigger nové vyhledávání
     window.history.pushState(null, '', `?${newSearchParams.toString()}`)
-    
-    // Fetch new data
     fetchAds(true)
   }
 
   useEffect(() => {
     fetchAds(true)
   }, [searchParams])
-
-  // V page.tsx přidejte useEffect pro URL monitoring:
-  useEffect(() => {
-    console.log('🔄 AdsPage: URL searchParams changed:', searchParams.toString())
-    
-    // Fetch ads když se změní URL (včetně sort)
-    const handleUrlChange = async () => {
-      setLoading(true)
-      try {
-        const paramsString = searchParams.toString()
-        const url = `http://localhost:3000/ad${paramsString ? `?${paramsString}` : ''}`
-        
-        console.log('🚀 AdsPage: Fetching URL:', url)
-        
-        const res = await fetch(url)
-        const data = await res.json()
-        
-        console.log('📦 AdsPage: Received data:', data)
-        
-        setAds(data.ads || data)
-        setPagination(data.pagination)
-      } catch (error) {
-        console.error('❌ AdsPage: Fetch error:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    handleUrlChange()
-  }, [searchParams]) // ✅ Reaguje na JAKOUKOLIV změnu URL
 
   const fetchAds = async (isInitialLoad = false) => {
     try {
@@ -202,7 +170,6 @@ export default function AdsPage() {
           onResults={handleFilterResults}
           isVisible={showMobileFilters}
           onClose={() => setShowMobileFilters(false)}
-          // ✅ PŘIDÁNO - Předej location handler
           onLocationChange={handleLocationChange}
         />
 
@@ -221,15 +188,10 @@ export default function AdsPage() {
             </button>
           </div>
 
-          <div className="ads-page__legacy-filter">
-            <AdFilter />
-          </div>
-
           <ActiveFilters />
           
           <div className="ads-page__results">
-            {/* ✅ NAHRAZENO - results-info + SortBar */}
-            <SortBar totalCount={pagination?.total} />
+            <SortBar totalCount={pagination?.total} onViewChange={handleViewChange} />
             
             {loading ? (
               <CardsLoading count={8} />
@@ -242,86 +204,10 @@ export default function AdsPage() {
               </div>
             ) : (
               <>
-                <div className="ads-page__list">
+                {/* ✅ CLEAN & SIMPLE RENDERING */}
+                <div className={`ads-page__list ads-page__list--${viewMode}`}>
                   {ads.map(ad => (
-                    <div key={ad.id} className="ads-page__card-horizontal">
-                      <Link href={`/ads/${ad.id}`} className="ads-page__card-link">
-                        <div className="ads-page__image-container">
-                          <img
-                            src={ad.images?.[0]?.url || '/no-image.png'}
-                            alt={ad.title}
-                            className="ads-page__image-horizontal"
-                          />
-                        </div>
-                        <div className="ads-page__content">
-                          <div className="ads-page__title-horizontal">{ad.title}</div>
-                          <div className="ads-page__specs">
-                            {ad.brand && ad.model && (
-                              <span className="ads-page__spec">{formatCarTitle(ad.brand, ad.model)}</span>
-                            )}
-                            {ad.year && (
-                              <span className="ads-page__spec">{ad.year}</span>
-                            )}
-                            {ad.fuel && (
-                              <span className="ads-page__spec">{ad.fuel}</span>
-                            )}
-                            {ad.bodyType && (
-                              <span className="ads-page__spec">{ad.bodyType}</span>
-                            )}
-                            {ad.transmission && (
-                              <span className="ads-page__spec">{ad.transmission}</span>
-                            )}
-                          </div>
-                          <div className="ads-page__details">
-                            <div className="ads-page__detail-row">
-                              <span className="ads-page__label">Nájezd:</span>
-                              <span className="ads-page__value">{ad.mileage?.toLocaleString()} km</span>
-                            </div>
-                            {ad.power && (
-                              <div className="ads-page__detail-row">
-                                <span className="ads-page__label">Výkon:</span>
-                                <span className="ads-page__value">{ad.power} kW</span>
-                              </div>
-                            )}
-                            {ad.color && (
-                              <div className="ads-page__detail-row">
-                                <span className="ads-page__label">Barva:</span>
-                                <span className="ads-page__value">{ad.color}</span>
-                              </div>
-                            )}
-                            {ad.address && (
-                              <div className="ads-page__detail-row">
-                                <span className="ads-page__label">Lokalita:</span>
-                                <span className="ads-page__value">
-                                  📍 {ad.address}
-                                  {ad.distance && (
-                                    <span className="ads-page__distance"> • {ad.distance} km</span>
-                                  )}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="ads-page__price-horizontal">{ad.price?.toLocaleString()} Kč</div>
-
-                          <div className="ads-page__seller-info">
-                            <span className="ads-page__seller-name">{ad.user?.name ?? "Neznámý prodejce"}</span>
-                            {typeof ad.user?.averageRating === "number" && (
-                              <span className="ads-page__seller-rating">
-                                {"★".repeat(Math.round(ad.user.averageRating))}
-                                {"☆".repeat(5 - Math.round(ad.user.averageRating))}
-                                <span className="ads-page__seller-rating-number">
-                                  {ad.user.averageRating.toFixed(1)}
-                                </span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </Link>
-                      
-                      <div className="ads-page__favorite-btn">
-                        <FavoriteButton adId={ad.id.toString()} className="favorite-button--inline" />
-                      </div>
-                    </div>
+                    <AdCard key={ad.id} ad={ad} viewMode={viewMode} />
                   ))}
                 </div>
 
@@ -364,7 +250,7 @@ export default function AdsPage() {
             )}
           </div>
         </div>
-      </div>
+        </div>
     </main>
   )
 }

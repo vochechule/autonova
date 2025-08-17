@@ -1,0 +1,102 @@
+.view-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 2px;
+
+  @media (min-width: 769px) {
+    display: none; // Hide on desktop
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  &__btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+
+    @media (max-width: 768px) {
+      padding: 0.625rem 0.75rem;
+      font-size: 0.8rem;
+    }
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.05);
+      color: #3b82f6;
+    }
+
+    &--active {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+
+      &:hover {
+        background: #2563eb;
+        color: white;
+      }
+    }
+  }
+
+  &__icon {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+
+    @media (max-width: 768px) {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  &__label {
+    white-space: nowrap;
+
+    @media (max-width: 480px) {
+      display: none; // Hide labels on very small screens
+    }
+  }
+}
+
+// ✅ DARK MODE
+[data-theme="dark"] {
+  .view-toggle {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(71, 85, 105, 0.3);
+
+    &__btn {
+      color: #94a3b8;
+
+      &:hover {
+        background: rgba(59, 130, 246, 0.1);
+        color: #60a5fa;
+      }
+
+      &--active {
+        background: #3b82f6;
+        color: white;
+
+        &:hover {
+          background: #2563eb;
+        }
+      }
+    }
+  }
+}
