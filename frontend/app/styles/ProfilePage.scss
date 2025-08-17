@@ -39,6 +39,23 @@
   max-width: 900px;
   margin: 0 auto 32px auto;
 }
+.profile-page__ads-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow: hidden;
+  margin-bottom: 0;
+}
+.profile-page__ads-cards {
+  display: none;
+}
+.profile-page__ads-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 .profile-page__ads table {
   width: 100%;
   border-collapse: collapse;
@@ -46,6 +63,23 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   overflow: hidden;
+}
+.profile-page__ad-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 20px 20px 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  transition: box-shadow 0.2s, transform 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    transform: translateY(-2px);
+  }
 }
 .profile-page__ads th, .profile-page__ads td {
   padding: 12px 16px;
@@ -58,11 +92,12 @@
   font-weight: 600;
 }
 .profile-page__ad-img {
-  width: 56px;
-  height: 40px;
+  width: 64px;
+  height: 48px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #eee;
+  flex-shrink: 0;
 }
 .profile-page__ad-status {
   padding: 4px 12px;
@@ -455,22 +490,299 @@
     }
   }
 }
-@media (max-width: 700px) {
+
+// DARK MODE
+[data-theme="dark"] {
+  .profile-page {
+    background: #0f1419;
+    color: #e2e8f0;
+  }
+
+  .profile-page__header {
+    background: transparent;
+  }
+  .profile-page__avatar img {
+    background: #222;
+  }
+  .profile-page__name {
+    color: #f7fafc;
+  }
+  .profile-page__email,
+  .profile-page__meta {
+    color: #a0aec0;
+  }
+
+  .profile-page__ads table {
+    background: #1a202c;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .profile-page__ads-list {
+    gap: 14px;
+  }
+  .profile-page__ad-card {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 10px 10px 10px;
+  }
+  .profile-page__ad-img {
+    background: #232b36;
+  }
+  .profile-page__ad-status {
+    background: #232b36;
+    color: #60a5fa;
+  }
+  .profile-page__ad-status--expired { background: #3b1f1f; color: #f87171; }
+  .profile-page__ad-status--hidden { background: #232b36; color: #718096; }
+  .profile-page__ad-action.edit {
+    background: #232b36;
+    color: #60a5fa;
+    border: 1px solid #334155;
+    &:hover {
+      background: #1e293b;
+      color: #3b82f6;
+    }
+  }
+  .profile-page__ad-action.delete {
+    background: #3b1f1f;
+    color: #f87171;
+    border: 1px solid #7f1d1d;
+    &:hover {
+      background: #7f1d1d;
+      color: #fff;
+    }
+  }
+
+  .profile-page__saved-ad {
+    background: #1a202c;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .profile-page__saved-ad img {
+    background: #232b36;
+  }
+  .profile-page__saved-title {
+    color: #e2e8f0;
+  }
+  .profile-page__saved-brand {
+    color: #a0aec0;
+  }
+  .profile-page__saved-price {
+    color: #60a5fa;
+  }
+  .profile-page__saved-remove {
+    background: #3b1f1f;
+    color: #f87171;
+    &:hover {
+      background: #7f1d1d;
+      color: #fff;
+    }
+  }
+  .profile-page__saved-empty {
+    background: #1a202c;
+    color: #a0aec0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .profile-page__browse-btn,
+  .profile-page__show-all-btn {
+    background: #2563eb;
+    color: #f7fafc;
+    &:hover {
+      background: #1d4ed8;
+    }
+  }
+
+  .profile-page__review {
+    background: #1a202c;
+    color: #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+  .profile-page__review-header img {
+    background: #232b36;
+  }
+  .profile-page__review-date,
+  .profile-page__review-actions {
+    color: #a0aec0;
+  }
+  .profile-page__review-text {
+    color: #e2e8f0;
+  }
+
+  .profile-page__rating-bar {
+    background: #232b36;
+  }
+  .profile-page__rating-bar-inner {
+    background: #2563eb;
+  }
+  .profile-page__rating-number {
+    color: #60a5fa;
+  }
+
+  .profile-page__settings-list button {
+    background: #232b36;
+    color: #e2e8f0;
+    &:hover {
+      background: #2563eb;
+      color: #fff;
+    }
+  }
+  .profile-page__logout-btn {
+    background: #3b1f1f !important;
+    color: #f87171 !important;
+  }
+  .profile-page__login-btn {
+    background: #2563eb;
+    color: #fff;
+  }
+  .profile-page__rate-user {
+    background: #1a202c;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    h3 {
+      color: #60a5fa;
+    }
+  }
+  .profile-page__rate-form select,
+  .profile-page__rate-form input[type='text'] {
+    background: #232b36;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    &:focus {
+      border: 1.5px solid #2563eb;
+    }
+  }
+  .profile-page__rate-form button[type='submit'] {
+    background: #2563eb;
+    color: #fff;
+    &:hover:enabled {
+      background: #1d4ed8;
+    }
+    &:disabled {
+      background: #232b36;
+      color: #888;
+    }
+  }
+  .profile-page__ads th {
+    background: #232b36;
+    color: #e2e8f0;
+  }
+}
+
+// RESPONSIVE
+@media (max-width: 900px) {
   .profile-page__header,
   .profile-page__ads,
   .profile-page__saved,
   .profile-page__reviews,
-  .profile-page__settings {
-    max-width: 98vw;
+  .profile-page__settings,
+  .profile-page__rate-user {
+    max-width: 100vw;
+    padding-left: 2vw;
+    padding-right: 2vw;
+  }
+}
+
+@media (max-width: 700px) {
+  .profile-page__ads-table {
+    display: none;
+  }
+  .profile-page__ads-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 0;
+  }
+  .profile-page__ad-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    padding: 12px 12px 10px 12px;
+    display: flex;
+    flex-direction: row;      // ✅ vždy řádkově!
+    align-items: center;      // ✅ vždy na střed!
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+  .profile-page__ad-img {
+    width: 60px;
+    height: 44px;
+    border-radius: 7px;
+    object-fit: cover;
+    background: #eee;
+    flex-shrink: 0;
+  }
+  .profile-page__ad-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+  }
+  .profile-page__ad-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1a202c;
+    margin-bottom: 2px;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+  .profile-page__ad-price {
+    color: #0070f3;
+    font-weight: 600;
+    font-size: 0.98rem;
+  }
+  .profile-page__ad-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-left: 8px;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .profile-page__ad-action {
+    width: 70px;
+    justify-content: center;
+    text-align: center;
+    padding: 6px 0;
+  }
+
+  .profile-page__reviews {
     padding: 0 4vw;
   }
-  .profile-page__header {
+  .profile-page__rating-summary {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 18px;
   }
-  .profile-page__saved-list {
-    flex-direction: column;
+  .profile-page__rating-main {
+    flex-direction: row;
+    align-items: center;
     gap: 12px;
+  }
+  .profile-page__rating-bars {
+    width: 100%;
+    max-width: 320px;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .profile-page__rating-bar-row {
+    font-size: 0.98rem;
+  }
+}
+[data-theme="dark"] {
+  @media (max-width: 700px) {
+    .profile-page__ad-card {
+      background: #1a202c;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .profile-page__ad-img {
+      background: #232b36;
+    }
+    .profile-page__ad-title {
+      color: #e2e8f0;
+    }
+    .profile-page__ad-price {
+      color: #60a5fa;
+    }
   }
 }

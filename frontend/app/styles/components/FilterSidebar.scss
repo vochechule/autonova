@@ -3,17 +3,17 @@
   background: white;
   border-right: 1px solid #e5e7eb;
   padding: 1.5rem;
-  height: 100vh;
-  overflow-y: auto;
-  position: sticky;
-  top: 0;
+  // ✅ ODSTRANĚNO - height: 100vh; overflow-y: auto; position: sticky; top: 0;
+  min-height: 100vh; // ✅ PŘIDÁNO - zajistí minimální výšku
+  position: relative; // ✅ ZMĚNĚNO z sticky na relative
 
   @media (max-width: 1024px) {
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
-    height: 100vh;
+    height: 100vh; // ✅ ZACHOVÁNO pro mobilní overlay
+    overflow-y: auto; // ✅ ZACHOVÁNO pro mobilní overlay
     transform: translateX(-100%);
     transition: transform 0.3s ease;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -23,20 +23,31 @@
     }
   }
 
+  &__content { // ✅ PŘIDÁNO - wrapper pro obsah
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    
+    @media (max-width: 1024px) {
+      gap: 1.25rem; // Menší mezery na mobilu
+    }
+  }
+
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0; // ✅ ZMĚNĚNO z 1.5rem na 0 (spacing je přes parent)
     padding-bottom: 1rem;
     border-bottom: 1px solid #e5e7eb;
-  }
+    flex-shrink: 0; // ✅ PŘIDÁNO - nebude se smršťovat
 
-  &__title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #111827;
-    margin: 0;
+    h2 { // ✅ PŘIDÁNO - styling pro nadpis
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
   }
 
   &__close {
@@ -67,19 +78,21 @@
   &__form {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem; // ✅ ZVĚTŠENO z 1.25rem na 1.5rem pro lepší rozestup
+    flex: 1; // ✅ PŘIDÁNO - zabere zbývající místo
   }
 
-  &__group {
+  &__section { // ✅ PŘIDÁNO - wrapper pro každou sekci filtru
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem; // ✅ Mezera mezi labelem a inputem
   }
 
   &__label {
     font-size: 0.875rem;
     font-weight: 600;
     color: #374151;
+    margin-bottom: 0; // ✅ PŘIDÁNO - odstranit defaultní margin
   }
 
   &__input,
@@ -89,6 +102,7 @@
     border-radius: 0.5rem;
     font-size: 0.875rem;
     background: white;
+    color: #111827;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus {
@@ -127,6 +141,7 @@
     background: #f9fafb;
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
+    margin-top: 1rem; // ✅ PŘIDÁNO - oddělit od ostatního obsahu
   }
 
   &__checkbox-group {
@@ -148,6 +163,10 @@
     padding: 0.2rem 0.6rem 0.2rem 0.3rem;
     cursor: pointer;
     transition: background 0.2s;
+
+    &:hover {
+      background: #edf2f7; // ✅ PŘIDÁNO - hover stav
+    }
   }
 
   &__checkbox-label input[type="checkbox"] {
@@ -156,9 +175,16 @@
     height: 1rem;
     margin: 0;
   }
+
+  // ✅ PŘIDÁNO - Responsivní mezery pro různé komponenty
+  &__location,
+  &__color-select,
+  &__color-finish-select {
+    width: 100%;
+  }
 }
 
-// Overlay for mobile
+// Overlay for mobile - BEZE ZMĚNY
 .filter-sidebar-overlay {
   display: none;
 
@@ -182,7 +208,7 @@
   }
 }
 
-// Mobile filter button
+// Mobile filter button - BEZE ZMĚNY
 .mobile-filter-button {
   display: none;
   background: #3b82f6;
@@ -211,5 +237,97 @@
   .filter-icon {
     width: 16px;
     height: 16px;
+  }
+}
+
+// ✅ DARK MODE STYLY - rozšířeno
+[data-theme="dark"] {
+  .filter-sidebar {
+    background: #1a202c;
+    border-right-color: #4a5568;
+
+    @media (max-width: 1024px) {
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
+    }
+
+    &__header {
+      border-bottom-color: #4a5568;
+
+      h2 { // ✅ PŘIDÁNO
+        color: #f7fafc;
+      }
+    }
+
+    &__close {
+      color: #a0aec0;
+
+      &:hover {
+        background: #2d3748;
+        color: #e2e8f0;
+      }
+    }
+
+    &__label {
+      color: #e2e8f0;
+    }
+
+    &__input,
+    &__select {
+      background: #2d3748;
+      border-color: #4a5568;
+      color: #f7fafc;
+
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+
+      &::placeholder {
+        color: #718096;
+      }
+
+      // Dropdown options styling
+      option {
+        background: #2d3748;
+        color: #f7fafc;
+      }
+    }
+
+    &__range-separator {
+      color: #a0aec0;
+    }
+
+    &__loading {
+      background: #2d3748;
+      border-color: #4a5568;
+      color: #a0aec0;
+    }
+
+    &__checkbox-label {
+      background: #2d3748;
+      color: #e2e8f0;
+
+      &:hover {
+        background: #4a5568;
+      }
+
+      input[type="checkbox"] {
+        accent-color: #3b82f6;
+      }
+    }
+  }
+
+  .filter-sidebar-overlay {
+    @media (max-width: 1024px) {
+      background: rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  .mobile-filter-button {
+    background: #3b82f6;
+
+    &:hover {
+      background: #2563eb;
+    }
   }
 }

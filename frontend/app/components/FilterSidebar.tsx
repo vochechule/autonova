@@ -129,7 +129,7 @@ export default function FilterSidebar({
         console.log('🔄 Brand - New:', newParamsString)
         
         if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
           fetchAds(newParamsString)
         }
       }
@@ -185,7 +185,7 @@ export default function FilterSidebar({
         const currentParamsString = searchParams.toString()
         
         if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
           fetchAds(newParamsString)
         }
       }
@@ -204,7 +204,7 @@ export default function FilterSidebar({
         const currentParamsString = searchParams.toString()
         
         if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
           fetchAds(newParamsString) // ✅ String místo URLSearchParams
         }
       }
@@ -223,7 +223,7 @@ export default function FilterSidebar({
         const currentParamsString = searchParams.toString()
         
         if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
           fetchAds(newParamsString) // ✅ String místo URLSearchParams
         }
       }
@@ -315,7 +315,7 @@ export default function FilterSidebar({
     
     // Only update if params actually changed
     if (currentParamsString !== newParamsString) {
-      router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+      router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
       await fetchAds(newParamsString) // ✅ String místo URLSearchParams
     }
   }, [router, buildParams, fetchAds, searchParams])
@@ -343,7 +343,7 @@ export default function FilterSidebar({
       const currentParamsString = searchParams.toString()
       
       if (currentParamsString !== newParamsString) {
-        router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+        router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
         await fetchAds(newParamsString)
       }
     }, 500)
@@ -397,7 +397,7 @@ export default function FilterSidebar({
         
         if (currentParamsString !== newParamsString) {
           console.log('🚀 Navigating to:', `/ads${newParamsString ? `?${newParamsString}` : ''}`) // ✅ PŘIDÁNO
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
           fetchAds(newParamsString) // ✅ String místo URLSearchParams
         } else {
           console.log('⚠️ Params unchanged, not fetching') // ✅ PŘIDÁNO
@@ -416,7 +416,7 @@ export default function FilterSidebar({
         const currentParamsString = searchParams.toString()
         
         if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`)
+          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
           fetchAds(newParamsString)
         }
       }
@@ -429,6 +429,7 @@ export default function FilterSidebar({
 
   return (
     <aside className={`filter-sidebar ${isVisible ? 'filter-sidebar--visible' : ''}`}>
+      {/* ✅ NOVÝ wrapper pro content */}
       <div className="filter-sidebar__content">
         <div className="filter-sidebar__header">
           <h2>Filtry</h2>
@@ -438,7 +439,9 @@ export default function FilterSidebar({
         </div>
 
         <form className="filter-sidebar__form">
-          {/* ✅ OPRAVENO - Search pole s value */}
+          {/* ✅ KAŽDÁ sekce má nyní wrapper .filter-sidebar__section */}
+          
+          {/* Search pole */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Hledat</label>
             <input
@@ -446,14 +449,15 @@ export default function FilterSidebar({
               name="search"
               className="filter-sidebar__input"
               placeholder="Zadejte značku, model..."
-              value={searchValue} // ✅ ZMĚNĚNO z defaultValue
+              value={searchValue}
               onChange={handleTextInputChange}
             />
           </div>
 
-          {/* ✅ PŘIDÁNO - Location Filter */}
+          {/* Location Filter */}
           {onLocationChange && (
             <div className="filter-sidebar__section">
+              <label className="filter-sidebar__label">Lokalita</label>
               <LocationFilter 
                 onLocationChange={handleLocationChangeInternal}
                 className="filter-sidebar__location"
@@ -481,7 +485,7 @@ export default function FilterSidebar({
             />
           </div>
 
-          {/* ✅ PŘIDÁNO - Color Filter */}
+          {/* Color Filter */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Barva</label>
             <ColorSelect
@@ -489,14 +493,13 @@ export default function FilterSidebar({
               onChange={(value) => {
                 console.log('🎨 Color changed to:', value)
                 setSelectedColor(value)
-                // Trigger search bude přes useEffect nebo buildParams
               }}
               placeholder="Všechny barvy"
               className="filter-sidebar__color-select"
             />
           </div>
 
-          {/* ✅ PŘIDÁNO - Color Finish Filter */}
+          {/* Color Finish Filter */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Povrchová úprava</label>
             <ColorFinishSelect
@@ -504,7 +507,6 @@ export default function FilterSidebar({
               onChange={(value) => {
                 console.log('✨ ColorFinish changed to:', value)
                 setSelectedColorFinish(value)
-                // Trigger search bude přes useEffect nebo buildParams
               }}
               placeholder="Všechny úpravy"
               className="filter-sidebar__color-finish-select"
@@ -552,7 +554,7 @@ export default function FilterSidebar({
                 name="yearFrom"
                 className="filter-sidebar__input filter-sidebar__input--small"
                 placeholder="Od"
-                value={yearFrom} // ✅ ZMĚNĚNO z defaultValue
+                value={yearFrom}
                 onChange={handleTextInputChange}
               />
               <span className="filter-sidebar__range-separator">-</span>
@@ -561,13 +563,13 @@ export default function FilterSidebar({
                 name="yearTo"
                 className="filter-sidebar__input filter-sidebar__input--small"
                 placeholder="Do"
-                value={yearTo} // ✅ ZMĚNĚNO z defaultValue
+                value={yearTo}
                 onChange={handleTextInputChange}
               />
             </div>
           </div>
 
-          {/* ✅ OPRAVENO - Fuel checkboxy s checked */}
+          {/* Fuel checkboxy */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Palivo</label>
             <div className="filter-sidebar__checkbox-group">
@@ -584,7 +586,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="fuel"
                     value={opt.value}
-                    checked={selectedFuels.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
+                    checked={selectedFuels.includes(opt.value)}
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
@@ -593,7 +595,7 @@ export default function FilterSidebar({
             </div>
           </div>
 
-          {/* ✅ OPRAVENO - BodyType checkboxy s checked */}
+          {/* BodyType checkboxy */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Karoserie</label>
             <div className="filter-sidebar__checkbox-group">
@@ -613,7 +615,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="bodyType"
                     value={opt.value}
-                    checked={selectedBodyTypes.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
+                    checked={selectedBodyTypes.includes(opt.value)}
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
@@ -622,7 +624,7 @@ export default function FilterSidebar({
             </div>
           </div>
 
-          {/* ✅ OPRAVENO - Transmission checkboxy s checked */}
+          {/* Transmission checkboxy */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Převodovka</label>
             <div className="filter-sidebar__checkbox-group">
@@ -636,7 +638,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="transmission"
                     value={opt.value}
-                    checked={selectedTransmissions.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
+                    checked={selectedTransmissions.includes(opt.value)}
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
@@ -645,7 +647,7 @@ export default function FilterSidebar({
             </div>
           </div>
 
-          {/* ✅ OPRAVENO - Drivetrain checkboxy s checked */}
+          {/* Drivetrain checkboxy */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Pohon</label>
             <div className="filter-sidebar__checkbox-group">
@@ -660,7 +662,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="drivetrain"
                     value={opt.value}
-                    checked={selectedDrivetrains.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
+                    checked={selectedDrivetrains.includes(opt.value)}
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}
@@ -669,7 +671,7 @@ export default function FilterSidebar({
             </div>
           </div>
 
-          {/* ✅ OPRAVENO - Condition checkboxy s checked */}
+          {/* Condition checkboxy */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Stav</label>
             <div className="filter-sidebar__checkbox-group">
@@ -684,7 +686,7 @@ export default function FilterSidebar({
                     type="checkbox"
                     name="condition"
                     value={opt.value}
-                    checked={selectedConditions.includes(opt.value)} // ✅ ZMĚNĚNO z defaultChecked
+                    checked={selectedConditions.includes(opt.value)}
                     onChange={handleCheckboxChange}
                   />
                   {opt.label}

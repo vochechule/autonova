@@ -45,6 +45,7 @@
     align-items: center;
     gap: 6px;
     font-weight: 500;
+    color: #111827;
   }
 
   &__metallic-badge {
@@ -125,11 +126,17 @@
     border: 1px solid #d1d5db;
     border-radius: 6px;
     font-size: 14px;
+    background: white;
+    color: #111827;
     outline: none;
 
     &:focus {
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    &::placeholder {
+      color: #9ca3af;
     }
   }
 
@@ -145,6 +152,7 @@
     padding: 12px 16px;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    color: #111827;
 
     &:hover {
       background: #f8fafc;
@@ -184,6 +192,7 @@
     border: 2px solid #e5e7eb;
     border-radius: 8px;
     background: white;
+    color: #111827;
     font-size: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -193,9 +202,130 @@
     }
 
     &:focus {
-      outline: none;
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    // Dropdown options styling
+    option {
+      background: white;
+      color: #111827;
+    }
+  }
+}
+
+// ✅ DARK MODE STYLY
+[data-theme="dark"] {
+  .color-select {
+    &__trigger {
+      background: #2d3748;
+      border-color: #4a5568;
+
+      &:hover {
+        border-color: #718096;
+      }
+
+      &--open {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+    }
+
+    &__color-dot {
+      border-color: #4a5568;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    &__color-label {
+      color: #f7fafc;
+    }
+
+    &__placeholder {
+      color: #718096;
+    }
+
+    &__clear {
+      background: #4a5568;
+      color: #a0aec0;
+
+      &:hover {
+        background: #718096;
+        color: #e2e8f0;
+      }
+    }
+
+    &__arrow {
+      color: #a0aec0;
+    }
+
+    &__dropdown {
+      background: #2d3748;
+      border-color: #4a5568;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    &__search {
+      border-bottom-color: #4a5568;
+    }
+
+    &__search-input {
+      background: #1a202c;
+      border-color: #4a5568;
+      color: #f7fafc;
+
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+
+      &::placeholder {
+        color: #718096;
+      }
+    }
+
+    &__option {
+      color: #f7fafc;
+
+      &:hover {
+        background: #4a5568;
+      }
+
+      &--selected {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+      }
+
+      &--clear {
+        border-bottom-color: #4a5568;
+        color: #a0aec0;
+      }
+    }
+
+    &__no-results {
+      color: #a0aec0;
+    }
+  }
+
+  .color-finish-select {
+    &__select {
+      background: #2d3748;
+      border-color: #4a5568;
+      color: #f7fafc;
+
+      &:hover {
+        border-color: #718096;
+      }
+
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+
+      // Dropdown options styling
+      option {
+        background: #2d3748;
+        color: #f7fafc;
+      }
     }
   }
 }

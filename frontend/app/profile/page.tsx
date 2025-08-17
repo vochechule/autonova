@@ -205,13 +205,13 @@ export default function ProfilePage() {
 
       <section className="profile-page__ads">
         <h2>My Ads</h2>
-        <table>
+        {/* Desktop tabulka */}
+        <table className="profile-page__ads-table">
           <thead>
             <tr>
               <th></th>
               <th>Title</th>
               <th>Price</th>
-              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -230,11 +230,6 @@ export default function ProfilePage() {
                 </td>
                 <td>{ad.price ? `$${ad.price.toLocaleString()}` : '-'}</td>
                 <td>
-                  <span className={`profile-page__ad-status profile-page__ad-status--${ad.status?.toLowerCase()}`}>
-                    {ad.status}
-                  </span>
-                </td>
-                <td>
                   <div className="profile-page__ad-actions">
                     <Link href={`/ads/${ad.id}/edit`} className="profile-page__ad-action edit">
                       Upravit
@@ -252,6 +247,34 @@ export default function ProfilePage() {
             ))}
           </tbody>
         </table>
+        {/* Mobilní karty */}
+        <div className="profile-page__ads-cards">
+          {ads.map(ad => (
+            <div key={ad.id} className="profile-page__ad-card">
+              <Link href={`/ads/${ad.id}`}>
+                <img src={ad.images?.[0]?.url || '/default-car.png'} alt="" className="profile-page__ad-img" />
+              </Link>
+              <div className="profile-page__ad-info">
+                <Link href={`/ads/${ad.id}`} className="profile-page__ad-title-link">
+                  <div className="profile-page__ad-title">{ad.title}</div>
+                </Link>
+                <div className="profile-page__ad-price">{ad.price ? `$${ad.price.toLocaleString()}` : '-'}</div>
+              </div>
+              <div className="profile-page__ad-actions">
+                <Link href={`/ads/${ad.id}/edit`} className="profile-page__ad-action edit">
+                  Upravit
+                </Link>
+                <button
+                  className="profile-page__ad-action delete"
+                  onClick={() => handleDeleteAd(ad.id)}
+                  disabled={deletingAdId === ad.id}
+                >
+                  {deletingAdId === ad.id ? <ButtonLoading /> : 'Smazat'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="profile-page__saved">

@@ -173,4 +173,73 @@
     right: 1rem;
     z-index: 10;
   }
-} 
+
+  // DARK MODE
+  [data-theme="dark"] & {
+    background: #0f1419;
+
+    &__header {
+      h1 {
+        color: #f7fafc;
+      }
+      p {
+        color: #a0aec0;
+      }
+    }
+
+    &__loading,
+    &__auth-required {
+      color: #a0aec0;
+    }
+
+    &__auth-required {
+      h1 {
+        color: #f7fafc;
+      }
+    }
+
+    &__empty {
+      color: #a0aec0;
+
+      &-icon {
+        color: #374151;
+      }
+
+      h2 {
+        color: #f7fafc;
+      }
+    }
+
+    &__card {
+      background: #1a202c;
+      border-color: #374151;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      }
+    }
+
+    &__title {
+      color: #f7fafc;
+    }
+
+    &__price {
+      color: #34d399;
+    }
+
+    &__date {
+      color: #a0aec0;
+    }
+
+    &__login-btn,
+    &__browse-btn {
+      background: #2563eb;
+      color: #f7fafc;
+
+      &:hover {
+        background: #1d4ed8;
+      }
+    }
+  }
+}
