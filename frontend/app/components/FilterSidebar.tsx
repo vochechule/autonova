@@ -67,6 +67,12 @@ export default function FilterSidebar({
   const [selectedDrivetrains, setSelectedDrivetrains] = useState<string[]>(searchParams.getAll('drivetrain'))
   const [selectedConditions, setSelectedConditions] = useState<string[]>(searchParams.getAll('condition'))
 
+  // ✅ PŘIDÁNO - Nové stavy pro další filtry
+  const [doorCount, setDoorCount] = useState(searchParams.get('doorCount') || '')
+  const [seatCount, setSeatCount] = useState(searchParams.get('seatCount') || '')
+  const [powerFrom, setPowerFrom] = useState(searchParams.get('powerFrom') || '')
+  const [powerTo, setPowerTo] = useState(searchParams.get('powerTo') || '')
+
   const modelsList = getModelsList(selectedBrand)
 
   // Handlery pro změny v komponentách
@@ -323,14 +329,18 @@ export default function FilterSidebar({
   // Handle text input changes (debounced)
   const handleTextInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    
+
     // Update local state
     if (name === 'search') setSearchValue(value)
     else if (name === 'yearFrom') setYearFrom(value)
     else if (name === 'yearTo') setYearTo(value)
-    
+    else if (name === 'doorCount') setDoorCount(value)
+    else if (name === 'seatCount') setSeatCount(value)
+    else if (name === 'powerFrom') setPowerFrom(value)
+    else if (name === 'powerTo') setPowerTo(value)
+
     const form = e.target.form!
-    
+
     // Clear previous timer
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current)
@@ -341,7 +351,7 @@ export default function FilterSidebar({
       const params = buildParams(form)
       const newParamsString = params.toString()
       const currentParamsString = searchParams.toString()
-      
+
       if (currentParamsString !== newParamsString) {
         router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
         await fetchAds(newParamsString)
@@ -364,6 +374,10 @@ export default function FilterSidebar({
     setSearchValue(searchParams.get('search') || '')
     setYearFrom(searchParams.get('yearFrom') || '')
     setYearTo(searchParams.get('yearTo') || '')
+    setDoorCount(searchParams.get('doorCount') || '')
+    setSeatCount(searchParams.get('seatCount') || '')
+    setPowerFrom(searchParams.get('powerFrom') || '')
+    setPowerTo(searchParams.get('powerTo') || '')
     setSelectedFuels(searchParams.getAll('fuel'))
     setSelectedBodyTypes(searchParams.getAll('bodyType'))
     setSelectedTransmissions(searchParams.getAll('transmission'))
@@ -545,6 +559,66 @@ export default function FilterSidebar({
             />
           </div>
 
+           {/* Door count */}
+          <div className="filter-sidebar__section">
+            <label className="filter-sidebar__label" htmlFor="doorCount">Počet dveří</label>
+            <input
+              id="doorCount"
+              name="doorCount"
+              type="number"
+              min={2}
+              max={6}
+              className="filter-sidebar__input"
+              placeholder="Počet dveří"
+              value={doorCount}
+              onChange={handleTextInputChange}
+            />
+          </div>
+
+          {/* Seat count */}
+          <div className="filter-sidebar__section">
+            <label className="filter-sidebar__label" htmlFor="seatCount">Počet míst</label>
+            <input
+              id="seatCount"
+              name="seatCount"
+              type="number"
+              min={2}
+              max={9}
+              className="filter-sidebar__input"
+              placeholder="Počet míst"
+              value={seatCount}
+              onChange={handleTextInputChange}
+            />
+          </div>
+
+          {/* Power from */}
+          <div className="filter-sidebar__section">
+            <label className="filter-sidebar__label" htmlFor="powerFrom">Výkon od (kW)</label>
+            <input
+              id="powerFrom"
+              name="powerFrom"
+              type="number"
+              className="filter-sidebar__input"
+              placeholder="Výkon od"
+              value={powerFrom}
+              onChange={handleTextInputChange}
+            />
+          </div>
+
+          {/* Power to */}
+          <div className="filter-sidebar__section">
+            <label className="filter-sidebar__label" htmlFor="powerTo">Výkon do (kW)</label>
+            <input
+              id="powerTo"
+              name="powerTo"
+              type="number"
+              className="filter-sidebar__input"
+              placeholder="Výkon do"
+              value={powerTo}
+              onChange={handleTextInputChange}
+            />
+          </div>
+
           {/* Year Range */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Rok výroby</label>
@@ -694,6 +768,8 @@ export default function FilterSidebar({
               ))}
             </div>
           </div>
+
+         
 
           {loading && (
             <div className="filter-sidebar__loading">

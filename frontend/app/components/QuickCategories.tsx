@@ -18,7 +18,7 @@ const quickCategories = [
   {
     label: 'Rodinné',
     image: '/quick-family.webp',
-    query: {  bodytype: 'kombi', seatCountFrom: 5 },
+    query: { bodyType: 'kombi', seatCount: 5 }, // OPRAVENO zde
     loading: "lazy"
   },
   {
