@@ -234,7 +234,7 @@ export default function AdDetailPage() {
                 <div className="ad-detail-page__seller-name">
                   {ad.user?.firstName && ad.user?.lastName 
                     ? `${ad.user.firstName} ${ad.user.lastName}`
-                    : ad.contactName || 'Neznámý prodejce'}
+                    : ad.contactName || `${ad.user?.name}`}
                 </div>
                 <div className="ad-detail-page__seller-location">{ad.user?.location ?? 'Neuvedeno'}</div>
                 

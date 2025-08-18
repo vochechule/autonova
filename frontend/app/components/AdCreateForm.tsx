@@ -144,11 +144,10 @@ export default function AdCreateForm() {
       setLoading(true)
       setError(null)
 
-      // validace počtu obrázků - ZŮSTÁVÁ POVINNÉ
+      // validace počtu obrázků
       if (images.length < 2) {
         setImageError('Přidejte alespoň dva obrázky.')
         setLoading(false)
-        // ✅ PŘIDÁNO - Toast pro validační chybu
         showError('Nedostatek obrázků', 'Musíte přidat alespoň 2 obrázky')
         return
       } else {
@@ -156,13 +155,61 @@ export default function AdCreateForm() {
       }
 
       if (!selectedBrand || !selectedModel) {
-        throw new Error('Vyberte značku a model vozidla')
+        setError('Vyberte značku a model vozidla')
+        setLoading(false)
+        return
       }
 
       const form = e.currentTarget
-      const formData = new FormData()
       const formValues = new FormData(form)
 
+      // Map povinných polí: název pole -> uživatelská hláška
+      const requiredFields: { [key: string]: string } = {
+        title: 'Název inzerátu je povinný',
+        description: 'Popis vozidla je povinný',
+        price: 'Cena je povinná',
+        mileage: 'Nájezd je povinný',
+        year: 'Rok výroby je povinný',
+        firstRegistration: 'První registrace je povinná',
+        bodyType: 'Karoserie je povinná',
+        doorCount: 'Počet dveří je povinný',
+        seatCount: 'Počet míst je povinný',
+        airbagCount: 'Počet airbagů je povinný', // ✅ NOVĚ POVINNÉ
+        color: 'Barva je povinná',
+        fuel: 'Palivo je povinné',
+        engineVolume: 'Objem motoru je povinný',
+        power: 'Výkon je povinný',
+        avgConsumption: 'Průměrná spotřeba je povinná',
+        transmission: 'Převodovka je povinná',
+        gearCount: 'Počet rychlostních stupňů je povinný', // ✅ NOVĚ POVINNÉ
+        drivetrain: 'Pohon je povinný',
+        condition: 'Stav vozidla je povinný',
+        countryOfOrigin: 'Země původu je povinná',
+        contactPhone: 'Telefon je povinný',
+        contactEmail: 'Email je povinný',
+      }
+
+      // Zkontroluj povinná pole
+      for (const [field, message] of Object.entries(requiredFields)) {
+        let value = formValues.get(field)
+        // Barva a povrchová úprava jsou ve state
+        if (field === 'color') value = selectedColor
+        if (field === 'colorFinish') value = selectedColorFinish
+        if (!value || !value.toString().trim()) {
+          setError(message)
+          setLoading(false)
+          return
+        }
+      }
+
+      // Kontrola lokace
+      if (!location) {
+        setError('Vyberte lokalitu vozidla na mapě')
+        setLoading(false)
+        return
+      }
+
+      const formData = new FormData()
       // Brand a model ze state
       formData.append('brand', selectedBrand)
       formData.append('model', selectedModel)
@@ -436,7 +483,7 @@ export default function AdCreateForm() {
               
               {/* Základní informace - POPIS NEPOVINNÝ */}
               <div className="form-group form-group--full-width">
-                <label htmlFor="description">Popis vozidla</label> {/* ✅ ODSTRANĚNO required * */}
+                <label htmlFor="description">Popis vozidla<span className="required">*</span></label> 
                 <textarea name="description" id="description" placeholder="Popište stav vozidla, výbavu, historii..." />
               </div>
             </div>
@@ -499,7 +546,7 @@ export default function AdCreateForm() {
               </div>
 
               <div className="form-group">
-                <label>Povrchová úprava <span className="required">*</span></label>
+                <label>Povrchová úprava </label>
                 <ColorFinishSelect
                   value={selectedColorFinish}
                   onChange={setSelectedColorFinish}
@@ -519,8 +566,8 @@ export default function AdCreateForm() {
 
               {/* Vzhled a rozměry - AIRBAGY NEPOVINNÉ */}
               <div className="form-group">
-                <label htmlFor="airbagCount">Počet airbagů</label> {/* ✅ ODSTRANĚNO required * */}
-                <input name="airbagCount" id="airbagCount" type="number" placeholder="6" />
+                <label htmlFor="airbagCount">Počet airbagů <span className="required">*</span></label>
+                <input name="airbagCount" id="airbagCount" type="number" required placeholder="6" />
               </div>
             </div>
           </div>
@@ -571,8 +618,8 @@ export default function AdCreateForm() {
 
               {/* ✅ PŘIDÁNO ZPĚT - Počet rychlostí */}
               <div className="form-group">
-                <label htmlFor="gearCount">Počet rychlostí</label>
-                <input name="gearCount" id="gearCount" type="number" placeholder="6" />
+                <label htmlFor="gearCount">Počet rychlostí <span className="required">*</span></label>
+                <input name="gearCount" id="gearCount" type="number" required placeholder="6" />
               </div>
 
               <div className="form-group">
