@@ -768,6 +768,16 @@
   .profile-page__rating-bar-row {
     font-size: 0.98rem;
   }
+  .profile-page__name {
+font-size: 1rem;
+  }
+  .profile-page__email {
+    font-size: 0.9rem;
+  }
+  .profile-page__meta {
+    font-size: 0.875rem;
+    color: #a0aec0;
+  }
 }
 [data-theme="dark"] {
   @media (max-width: 700px) {
