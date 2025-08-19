@@ -645,10 +645,18 @@
         border-color: #2563eb;
       }
     }
-    select:disabled {
-      background-color: #232b36;
-      color: #64748b;
+    select,
+    select:disabled,
+    select option {
+      background-color: #232b36 !important;
+      color: #e0e7ef !important;
       border-color: #334155;
+    }
+
+    select:focus {
+      background-color: #1a202c !important;
+      color: #e0e7ef !important;
+      border-color: #2563eb;
     }
     .test-data-button {
       background: #232b36;
