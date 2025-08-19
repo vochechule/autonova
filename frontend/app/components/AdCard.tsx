@@ -4,6 +4,9 @@ import FavoriteButton from './FavoriteButton'
 import { formatCarTitle } from '../utils/CarFormatter'
 import '../styles/components/AdCard.scss'
 
+// ✅ Přidej import map
+import { fuelMap, transmissionMap, colorMap } from '../utils/labelMaps'
+
 type Ad = {
   id: number
   title: string
@@ -43,7 +46,7 @@ export default function AdCard({ ad, viewMode }: AdCardProps) {
   return <ListCard ad={ad} />
 }
 
-// ✅ GRID CARD COMPONENT (bez změn)
+// ✅ GRID CARD COMPONENT (doplněno mapování)
 function GridCard({ ad }: { ad: Ad }) {
   return (
     <div className="ad-card ad-card--grid">
@@ -67,7 +70,7 @@ function GridCard({ ad }: { ad: Ad }) {
               <span className="ad-card__spec">{formatCarTitle(ad.brand, ad.model)}</span>
             )}
             {ad.year && <span className="ad-card__spec">{ad.year}</span>}
-            {ad.fuel && <span className="ad-card__spec">{ad.fuel}</span>}
+            {ad.fuel && <span className="ad-card__spec">{fuelMap[ad.fuel] ?? ad.fuel}</span>}
           </div>
           
           <div className="ad-card__details ad-card__details--grid">
@@ -103,7 +106,7 @@ function GridCard({ ad }: { ad: Ad }) {
   )
 }
 
-// ✅ LIST CARD COMPONENT - OPRAVENO pro desktop + mobile
+// ✅ LIST CARD COMPONENT - OPRAVENO pro češtinu
 function ListCard({ ad }: { ad: Ad }) {
   return (
     <div className="ad-card ad-card--list">
@@ -118,7 +121,7 @@ function ListCard({ ad }: { ad: Ad }) {
         </div>
         
         <div className="ad-card__content ad-card__content--list">
-          {/* ✅ DESKTOP LAYOUT - pouze na široké obrazovky */}
+          {/* ✅ DESKTOP LAYOUT */}
           <div className="ad-card__desktop-layout">
             <div className="ad-card__header">
               <h3 className="ad-card__title ad-card__title--list">
@@ -130,9 +133,9 @@ function ListCard({ ad }: { ad: Ad }) {
                   <span className="ad-card__spec">{formatCarTitle(ad.brand, ad.model)}</span>
                 )}
                 {ad.year && <span className="ad-card__spec">{ad.year}</span>}
-                {ad.fuel && <span className="ad-card__spec">{ad.fuel}</span>}
+                {ad.fuel && <span className="ad-card__spec">{fuelMap[ad.fuel] ?? ad.fuel}</span>}
                 {ad.bodyType && <span className="ad-card__spec">{ad.bodyType}</span>}
-                {ad.transmission && <span className="ad-card__spec">{ad.transmission}</span>}
+                {ad.transmission && <span className="ad-card__spec">{transmissionMap[ad.transmission] ?? ad.transmission}</span>}
               </div>
             </div>
             
@@ -150,7 +153,7 @@ function ListCard({ ad }: { ad: Ad }) {
               {ad.color && (
                 <div className="ad-card__detail-row">
                   <span className="ad-card__detail-label">Barva:</span>
-                  <span className="ad-card__detail-value">{ad.color}</span>
+                  <span className="ad-card__detail-value">{colorMap[ad.color] ?? ad.color}</span>
                 </div>
               )}
               {ad.address && (
@@ -188,7 +191,7 @@ function ListCard({ ad }: { ad: Ad }) {
             </div>
           </div>
 
-          {/* ✅ MOBILE LAYOUT - pouze na úzké obrazovky */}
+          {/* ✅ MOBILE LAYOUT */}
           <div className="ad-card__mobile-layout">
             <h3 className="ad-card__title ad-card__title--mobile">
               {ad.title}

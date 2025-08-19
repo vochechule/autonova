@@ -7,6 +7,7 @@ import ShareButton from '../../components/ShareButton'
 import '../../styles/AdDetailPage.scss'
 import Link from 'next/link'
 import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatter'
+import { conditionMap, fuelMap, transmissionMap, colorMap, colorFinishMap } from '../../utils/labelMaps'
 // ✅ PŘIDÁNO - Import loading states a error pages
 import { PageLoading } from '../../components/LoadingStates'
 import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
@@ -169,7 +170,7 @@ export default function AdDetailPage() {
              {formatCarTitle(ad.brand, ad.model)}
             </h1>
             <div className="ad-detail-page__subtitle">
-              {ad.year} &bull; {ad.mileage?.toLocaleString()} km &bull; {ad.fuel}
+              {ad.year} &bull; {ad.mileage?.toLocaleString()} km &bull; {fuelMap[ad.fuel] ?? ad.fuel ?? '-'}
             </div>
             
             {/* Datum přidání a počet zobrazení */}
@@ -205,7 +206,7 @@ export default function AdDetailPage() {
               </div>
               <div className="ad-detail-page__key-spec">
                 <span className="ad-detail-page__key-spec-icon">⚙️</span>
-                <span>{ad.transmission}</span>
+                <span>{transmissionMap[ad.transmission] ?? ad.transmission ?? '-'}</span>
               </div>
               {ad.power && (
                 <div className="ad-detail-page__key-spec">
@@ -296,7 +297,7 @@ export default function AdDetailPage() {
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Stav</span>
-                <span className="ad-detail-page__spec-value">{ad.condition ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{conditionMap[ad.condition] ?? ad.condition ?? '-'}</span>
               </div>
             </div>
 
@@ -304,7 +305,7 @@ export default function AdDetailPage() {
               <h3>Motor a výkon</h3>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Palivo</span>
-                <span className="ad-detail-page__spec-value">{ad.fuel ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{fuelMap[ad.fuel] ?? ad.fuel ?? '-'}</span>
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Objem motoru</span>
@@ -328,7 +329,7 @@ export default function AdDetailPage() {
               <h3>Převodovka a podvozek</h3>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Převodovka</span>
-                <span className="ad-detail-page__spec-value">{ad.transmission ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{transmissionMap[ad.transmission] ?? ad.transmission ?? '-'}</span>
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Počet rychlostí</span>
@@ -356,11 +357,11 @@ export default function AdDetailPage() {
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Barva</span>
-                <span className="ad-detail-page__spec-value">{ad.color ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{colorMap[ad.color] ?? ad.color ?? '-'}</span>
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Lak</span>
-                <span className="ad-detail-page__spec-value">{ad.colorFinish ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{colorFinishMap[ad.colorFinish] ?? ad.colorFinish ?? '-'}</span>
               </div>
             </div>
 
