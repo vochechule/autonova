@@ -705,7 +705,8 @@ export default function FilterSidebar({
               {[
                 { value: 'manual', label: 'Manuální' },
                 { value: 'automatic', label: 'Automatická' },
-                { value: 'semi_automatic', label: 'Poloautomatická' },
+                { value: 'cvt', label: 'CVT' },               // ✅ NEW
+                { value: 'sequential', label: 'Sekvenční' },  // ✅ NEW
               ].map(opt => (
                 <label key={`transmission-${opt.value}`} className="filter-sidebar__checkbox-label">
                   <input

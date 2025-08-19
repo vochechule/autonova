@@ -29,10 +29,10 @@ export enum FuelType {
 }
 
 export enum Transmission {
-  MANUAL = 'manual',
-  AUTOMATIC = 'automatic',
-  CVT = 'cvt',
-  SEQUENTIAL = 'sequential'
+  manual = 'manual',
+  automatic = 'automatic',
+  cvt = 'cvt',
+  sequential = 'sequential',
 }
 
 export enum Drivetrain {

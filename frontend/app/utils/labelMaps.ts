@@ -17,6 +17,8 @@ export const fuelMap: Record<string, string> = {
 export const transmissionMap: Record<string, string> = {
   manual: 'manuální',
   automatic: 'automatická',
+  cvt: 'CVT',
+  sequential: 'sekvenční',
   semi_automatic: 'poloautomatická',
 }
 

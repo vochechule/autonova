@@ -151,7 +151,8 @@ enum FuelType {
 enum Transmission {
   manual
   automatic
-  semi_automatic
+  cvt
+  sequential
 }
 
 enum Drivetrain {

@@ -314,11 +314,17 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
 
               <div className="ad-filter__filter-group">
                 <label className="ad-filter__label" htmlFor="transmission">Převodovka</label>
-                <select id="transmission" name="transmission" className="ad-filter__select" defaultValue={searchParams.get('transmission') || ''}>
+                <select
+                  id="transmission"
+                  name="transmission"
+                  className="ad-filter__select"
+                  defaultValue={searchParams.get('transmission') || ''}
+                >
                   <option value="">Všechny převodovky</option>
                   <option value="manual">Manuální</option>
                   <option value="automatic">Automatická</option>
-                  <option value="semi_automatic">Poloautomatická</option>
+                  <option value="cvt">CVT</option>
+                  <option value="sequential">Sekvenční</option>
                 </select>
               </div>
 
