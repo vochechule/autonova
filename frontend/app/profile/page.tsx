@@ -205,6 +205,21 @@ export default function ProfilePage() {
 
       <section className="profile-page__ads">
         <h2>My Ads</h2>
+        {/* ✅ UKAZATEL LIMITU */}
+        <div className="profile-page__ad-limit-indicator">
+          <span>
+            {ads.length} / 10 aktivních inzerátů
+          </span>
+          <div className="profile-page__ad-limit-bar">
+            <div
+              className="profile-page__ad-limit-bar-inner"
+              style={{
+                width: `${Math.min(ads.length / 10 * 100, 100)}%`,
+                background: ads.length >= 10 ? '#dc2626' : '#0070f3'
+              }}
+            />
+          </div>
+        </div>
         {/* Desktop tabulka */}
         <table className="profile-page__ads-table">
           <thead>

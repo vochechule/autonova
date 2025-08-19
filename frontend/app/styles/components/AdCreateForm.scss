@@ -800,9 +800,35 @@
       color: #60a5fa;
     }
   }
-}
 
-// Animace pro spinner
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  // Modal styles
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal {
+    background: #fff;
+    color: #1a202c;
+    border-radius: 14px;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    max-width: 90vw;
+    width: 340px;
+    text-align: center;
+
+    &[data-theme="dark"] {
+      background: #232b36;
+      color: #e2e8f0;
+    }
+  }
+
+  // Animace pro spinner
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 }

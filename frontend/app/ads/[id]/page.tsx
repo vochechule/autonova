@@ -141,14 +141,18 @@ export default function AdDetailPage() {
                 )}
                 {ad.images.length > 1 && (
                   <div className="ad-detail-page__carousel-dots">
-                    {ad.images.map((img: any, i: number) => (
-                      <button
-                        key={img.id || i}
-                        className={`ad-detail-page__carousel-dot${i === imgIndex ? ' active' : ''}`}
-                        onClick={() => setImgIndex(i)}
-                        aria-label={`Obrázek ${i + 1}`}
-                      />
-                    ))}
+                    {ad.images.map((img: any, i: number) => {
+                      // Zobraz jen tečky v okolí aktuálního obrázku (max 2 vlevo/vpravo)
+                      if (Math.abs(i - imgIndex) > 2) return null
+                      return (
+                        <button
+                          key={img.id || i}
+                          className={`ad-detail-page__carousel-dot${i === imgIndex ? ' active' : ''}`}
+                          onClick={() => setImgIndex(i)}
+                          aria-label={`Obrázek ${i + 1}`}
+                        />
+                      )
+                    })}
                   </div>
                 )}
               </>

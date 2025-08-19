@@ -21,166 +21,137 @@ export class AdService {
   }
 
   async create(dto: any, userId: string, files?: Express.Multer.File[]) {
+    // 1. Kontrola limitu inzerátů
+    const userAdsCount = await this.prisma.ad.count({ where: { userId } });
+    if (userAdsCount >= 10) {
+      throw new BadRequestException('Můžete mít maximálně 10 aktivních inzerátů.');
+    }
+
     // Kontrola userId
     if (!userId) {
       throw new Error('User ID is required');
     }
 
-    // ✅ PŘIDÁNO - Validace obrázků
+    // 2. Validace obrázků (počet, velikost, typ) PŘED vytvořením inzerátu
+    const maxImages = 15;
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
     if (!files || files.length < 2) {
-      throw new Error('Je nutné nahrát alespoň 2 obrázky');
+      throw new BadRequestException('Je nutné nahrát alespoň 2 obrázky');
+    }
+    if (files.length > maxImages) {
+      throw new BadRequestException(`Maximální počet obrázků na inzerát je ${maxImages}.`);
+    }
+    for (const file of files) {
+      if (file.size > maxSize) {
+        throw new BadRequestException(`Soubor ${file.originalname} je příliš velký. Maximální velikost je 10MB.`);
+      }
+      if (!allowedTypes.includes(file.mimetype)) {
+        throw new BadRequestException(`Nepodporovaný formát souboru ${file.originalname}. Povolené formáty: JPEG, PNG, WebP.`);
+      }
     }
 
-    // ✅ PŘIDÁNO - Validace povinných polí
-    const requiredFields = ['title', 'brand', 'model', 'price', 'mileage', 'year', 'firstRegistration', 
-                         'bodyType', 'color', 'colorFinish', 'doorCount', 'seatCount', 
-                         'fuel', 'engineVolume', 'power', 'avgConsumption', 'transmission', 
-                         'drivetrain', 'condition', 'countryOfOrigin',
-                         'contactPhone', 'contactEmail']; // ✅ PŘIDÁNO
-
-    const missingFields = requiredFields.filter(field => !dto[field] || dto[field] === '');
-    if (missingFields.length > 0) {
-      throw new Error(`Chybí povinná pole: ${missingFields.join(', ')}`);
-    }
-
-    // Odstraň features ze základních dat, zpracuji je zvlášť
-    const { features, ...adBaseData } = dto;
-    
-    // Převeď stringy na správné typy
-    const data = {
-      ...adBaseData,
-      // Numerické hodnoty
-      price: dto.price ? Number(dto.price) : undefined,
-      mileage: dto.mileage ? Number(dto.mileage) : undefined, 
-      year: dto.year ? Number(dto.year) : undefined,
-      firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
-      doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
-      seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
-      airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined,
-      engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
-      power: dto.power ? Number(dto.power) : undefined,
-      avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
-      gearCount: dto.gearCount ? Number(dto.gearCount) : undefined,
-      
-      // Boolean hodnoty
-      ecoTaxPaid: dto.ecoTaxPaid === 'on' || dto.ecoTaxPaid === 'true' || dto.ecoTaxPaid === true,
-      isFirstOwner: dto.isFirstOwner === 'on' || dto.isFirstOwner === 'true' || dto.isFirstOwner === true,
-      isDisabledAdapted: dto.isDisabledAdapted === 'on' || dto.isDisabledAdapted === 'true' || dto.isDisabledAdapted === true,
-      wasCrashed: dto.wasCrashed === 'on' || dto.wasCrashed === 'true' || dto.wasCrashed === true,
-      hasServiceBook: dto.hasServiceBook === 'on' || dto.hasServiceBook === 'true' || dto.hasServiceBook === true,
-      
-      // Datumy
-      technicalCheckUntil: dto.technicalCheckUntil ? new Date(dto.technicalCheckUntil).toISOString() : undefined,
-      warrantyUntil: dto.warrantyUntil ? new Date(dto.warrantyUntil).toISOString() : undefined,
-      
-      // ✅ OPRAVENO - Nepovinné string hodnoty
-      airConditioning: dto.airConditioning || undefined,
-      euroStandard: dto.euroStandard || undefined,
-      description: dto.description || undefined,
-      
-      // ✅ PŘIDÁNO - Kontaktní údaje
-      contactPhone: dto.contactPhone,
-      contactEmail: dto.contactEmail,
-      contactName: dto.contactName || undefined,
-      
-      // ✅ PŘIDÁNO - Lokační údaje
-      latitude: dto.latitude ? Number(dto.latitude) : undefined,
-      longitude: dto.longitude ? Number(dto.longitude) : undefined,
-      address: dto.address || undefined,
-      
-      // Místo userId použij user.connect
-      user: {
-        connect: { id: userId }
-      }
-    };
-
-    // ✅ PŘIDÁNO - Odstraň undefined hodnoty
-    Object.keys(data).forEach(key => {
-      if (data[key] === undefined || data[key] === '') {
-        delete data[key];
-      }
-    });
-
-    // Vytvořit inzerát
+    // 3. Vytvoř inzerát
     const ad = await this.prisma.ad.create({
-      data,
+      data: {
+        ...dto,
+        // Numerické hodnoty
+        price: dto.price ? Number(dto.price) : undefined,
+        mileage: dto.mileage ? Number(dto.mileage) : undefined, 
+        year: dto.year ? Number(dto.year) : undefined,
+        firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
+        doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
+        seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
+        airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined,
+        engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
+        power: dto.power ? Number(dto.power) : undefined,
+        avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
+        gearCount: dto.gearCount ? Number(dto.gearCount) : undefined,
+        
+        // Boolean hodnoty
+        ecoTaxPaid: dto.ecoTaxPaid === 'on' || dto.ecoTaxPaid === 'true' || dto.ecoTaxPaid === true,
+        isFirstOwner: dto.isFirstOwner === 'on' || dto.isFirstOwner === 'true' || dto.isFirstOwner === true,
+        isDisabledAdapted: dto.isDisabledAdapted === 'on' || dto.isDisabledAdapted === 'true' || dto.isDisabledAdapted === true,
+        wasCrashed: dto.wasCrashed === 'on' || dto.wasCrashed === 'true' || dto.wasCrashed === true,
+        hasServiceBook: dto.hasServiceBook === 'on' || dto.hasServiceBook === 'true' || dto.hasServiceBook === true,
+        
+        // Datumy
+        technicalCheckUntil: dto.technicalCheckUntil ? new Date(dto.technicalCheckUntil).toISOString() : undefined,
+        warrantyUntil: dto.warrantyUntil ? new Date(dto.warrantyUntil).toISOString() : undefined,
+        
+        // ✅ OPRAVENO - Nepovinné string hodnoty
+        airConditioning: dto.airConditioning || undefined,
+        euroStandard: dto.euroStandard || undefined,
+        description: dto.description || undefined,
+        
+        // ✅ PŘIDÁNO - Kontaktní údaje
+        contactPhone: dto.contactPhone,
+        contactEmail: dto.contactEmail,
+        contactName: dto.contactName || undefined,
+        
+        // ✅ PŘIDÁNO - Lokační údaje
+        latitude: dto.latitude ? Number(dto.latitude) : undefined,
+        longitude: dto.longitude ? Number(dto.longitude) : undefined,
+        address: dto.address || undefined,
+        
+        // Místo userId použij user.connect
+        user: {
+          connect: { id: userId }
+        }
+      },
       include: { images: true, user: true, features: true },
     });
     
-    // Zpracovat obrázky
-    if (files && files.length > 0) {
+    // 4. Uploaduj obrázky a vytvoř záznamy v DB
+    try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        try {
-          // ✅ PŘIDÁNO - Validace velikosti souboru (10MB limit)
-          const maxSize = 10 * 1024 * 1024; // 10MB v bytech
-          if (file.size > maxSize) {
-            throw new BadRequestException(`Soubor ${file.originalname} je příliš velký. Maximální velikost je 10MB, váš soubor má ${(file.size / 1024 / 1024).toFixed(2)}MB.`);
-          }
-
-          // ✅ PŘIDÁNO - Validace typu souboru
-          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-          if (!allowedTypes.includes(file.mimetype)) {
-            throw new BadRequestException(`Nepodporovaný formát souboru ${file.originalname}. Povolené formáty: JPEG, PNG, WebP.`);
-          }
-
-          // ✅ ZMĚNĚNO - Jednoduchý a bezpečný název
-          const fileExtension = path.extname(file.originalname || '.jpg');
-          const filename = `ad_${Date.now()}_${i + 1}${fileExtension}`;
-          
-          console.log('🔥 Original filename:', file.originalname);
-          console.log('🔥 Safe filename:', filename);
-          console.log('🔥 File size:', `${(file.size / 1024 / 1024).toFixed(2)}MB`);
-          console.log('🔥 File type:', file.mimetype);
-          
-          const { data, error } = await this.supabase
-            .storage
-            .from('photos')
-            .upload(filename, file.buffer, {
-              contentType: file.mimetype,
-              upsert: true
-            });
-
-          if (error) {
-            console.error('❌ Supabase upload error:', error);
-            throw new BadRequestException(`Upload failed: ${error.message}`);
-          }
-
-          console.log('✅ Upload successful:', data);
-
-          const { data: urlData } = this.supabase
-            .storage
-            .from('photos')
-            .getPublicUrl(filename);
-
-          console.log('🔗 Generated URL:', urlData?.publicUrl);
-
-          await this.prisma.image.create({
-            data: {
-              url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
-              adId: ad.id,
-            },
+        // ✅ ZMĚNĚNO - Jednoduchý a bezpečný název
+        const fileExtension = path.extname(file.originalname || '.jpg');
+        const filename = `ad_${Date.now()}_${i + 1}${fileExtension}`;
+        
+        console.log('🔥 Original filename:', file.originalname);
+        console.log('🔥 Safe filename:', filename);
+        console.log('🔥 File size:', `${(file.size / 1024 / 1024).toFixed(2)}MB`);
+        console.log('🔥 File type:', file.mimetype);
+        
+        const { data, error } = await this.supabase
+          .storage
+          .from('photos')
+          .upload(filename, file.buffer, {
+            contentType: file.mimetype,
+            upsert: true
           });
-        } catch (err) {
-          console.error('❌ File upload error:', err);
-          // ✅ ZMĚNĚNO - Properly throw the error
-          if (err instanceof BadRequestException) {
-            throw err; // Re-throw validation errors
-          }
-          throw new BadRequestException(`Chyba při nahrávání souboru ${file.originalname}: ${err.message}`);
+
+        if (error) {
+          console.error('❌ Supabase upload error:', error);
+          throw new BadRequestException(`Upload failed: ${error.message}`);
         }
+
+        console.log('✅ Upload successful:', data);
+
+        const { data: urlData } = this.supabase
+          .storage
+          .from('photos')
+          .getPublicUrl(filename);
+
+        console.log('🔗 Generated URL:', urlData?.publicUrl);
+
+        await this.prisma.image.create({
+          data: {
+            url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
+            adId: ad.id,
+          },
+        });
       }
-    } else {
-      // Defaultní obrázek
-      await this.prisma.image.create({
-        data: {
-          url: 'https://via.placeholder.com/800x600?text=No+Image+Available',
-          adId: ad.id,
-        },
-      });
+    } catch (err) {
+      // Pokud dojde k chybě při uploadu, smaž právě vytvořený inzerát (rollback)
+      await this.prisma.ad.delete({ where: { id: ad.id } });
+      throw err;
     }
-    
-    // Vrátit inzerát s obrázky
+
+    // 5. Vrať inzerát s obrázky
     return this.prisma.ad.findUnique({
       where: { id: ad.id },
       include: { images: true, user: true, features: true },
@@ -788,6 +759,13 @@ export class AdService {
 
     // Zpracuj nové obrázky pokud jsou přiloženy
     if (files && files.length > 0) {
+      const maxImages = 15; // ← přidej na začátek metody
+
+      // ...před nahráváním obrázků...
+      if (files && files.length > maxImages) {
+        throw new BadRequestException(`Maximální počet obrázků na inzerát je ${maxImages}.`);
+      }
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         try {
@@ -844,7 +822,6 @@ export class AdService {
       }
     }
 
-    // ✅ ZMĚNĚNO - Použij updatedAd místo nového query
     // Načti aktuální počet obrázků
     const currentImageCount = await this.prisma.image.count({
       where: { adId: id }

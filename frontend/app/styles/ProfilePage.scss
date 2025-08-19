@@ -491,6 +491,36 @@
   }
 }
 
+.profile-page__ad-limit-indicator {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #0070f3;
+}
+.profile-page__ad-limit-bar {
+  flex: 1;
+  height: 8px;
+  background: #e3eaf5;
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 80px;
+  max-width: 200px;
+}
+.profile-page__ad-limit-bar-inner {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s, background 0.3s;
+}
+[data-theme="dark"] .profile-page__ad-limit-indicator {
+  color: #60a5fa;
+}
+[data-theme="dark"] .profile-page__ad-limit-bar {
+  background: #232b36;
+}
+
 // DARK MODE
 [data-theme="dark"] {
   .profile-page {

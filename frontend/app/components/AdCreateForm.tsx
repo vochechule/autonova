@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import '../styles/components/AdCreateForm.scss'
 import '../styles/components/SuccessMessage.scss'
@@ -34,7 +34,22 @@ export default function AdCreateForm() {
   // ✅ PŘIDÁNO - Toast hook
   const { showSuccess, showError, showWarning } = useToast()
 
+  const [adCount, setAdCount] = useState<number | null>(null)
+  const [showLimitModal, setShowLimitModal] = useState(false)
+
   const modelsList = getModelsList(selectedBrand)
+
+  useEffect(() => {
+    // Zjisti počet inzerátů uživatele
+    const token = localStorage.getItem('token')
+    if (!token) return
+    fetch('http://localhost:3000/ad/my', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setAdCount(Array.isArray(data) ? data.length : 0))
+      .catch(() => setAdCount(null))
+  }, [])
 
   const handleBrandChange = (brandValue: string) => {
     setSelectedBrand(brandValue)
@@ -117,8 +132,8 @@ export default function AdCreateForm() {
     })
 
     // Kontrola celkového počtu obrázků
-    if (images.length + validFiles.length > 10) {
-      errors.push(`Můžete nahrát maximálně 10 obrázků. Aktuálně máte ${images.length}, snažíte se přidat ${validFiles.length}.`)
+    if (images.length + validFiles.length > 15) {
+      errors.push(`Můžete nahrát maximálně 15 obrázků. Aktuálně máte ${images.length}, snažíte se přidat ${validFiles.length}.`)
     } else {
       setImages(prev => [...prev, ...validFiles])
       // ✅ PŘIDÁNO - Toast po přidání obrázků
@@ -139,8 +154,14 @@ export default function AdCreateForm() {
 
   // V handleSubmit funkci aktualizujte validaci:
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    // ✅ Kontrola limitu před validací
+    if (adCount !== null && adCount >= 10) {
+      setShowLimitModal(true)
+      return
+    }
+
     try {
-      e.preventDefault()
       setLoading(true)
       setError(null)
 
@@ -803,16 +824,16 @@ export default function AdCreateForm() {
 
             {/* Drop Zone */}
             <div 
-              className={`drop-zone ${dragActive ? 'active' : ''} ${images.length >= 10 ? 'disabled' : ''}`}
-              onDragEnter={images.length < 10 ? handleDrag : undefined}
-              onDragLeave={images.length < 10 ? handleDrag : undefined}
-              onDragOver={images.length < 10 ? handleDrag : undefined}
-              onDrop={images.length < 10 ? handleDrop : undefined}
+              className={`drop-zone ${dragActive ? 'active' : ''} ${images.length >= 15 ? 'disabled' : ''}`}
+              onDragEnter={images.length < 15 ? handleDrag : undefined}
+              onDragLeave={images.length < 15 ? handleDrag : undefined}
+              onDragOver={images.length < 15 ? handleDrag : undefined}
+              onDrop={images.length < 15 ? handleDrop : undefined}
             >
               <div className="drop-zone-content">
-                {images.length >= 10 ? (
+                {images.length >= 15 ? (
                   <>
-                    <p className="drop-text">Dosáhli jste maximálního počtu obrázků (10)</p>
+                    <p className="drop-text">Dosáhli jste maximálního počtu obrázků (15)</p>
                     <p className="drop-subtext">Odstraňte některé obrázky pro přidání nových</p>
                   </>
                 ) : (
@@ -836,16 +857,16 @@ export default function AdCreateForm() {
                 accept="image/*"
                 multiple
                 onChange={handleFileSelect}
-                disabled={images.length >= 10} // ✅ PŘIDÁNO - disable při dosažení limitu
+                disabled={images.length >= 15} // ← změna zde
                 style={{ display: 'none' }}
               />
             </div>
 
             {/* Image Counter */}
             <div className="image-counter">
-              <span className={`counter ${images.length >= 2 ? 'valid' : 'invalid'} ${images.length >= 10 ? 'full' : ''}`}>
-                {images.length} / 10 obrázků (min. 2)
-                {images.length >= 10 && <span className="limit-reached"> - limit dosažen</span>}
+              <span className={`counter ${images.length >= 2 ? 'valid' : 'invalid'} ${images.length >= 15 ? 'full' : ''}`}>
+                {images.length} / 15 obrázků (min. 2)
+                {images.length >= 15 && <span className="limit-reached"> - limit dosažen</span>}
               </span>
             </div>
 
@@ -941,6 +962,19 @@ export default function AdCreateForm() {
 
         {/* ✅ PŘIDÁNO - Loading overlay */}
         {loading && <FormLoading message="Ukládám inzerát..." />}
+
+        {/* LIMIT MODAL */}
+        {showLimitModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>Limit inzerátů dosažen</h3>
+              <p>Máte již <b>10 aktivních inzerátů</b>. Pro přidání nového nejprve některý smažte.</p>
+              <button onClick={() => setShowLimitModal(false)} className="success-message__button">
+                Zavřít
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Zbytek stejný jako původní... */}
       </div>

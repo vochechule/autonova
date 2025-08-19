@@ -93,7 +93,7 @@ export class AdController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FilesInterceptor('images', 10, {
+  @UseInterceptors(FilesInterceptor('images', 15, {
     limits: {
       fileSize: 10 * 1024 * 1024,
     },
@@ -158,7 +158,7 @@ export class AdController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/photos')
-  @UseInterceptors(FilesInterceptor('photos', 10, { storage: memoryStorage }))
+  @UseInterceptors(FilesInterceptor('photos', 15, { storage: memoryStorage }))
   async uploadPhotos(
     @Param('id') id: string,
     @UploadedFiles() files: Express.Multer.File[],

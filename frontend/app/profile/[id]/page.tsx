@@ -253,63 +253,52 @@ export default function UserProfilePage() {
         <h2>Inzeráty prodejce ({user.ads?.length || 0})</h2>
         
         {user.ads && user.ads.length > 0 ? (
-          <>
-            <div className="profile-page__ads-grid">
-              {user.ads.slice(0, 6).map((ad: any) => (
-                <Link 
-                  key={ad.id} 
-                  href={`/ads/${ad.id}`} 
-                  className="profile-page__ad-card"
-                >
-                  <div className="profile-page__ad-image-container">
-                    {ad.images && ad.images.length > 0 ? (
-                      <img 
-                        src={ad.images[0].url} 
-                        alt={ad.title}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="profile-page__ad-placeholder">🚗</div>
-                    )}
-                    <div className="profile-page__ad-price-tag">
-                      {ad.price?.toLocaleString('cs-CZ')} Kč
-                    </div>
+          <div className="profile-page__ads-grid">
+            {user.ads.map((ad: any) => (
+              <Link 
+                key={ad.id} 
+                href={`/ads/${ad.id}`} 
+                className="profile-page__ad-card"
+              >
+                <div className="profile-page__ad-image-container">
+                  {ad.images && ad.images.length > 0 ? (
+                    <img 
+                      src={ad.images[0].url} 
+                      alt={ad.title}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="profile-page__ad-placeholder">🚗</div>
+                  )}
+                  <div className="profile-page__ad-price-tag">
+                    {ad.price?.toLocaleString('cs-CZ')} Kč
                   </div>
+                </div>
+                
+                <div className="profile-page__ad-content">
+                  <h3 className="profile-page__ad-title">{ad.title}</h3>
                   
-                  <div className="profile-page__ad-content">
-                    <h3 className="profile-page__ad-title">{ad.title}</h3>
-                    
-                    <div className="profile-page__ad-details">
-                      <div className="profile-page__ad-brand">
-                        {ad.brand} {ad.model}
-                      </div>
-                      
-                      <div className="profile-page__ad-specs">
-                        {ad.year && <span>{ad.year}</span>}
-                        {ad.mileage && <span>{ad.mileage?.toLocaleString('cs-CZ')} km</span>}
-                        {ad.fuelType && <span>{ad.fuelType}</span>}
-                      </div>
-                      
-                      {ad.location && (
-                        <div className="profile-page__ad-location">
-                          {ad.location}
-                        </div>
-                      )}
+                  <div className="profile-page__ad-details">
+                    <div className="profile-page__ad-brand">
+                      {ad.brand} {ad.model}
                     </div>
+                    
+                    <div className="profile-page__ad-specs">
+                      {ad.year && <span>{ad.year}</span>}
+                      {ad.mileage && <span>{ad.mileage?.toLocaleString('cs-CZ')} km</span>}
+                      {ad.fuelType && <span>{ad.fuelType}</span>}
+                    </div>
+                    
+                    {ad.location && (
+                      <div className="profile-page__ad-location">
+                        {ad.location}
+                      </div>
+                    )}
                   </div>
-                </Link>
-              ))}
-            </div>
-            
-            {user.ads.length > 6 && (
-              <Link href={`/ads?seller=${userId}`} className="profile-page__view-all-btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M9 18l6-6-6-6"/>
-                </svg>
-                Zobrazit všech {user.ads.length} inzerátů
+                </div>
               </Link>
-            )}
-          </>
+            ))}
+          </div>
         ) : (
           <div className="profile-page__ads-empty">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
