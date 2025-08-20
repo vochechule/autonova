@@ -1,5 +1,6 @@
 'use client'
 import { ChangePasswordModal, EditProfileModal, DeleteAccountModal } from '../components/ProfileModals'
+import { ConfirmModal } from '../components/ConfirmModal'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import '../styles/ProfilePage.scss'
@@ -19,6 +20,7 @@ export default function ProfilePage() {
   const [showAllReviews, setShowAllReviews] = useState(false)
   const [deletingAdId, setDeletingAdId] = useState<string | null>(null)
   const [removingSavedId, setRemovingSavedId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   // Nové stavy pro modály
   const [showChangePassword, setShowChangePassword] = useState(false)
@@ -105,8 +107,6 @@ export default function ProfilePage() {
 
   // ✅ NOVÁ FUNKCE - Smazání inzerátu s loading
   const handleDeleteAd = async (adId: string) => {
-    if (!confirm('Opravdu chcete inzerát smazat?')) return
-
     setDeletingAdId(adId)
     try {
       const token = localStorage.getItem('token')
@@ -251,7 +251,7 @@ export default function ProfilePage() {
                     </Link>
                     <button
                       className="profile-page__ad-action delete"
-                      onClick={() => handleDeleteAd(ad.id)}
+                      onClick={() => setConfirmDeleteId(ad.id)}
                       disabled={deletingAdId === ad.id}
                     >
                       {deletingAdId === ad.id ? <ButtonLoading /> : 'Smazat'}
@@ -281,7 +281,7 @@ export default function ProfilePage() {
                 </Link>
                 <button
                   className="profile-page__ad-action delete"
-                  onClick={() => handleDeleteAd(ad.id)}
+                  onClick={() => setConfirmDeleteId(ad.id)}
                   disabled={deletingAdId === ad.id}
                 >
                   {deletingAdId === ad.id ? <ButtonLoading /> : 'Smazat'}
@@ -437,6 +437,20 @@ export default function ProfilePage() {
       <DeleteAccountModal
         isOpen={showDeleteAccount}
         onClose={() => setShowDeleteAccount(false)}
+      />
+
+      <ConfirmModal
+        open={!!confirmDeleteId}
+        title="Smazat inzerát"
+        message="Opravdu chcete tento inzerát nenávratně smazat?"
+        confirmText="Ano, smazat"
+        cancelText="Zrušit"
+        loading={deletingAdId === confirmDeleteId}
+        onCancel={() => setConfirmDeleteId(null)}
+        onConfirm={() => {
+          if (confirmDeleteId) handleDeleteAd(confirmDeleteId)
+          setConfirmDeleteId(null)
+        }}
       />
     </main>
   )
