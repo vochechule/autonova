@@ -198,13 +198,13 @@ export default function ProfilePage() {
             })()}
           </div>
           <div className="profile-page__meta">
-            {user.isDealer ? 'Autobazar' : 'Soukromý prodejce'} &middot; Joined in {user.createdAt ? new Date(user.createdAt).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : 'N/A'}
+            {user.isDealer ? 'Autobazar' : 'Soukromý prodejce'} &middot; Připojen {user.createdAt ? new Date(user.createdAt).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : 'N/A'}
           </div>
         </div>
       </section>
 
       <section className="profile-page__ads">
-        <h2>My Ads</h2>
+        <h2>Moje inzeráty</h2>
         {/* ✅ UKAZATEL LIMITU */}
         <div className="profile-page__ad-limit-indicator">
           <span>
@@ -225,9 +225,9 @@ export default function ProfilePage() {
           <thead>
             <tr>
               <th></th>
-              <th>Title</th>
-              <th>Price</th>
-              <th>Actions</th>
+              <th>Název</th>
+              <th>Cena</th>
+              <th>Akce</th>
             </tr>
           </thead>
           <tbody>
@@ -243,7 +243,7 @@ export default function ProfilePage() {
                     {ad.title}
                   </Link>
                 </td>
-                <td>{ad.price ? `$${ad.price.toLocaleString()}` : '-'}</td>
+                <td>{ad.price ? `${ad.price.toLocaleString()} Kč` : '-'}</td>
                 <td>
                   <div className="profile-page__ad-actions">
                     <Link href={`/ads/${ad.id}/edit`} className="profile-page__ad-action edit">
@@ -273,7 +273,7 @@ export default function ProfilePage() {
                 <Link href={`/ads/${ad.id}`} className="profile-page__ad-title-link">
                   <div className="profile-page__ad-title">{ad.title}</div>
                 </Link>
-                <div className="profile-page__ad-price">{ad.price ? `$${ad.price.toLocaleString()}` : '-'}</div>
+                <div className="profile-page__ad-price">{ad.price ? `${ad.price.toLocaleString()} Kč` : '-'}</div>
               </div>
               <div className="profile-page__ad-actions">
                 <Link href={`/ads/${ad.id}/edit`} className="profile-page__ad-action edit">
@@ -294,10 +294,10 @@ export default function ProfilePage() {
 
       <section className="profile-page__saved">
         <div className="profile-page__saved-header">
-          <h2>Saved Ads</h2>
+          <h2>Uložené inzeráty</h2>
           {savedAds.length > 3 && (
             <Link href="/saved-ads" className="profile-page__show-all-btn">
-              Show All ({savedAds.length})
+              Zobrazit vše ({savedAds.length})
             </Link>
           )}
         </div>
@@ -309,7 +309,7 @@ export default function ProfilePage() {
                 <div className="profile-page__saved-info">
                   <div className="profile-page__saved-title">{savedAd.ad.title}</div>
                   <div className="profile-page__saved-brand">{savedAd.ad.brand} {savedAd.ad.model}</div>
-                  <div className="profile-page__saved-price">${savedAd.ad.price?.toLocaleString()}</div>
+                  <div className="profile-page__saved-price">{savedAd.ad.price?.toLocaleString()} Kč</div>
                 </div>
               </Link>
               <button 
@@ -323,8 +323,8 @@ export default function ProfilePage() {
           ))}
           {savedAds.length === 0 && (
             <div className="profile-page__saved-empty">
-              <p>No saved ads yet</p>
-              <Link href="/ads" className="profile-page__browse-btn">Browse Ads</Link>
+              <p>Žádné uložené inzeráty</p>
+              <Link href="/ads" className="profile-page__browse-btn">Procházet inzeráty</Link>
             </div>
           )}
         </div>
@@ -333,7 +333,7 @@ export default function ProfilePage() {
       {/* Zbytek sections zůstává stejný... */}
       {reviews.length > 0 && (
         <section className="profile-page__reviews">
-          <h2>Reviews Received</h2>
+          <h2>Recenze</h2>
           <div className="profile-page__rating-summary">
             <div className="profile-page__rating-main">
               <span className="profile-page__rating-number">{avgRating !== null ? avgRating.toFixed(1) : '-'}</span>
@@ -380,12 +380,12 @@ export default function ProfilePage() {
               </div>
             ))}
             {reviews.length > 3 && (
-              <button
+                <button
                 className="profile-page__show-all-btn"
                 onClick={() => setShowAllReviews(v => !v)}
-              >
-                {showAllReviews ? 'Show less' : 'See all my reviews'}
-              </button>
+                >
+                {showAllReviews ? 'Zobrazit méně' : 'Zobrazit všechny recenze'}
+                </button>
             )}
           </div>
         </section>
@@ -393,7 +393,7 @@ export default function ProfilePage() {
 
       {/* Sekce pro nastavení účtu */}
       <section className="profile-page__settings">
-        <h2>Account Settings</h2>
+        <h2>Správa účtu</h2>
         <div className="profile-page__settings-list">
           <button onClick={() => setShowChangePassword(true)}>
             Změnit heslo
