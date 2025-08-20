@@ -25,6 +25,7 @@ export default function AdCreateForm() {
   const [selectedBrand, setSelectedBrand] = useState<string>('')
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [selectedColor, setSelectedColor] = useState<string>('')
+  const [showLoginModal, setShowLoginModal] = useState(false)
   const [selectedColorFinish, setSelectedColorFinish] = useState<string>('standard')
   const [location, setLocation] = useState<{
     latitude: number
@@ -44,9 +45,11 @@ export default function AdCreateForm() {
   const modelsList = getModelsList(selectedBrand)
 
   useEffect(() => {
-    // Zjisti počet inzerátů uživatele
     const token = localStorage.getItem('token')
-    if (!token) return
+    if (!token) {
+      setShowLoginModal(true)
+      return
+    }
     fetch('http://localhost:3000/ad/my', {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -990,6 +993,25 @@ export default function AdCreateForm() {
               <p>Máte již <b>10 aktivních inzerátů</b>. Pro přidání nového nejprve některý smažte.</p>
               <button onClick={() => setShowLimitModal(false)} className="success-message__button">
                 Zavřít
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ✅ PŘIDÁNO - Přihlášení modal */}
+        {showLoginModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>Přihlášení nutné</h3>
+              <p>Pro přidání inzerátu se nejprve přihlaste ke svému účtu.</p>
+              <button
+                className="success-message__button"
+                onClick={() => {
+                  setShowLoginModal(false)
+                  router.push('/login')
+                }}
+              >
+                Přihlásit se
               </button>
             </div>
           </div>
