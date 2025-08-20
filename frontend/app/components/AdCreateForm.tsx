@@ -37,6 +37,10 @@ export default function AdCreateForm() {
   const [adCount, setAdCount] = useState<number | null>(null)
   const [showLimitModal, setShowLimitModal] = useState(false)
 
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
+  const [uploadStep, setUploadStep] = useState<string>('') // např. "Nahrávám obrázky..."
+
   const modelsList = getModelsList(selectedBrand)
 
   useEffect(() => {
@@ -47,7 +51,12 @@ export default function AdCreateForm() {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.ok ? res.json() : [])
-      .then(data => setAdCount(Array.isArray(data) ? data.length : 0))
+      .then(data => {
+        setAdCount(Array.isArray(data) ? data.length : 0)
+        if (Array.isArray(data) && data.length >= 10) {
+          setShowLimitModal(true)
+        }
+      })
       .catch(() => setAdCount(null))
   }, [])
 
@@ -915,7 +924,7 @@ export default function AdCreateForm() {
             )}
           </section>
 
-          <button type="submit" disabled={loading}>
+          <button type="submit" disabled={loading || (adCount !== null && adCount >= 10)}>
             {loading ? <ButtonLoading /> : 'Přidat inzerát'}
           </button>
           
