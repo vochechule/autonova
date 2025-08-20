@@ -452,7 +452,16 @@ export default function AdDetailPage() {
         )}
       </div>
       
-     
+      <footer className="ad-detail-page__disclaimer">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{marginRight: 8, verticalAlign: 'middle'}}>
+    <circle cx="12" cy="12" r="10" stroke="#f59e42" strokeWidth="2" fill="none"/>
+    <rect x="11" y="10" width="2" height="6" rx="1" fill="#f59e42"/>
+    <rect x="11" y="7" width="2" height="2" rx="1" fill="#f59e42"/>
+  </svg>
+  <span>
+    <b>Carta.cz</b> není prodejcem vozidel a neručí za pravdivost údajů v inzerátech ani za kvalitu prodávaných vozidel. Kupující i prodávající jednají na vlastní odpovědnost.
+  </span>
+</footer>
     </main>
   )
 }

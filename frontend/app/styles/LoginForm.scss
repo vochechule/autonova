@@ -95,3 +95,13 @@
   from { width: 0; }
   to { width: 100%; }
 }
+
+.login-form__terms {
+  font-size: 0.97rem;
+  color: #555;
+  margin-bottom: 8px;
+}
+.login-form__terms a {
+  color: #0070f3;
+  text-decoration: underline;
+}

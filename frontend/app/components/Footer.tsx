@@ -163,11 +163,15 @@ export default function Footer() {
                 onClick={() => setShowCookiesModal(true)}
                 className="footer__cookie-button"
               >
-                🍪 Nastavení cookies
+                Nastavení cookies
               </button>
             </li>
-            {/* <li><Link href="/privacy">Ochrana soukromí</Link></li>
-            <li><Link href="/terms">Podmínky užití</Link></li> */}
+            <li>
+              <Link href="/terms">Podmínky užívání</Link>
+            </li>
+            <li>
+              <Link href="/privacy">Zásady ochrany osobních údajů</Link>
+            </li>
           </ul>
         </div>
 

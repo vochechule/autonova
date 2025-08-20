@@ -155,6 +155,20 @@ export default function RegisterForm() {
         </div>
       </div>
       
+      <div className="login-form__terms">
+        <label>
+          <input
+            type="checkbox"
+            required
+            name="terms"
+            style={{ marginRight: 8 }}
+            disabled={loading}
+          />
+          Souhlasím s&nbsp;
+          <Link href="/terms" target="_blank">podmínkami užívání</Link>
+        </label>
+      </div>
+      
       <button 
         type="submit" 
         disabled={loading || success}
