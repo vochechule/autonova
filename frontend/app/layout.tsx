@@ -6,6 +6,7 @@ import BottomNavbar from "./components/BottomNavbar";
 import { ToastProvider } from "./contexts/ToastContext";
 import Footer from "./components/Footer";
 import CookiesPopup from "./components/CookiesPopup";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
             <BottomNavbar />
             <CookiesPopup />
           </div>
+          <ScrollToTopButton />
         </ToastProvider>
       </body>
     </html>
