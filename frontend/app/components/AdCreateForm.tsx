@@ -193,6 +193,7 @@ export default function AdCreateForm() {
       const form = e.currentTarget
       const formValues = new FormData(form)
 
+
       // Map povinných polí: název pole -> uživatelská hláška
       const requiredFields: { [key: string]: string } = {
         title: 'Název inzerátu je povinný',
@@ -306,9 +307,12 @@ export default function AdCreateForm() {
 
       // Obrázky
       if (images.length > 0) {
-        images.forEach(img => {
-          formData.append('images', img)
-        })
+        for (let i = 0; i < images.length; i++) {
+          setUploadStep(`Nahrávám obrázek ${i + 1} z ${images.length}`)
+          setUploadProgress(Math.round(((i + 1) / images.length) * 100))
+          formData.append('images', images[i])
+          // případně uploaduj na server po jednom, pokud backend podporuje chunk upload
+        }
       }
 
       // V handleSubmit před odesláním:
@@ -326,6 +330,9 @@ export default function AdCreateForm() {
       // Přidej do formData
       formData.append('contactPhone', contactPhone.toString())
       formData.append('contactEmail', contactEmail.toString())
+            setUploading(true)
+      setUploadProgress(null)
+      setUploadStep('Připravuji data...')
 
       const contactName = formValues.get('contactName')
       if (contactName && contactName.toString().trim()) {
@@ -404,6 +411,9 @@ export default function AdCreateForm() {
       }
     } finally {
       setLoading(false)
+      setUploading(false)
+      setUploadProgress(null)
+      setUploadStep('')
     }
   }
 
@@ -987,6 +997,27 @@ export default function AdCreateForm() {
 
         {/* Zbytek stejný jako původní... */}
       </div>
+
+      {/* Nově přidaná část pro upload stav */}
+      {uploading && (
+        <div className="ad-create-upload-overlay">
+          <div className="ad-create-upload-modal">
+            <div className="ad-create-upload-spinner"></div>
+            <div className="ad-create-upload-text">
+              <h3>Ukládám inzerát...</h3>
+              <p>{uploadStep || 'Probíhá ukládání, čekejte prosím.'}</p>
+              {uploadProgress !== null && (
+                <div className="ad-create-upload-progressbar">
+                  <div
+                    className="ad-create-upload-progress"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

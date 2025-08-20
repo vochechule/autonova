@@ -827,8 +827,61 @@
     }
   }
 
-  // Animace pro spinner
+  // Upload Overlay styles
+  .ad-create-upload-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(17,24,39,0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ad-create-upload-modal {
+    background: #fff;
+    color: #1a202c;
+    border-radius: 18px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    min-width: 320px;
+    max-width: 90vw;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  [data-theme="dark"] .ad-create-upload-modal {
+    background: #232b36;
+    color: #e2e8f0;
+  }
+  .ad-create-upload-spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #e0e7ef;
+    border-top: 5px solid #2563eb;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    animation: spin 1s linear infinite;
+  }
   @keyframes spin {
     to { transform: rotate(360deg); }
+  }
+  .ad-create-upload-text h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .ad-create-upload-progressbar {
+    width: 100%;
+    height: 10px;
+    background: #e5e7eb;
+    border-radius: 6px;
+    margin-top: 1.2rem;
+    overflow: hidden;
+  }
+  .ad-create-upload-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb 60%, #1e40af 100%);
+    transition: width 0.3s;
   }
 }
