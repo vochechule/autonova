@@ -1,4 +1,4 @@
-.login-form {
+.register-form {
   max-width: 410px;
   margin: 56px auto 48px auto;
   background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
@@ -16,7 +16,7 @@
   to   { opacity: 1; transform: translateY(0);}
 }
 
-.login-form h2 {
+.register-form h2 {
   margin-bottom: 12px;
   font-size: 1.55rem;
   font-weight: 700;
@@ -25,30 +25,111 @@
   text-align: center;
 }
 
-.login-form label {
+.register-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.register-form label {
   font-size: 1.01rem;
   color: #334155;
   margin-bottom: 2px;
   font-weight: 500;
 }
 
-.login-form input {
-  padding: 12px;
+.register-form__input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.register-form__icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #bfc9db;
+  pointer-events: none;
+}
+
+.register-form__input-wrap input {
+  width: 100%;
+  padding: 12px 44px 12px 40px;
   border-radius: 8px;
   border: 1.5px solid #e5e7eb;
   font-size: 1.05rem;
-  margin-bottom: 10px;
   background: #f7f8fa;
   transition: border 0.2s, box-shadow 0.2s;
   box-shadow: 0 1px 4px rgba(30,41,59,0.03);
+  color: #222;
 }
-.login-form input:focus {
+
+.register-form__input-wrap input:focus {
   border-color: #2563eb;
   outline: none;
   box-shadow: 0 2px 8px rgba(37,99,235,0.10);
 }
 
-.login-form button {
+.register-form__eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  opacity: 0.8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  transition: color 0.18s, opacity 0.18s;
+  z-index: 2;
+  font-size: 1.2rem;
+  height: 32px;
+  width: 32px;
+  justify-content: center;
+}
+.register-form__eye:hover,
+.register-form__eye:focus {
+  color: #2563eb;
+  opacity: 1;
+}
+.register-form__eye:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.register-form__password-strength {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+  font-size: 0.97rem;
+  margin-top: 4px;
+}
+.strength-indicator {
+  color: #b3b3b3;
+  &.valid {
+    color: #22c55e;
+    font-weight: 600;
+  }
+}
+
+.register-form__terms {
+  font-size: 0.97rem;
+  color: #555;
+  margin-bottom: 8px;
+  text-align: left;
+}
+.register-form__terms a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.register-form button {
   background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
   color: #fff;
   border: none;
@@ -65,12 +146,12 @@
   justify-content: center;
   gap: 0.7em;
 }
-.login-form button:disabled {
+.register-form button:disabled {
   background: #b3c7e6;
   cursor: not-allowed;
 }
 
-.login-form__error {
+.register-form__error {
   color: #d32f2f;
   background: #fff0f0;
   border-radius: 8px;
@@ -81,7 +162,7 @@
   border: 1px solid #fbcaca;
 }
 
-.login-form__success {
+.register-form__success {
   color: #2563eb;
   background: #f0f7ff;
   border-radius: 8px;
@@ -95,7 +176,7 @@
   border: 1px solid #b3c7e6;
 }
 
-.login-form__bar {
+.register-form__bar {
   width: 100%;
   height: 6px;
   background: #e3eaf5;
@@ -103,7 +184,7 @@
   overflow: hidden;
   margin-top: 6px;
 }
-.login-form__bar-inner {
+.register-form__bar-inner {
   height: 100%;
   width: 0;
   background: #2563eb;
@@ -115,124 +196,59 @@
   to { width: 100%; }
 }
 
-.login-form__terms {
-  font-size: 0.97rem;
-  color: #555;
-  margin-bottom: 8px;
-  text-align: left;
-}
-.login-form__terms a {
-  color: #2563eb;
-  text-decoration: underline;
-}
-
-.login-form__switch {
+.register-form__switch {
   text-align: center;
   font-size: 0.99rem;
   color: #555;
   margin-top: 10px;
 }
-.login-form__switch a {
+.register-form__switch a {
   color: #2563eb;
   font-weight: 600;
   text-decoration: underline;
 }
 
-.login-form__password-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.login-form__password-wrap input {
-  padding-right: 44px !important; // prostor pro ikonu
-}
-
-.login-form__eye {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  color: #94a3b8;
-  opacity: 0.8;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: color 0.18s, opacity 0.18s;
-  z-index: 2;
-  font-size: 1.2rem;
-}
-.login-form__eye:hover,
-.login-form__eye:focus {
-  color: #2563eb;
-  opacity: 1;
-}
-
-.login-form__eye:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.login-form__password-strength {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 6px;
-  font-size: 0.97rem;
-}
-.strength-indicator {
-  color: #b3b3b3;
-  &.valid {
-    color: #22c55e;
-    font-weight: 600;
-  }
-}
-
 @media (max-width: 600px) {
-  .login-form {
+  .register-form {
     padding: 18px 4vw;
     margin: 32px 0;
   }
 }
 
-[data-theme="dark"] .login-form {
+[data-theme="dark"] .register-form {
   background: linear-gradient(135deg, #232b36 0%, #1a2233 100%);
   box-shadow: 0 8px 32px rgba(30,41,59,0.22);
 }
-[data-theme="dark"] .login-form h2 {
+[data-theme="dark"] .register-form h2 {
   color: #60a5fa;
 }
-[data-theme="dark"] .login-form label {
+[data-theme="dark"] .register-form label {
   color: #bfc9db;
 }
-[data-theme="dark"] .login-form input {
+[data-theme="dark"] .register-form__input-wrap input {
   background: #232b36;
   color: #e2e8f0;
   border-color: #334155;
 }
-[data-theme="dark"] .login-form input:focus {
+[data-theme="dark"] .register-form__input-wrap input:focus {
   border-color: #60a5fa;
   background: #232b36;
 }
-[data-theme="dark"] .login-form__error {
+[data-theme="dark"] .register-form__error {
   background: #2d2a1a;
   color: #f87171;
   border-color: #b91c1c;
 }
-[data-theme="dark"] .login-form__success {
+[data-theme="dark"] .register-form__success {
   background: #1e293b;
   color: #60a5fa;
   border-color: #2563eb;
 }
-[data-theme="dark"] .login-form__terms,
-[data-theme="dark"] .login-form__switch {
+[data-theme="dark"] .register-form__terms,
+[data-theme="dark"] .register-form__switch {
   color: #bfc9db;
 }
-[data-theme="dark"] .login-form__terms a,
-[data-theme="dark"] .login-form__switch a {
+[data-theme="dark"] .register-form__terms a,
+[data-theme="dark"] .register-form__switch a {
   color: #60a5fa;
 }

@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import '../styles/LoginForm.scss'
-// ✅ PŘIDÁNO - Loading states a toast
+import '../styles/RegisterForm.scss'
 import { ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
+import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react'
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -19,10 +19,8 @@ export default function RegisterForm() {
     hasUppercase: false,
     hasNumber: false
   })
-  // ✅ PŘIDÁNO - Toast hook
-  const { showSuccess, showError, showInfo } = useToast()
+  const { showSuccess, showError } = useToast()
 
-  // Update password strength indicators in real-time
   useEffect(() => {
     setPasswordStrength({
       hasLength: password.length >= 8,
@@ -40,14 +38,11 @@ export default function RegisterForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
-    
     if (!isPasswordStrong()) {
       setError('Heslo musí splňovat všechny požadavky')
-      // ✅ PŘIDÁNO - Toast pro slabé heslo
       showError('Slabé heslo', 'Heslo musí mít alespoň 8 znaků, velké písmeno a číslo')
       return
     }
-    
     setLoading(true)
     const form = e.currentTarget
     const email = form.email.value
@@ -59,103 +54,106 @@ export default function RegisterForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),
       })
-      
       if (!res.ok) {
         const errorData = await res.json()
         throw new Error(errorData.message || 'Registrace se nezdařila')
       }
-      
       const data = await res.json()
-      
-      // Save token and update auth state
       if (data.token) {
         localStorage.setItem('token', data.token)
-        
-        // Dispatch custom event to notify Header about auth change
         window.dispatchEvent(new CustomEvent('authChange', {
           detail: { isLoggedIn: true }
         }))
       }
-      
       setSuccess(true)
       setLoading(false)
-      
-      // ✅ PŘIDÁNO - Toast po úspěšné registraci
       showSuccess('Registrace úspěšná', `Vítejte, ${name}! Přesměrovávám na hlavní stránku...`)
-      
       setTimeout(() => router.push('/'), 1000)
     } catch (err: any) {
       setError(err.message || 'Došlo k chybě při registraci')
       setLoading(false)
-      
-      // ✅ PŘIDÁNO - Toast pro chybu registrace
       showError('Chyba registrace', err.message || 'Došlo k chybě při registraci')
     }
   }
 
   return (
-    <form className="login-form" onSubmit={handleSubmit}>
+    <form className="register-form" onSubmit={handleSubmit} autoComplete="off">
       <h2>Registrace</h2>
       
-      <label htmlFor="name">Jméno</label>
-      <input 
-        name="name" 
-        id="name" 
-        type="text" 
-        required 
-        placeholder="Jméno" 
-        minLength={2}
-        disabled={loading}
-      />
-      
-      <label htmlFor="email">Email</label>
-      <input 
-        name="email" 
-        id="email" 
-        type="email" 
-        required 
-        placeholder="Email" 
-        disabled={loading}
-      />
-      
-      <label htmlFor="password">Heslo</label>
-      <div className="login-form__password-wrap">
-        <input
-          name="password"
-          id="password"
-          type={showPassword ? 'text' : 'password'}
-          required
-          placeholder="Heslo"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          minLength={8}
-          disabled={loading}
-        />
-        <button
-          type="button"
-          className="login-form__eye"
-          tabIndex={-1}
-          onClick={() => setShowPassword(v => !v)}
-          aria-label={showPassword ? 'Skrýt heslo' : 'Zobrazit heslo'}
-          disabled={loading}
-        >
-          {showPassword ? '👁️' : '👁'}
-        </button>
-      </div>
-      
-      <div className="login-form__password-strength">
-        <div className={`strength-indicator ${passwordStrength.hasLength ? 'valid' : ''}`}>
-          • Minimálně 8 znaků
-        </div>
-        <div className={`strength-indicator ${passwordStrength.hasUppercase ? 'valid' : ''}`}>
-          • Jedno velké písmeno
-        </div>
-        <div className={`strength-indicator ${passwordStrength.hasNumber ? 'valid' : ''}`}>
-          • Jedno číslo
+      <div className="register-form__field">
+        <label htmlFor="name">Jméno</label>
+        <div className="register-form__input-wrap">
+          <User size={20} className="register-form__icon" />
+          <input 
+            name="name" 
+            id="name" 
+            type="text" 
+            required 
+            placeholder="Jméno" 
+            minLength={2}
+            disabled={loading}
+            autoComplete="name"
+          />
         </div>
       </div>
       
-      <div className="login-form__terms">
+      <div className="register-form__field">
+        <label htmlFor="email">Email</label>
+        <div className="register-form__input-wrap">
+          <Mail size={20} className="register-form__icon" />
+          <input 
+            name="email" 
+            id="email" 
+            type="email" 
+            required 
+            placeholder="Email" 
+            disabled={loading}
+            autoComplete="email"
+          />
+        </div>
+      </div>
+      
+      <div className="register-form__field">
+        <label htmlFor="password">Heslo</label>
+        <div className="register-form__input-wrap">
+          <Lock size={20} className="register-form__icon" />
+          <input
+            name="password"
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            required
+            placeholder="Heslo"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            minLength={8}
+            disabled={loading}
+            autoComplete="new-password"
+          />
+          <button
+            type="button"
+            className="register-form__eye"
+            tabIndex={-1}
+            onClick={() => setShowPassword(v => !v)}
+            aria-label={showPassword ? 'Skrýt heslo' : 'Zobrazit heslo'}
+            disabled={loading}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+        <div className="register-form__password-strength">
+          <div className={`strength-indicator ${passwordStrength.hasLength ? 'valid' : ''}`}>
+            • Minimálně 8 znaků
+          </div>
+          <div className={`strength-indicator ${passwordStrength.hasUppercase ? 'valid' : ''}`}>
+            • Jedno velké písmeno
+          </div>
+          <div className={`strength-indicator ${passwordStrength.hasNumber ? 'valid' : ''}`}>
+            • Jedno číslo
+          </div>
+        </div>
+      </div>
+      
+      <div className="register-form__terms">
         <label>
           <input
             type="checkbox"
@@ -185,17 +183,17 @@ export default function RegisterForm() {
         )}
       </button>
       
-      <div className="login-form__switch">
+      <div className="register-form__switch">
         Máte účet? <Link href="/login">Přihlaste se zde</Link>
       </div>
       
-      {error && <div className="login-form__error">{error}</div>}
+      {error && <div className="register-form__error">{error}</div>}
       
       {success && (
-        <div className="login-form__success">
+        <div className="register-form__success">
           Registrace úspěšná, probíhá přesměrování…
-          <div className="login-form__bar">
-            <div className="login-form__bar-inner" style={{ animationDuration: '1s' }} />
+          <div className="register-form__bar">
+            <div className="register-form__bar-inner" style={{ animationDuration: '1s' }} />
           </div>
         </div>
       )}
