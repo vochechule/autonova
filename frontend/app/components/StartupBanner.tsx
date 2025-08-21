@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import '../styles/components/StartupBanner.scss'
 
 export default function StartupBanner() {
@@ -57,6 +58,11 @@ export default function StartupBanner() {
             Znáte někoho kdo prodává auto? Řekněte mu ať ho sem přidá zdarma! 
             Každý inzerát nám pomáhá vybudovat lepší platformu pro všechny.
           </p>
+          <div className="startup-banner__about-link">
+            <Link href="/about">
+              O projektu
+            </Link>
+          </div>
         </div>
 
         <div className="startup-banner__actions">

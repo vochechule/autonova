@@ -145,7 +145,7 @@ export default function Footer() {
           <div className="footer__contact">
             <p>
               <span className="footer__contact-label">Email:</span>
-              <a href="mailto:ndan@post.cz">ndan@post.cz</a>
+              <a href="mailto:info@carta.cz">info@carta.cz</a>
             </p>
             <p>
               <span className="footer__contact-label">Telefon:</span> 
@@ -165,6 +165,9 @@ export default function Footer() {
               >
                 Nastavení cookies
               </button>
+            </li>
+            <li>
+              <Link href="/about">O projektu</Link>
             </li>
             <li>
               <Link href="/terms">Podmínky užívání</Link>
