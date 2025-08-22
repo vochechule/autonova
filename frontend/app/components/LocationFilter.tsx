@@ -172,7 +172,6 @@ export default function LocationFilter({ onLocationChange, initialDistance = 25,
         setSelectedDistance(parseInt(nearDist))
         setIsEnabled(true)
 
-        console.log('🔄 LocationFilter: Obnoveno z URL:', location)
         
         // Zavolej callback s kompletními daty
         onLocationChange({

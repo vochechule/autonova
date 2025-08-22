@@ -364,7 +364,6 @@ export default function AdCreateForm() {
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
         console.error('❌ Backend error response:', errData);
-        
         // ✅ VYLEPŠENO - Lepší error parsing
         let errorMessage = 'Chyba při ukládání inzerátu';
         
@@ -422,77 +421,11 @@ export default function AdCreateForm() {
 
   
 
-  // V fillTestData funkci změňte:
-  function fillTestData(form: HTMLFormElement) {
-    const getValue = (name: string): HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null => 
-      form.querySelector(`[name="${name}"]`)
-    
-    const setInputValue = (name: string, value: string) => {
-      const element = getValue(name)
-      if (element) (element as any).value = value
-    }
-    
-    const setCheckboxValue = (name: string, checked: boolean) => {
-      const element = getValue(name) as HTMLInputElement
-      if (element) element.checked = checked
-    }
-
-    setInputValue('title', 'Testovací auto')
-    setSelectedBrand('skoda')
-    setSelectedModel('octavia')
-    setInputValue('description', 'Popis testovacího auta') // nepovinné, ale pro test
-    setInputValue('price', '123456')
-    setInputValue('mileage', '150000')
-    setInputValue('year', '2018') // ✅ POVINNÉ
-    setInputValue('firstRegistration', '2018') // ✅ POVINNÉ
-    setInputValue('bodyType', 'sedan')
-    setInputValue('doorCount', '4')
-    setInputValue('seatCount', '5')
-    setSelectedColor('silver')
-    setSelectedColorFinish('metallic')
-    setInputValue('airbagCount', '6') // nepovinné, ale pro test
-    // ✅ ODSTRANĚNO - airConditioning už není povinné
-    setInputValue('fuel', 'diesel')
-    setInputValue('engineVolume', '1968')
-    setInputValue('power', '110')
-    setInputValue('avgConsumption', '5.2') // ✅ POVINNÉ
-    setInputValue('transmission', 'automatic') // ✅ PŘIDÁNO ZPĚT
-    setInputValue('gearCount', '6') // ✅ PŘIDÁNO ZPĚT
-    setInputValue('drivetrain', 'fwd')
-    setInputValue('condition', 'used')
-    setInputValue('technicalCheckUntil', '2025-12-31')
-    setInputValue('countryOfOrigin', 'ČR')
-    setInputValue('euroStandard', 'euro6')
-    setCheckboxValue('ecoTaxPaid', true)
-    setCheckboxValue('isFirstOwner', false)
-    setCheckboxValue('isDisabledAdapted', false)
-    setCheckboxValue('wasCrashed', false)
-    setCheckboxValue('hasServiceBook', true)
-    setInputValue('warrantyUntil', '2026-01-01')
-
-    // ✅ PŘIDÁNO - Testovací kontaktní údaje
-    setInputValue('contactName', 'Jan Novák')
-    setInputValue('contactPhone', '+420 123 456 789')
-    setInputValue('contactEmail', 'jan.novak@email.cz')
-  }
-
-  // Na konci return JSX změňte error/success zprávy:
   return (
     <div className="ad-create-form">
       <div className="form-container" style={{ position: 'relative' }}>
         <h2>Přidat inzerát</h2>
         <p className="form-subtitle">Vytvořte nový inzerát a prodejte své vozidlo rychle a snadno</p>
-        
-        <button
-          type="button"
-          className="test-data-button"
-          onClick={() => {
-            const form = document.getElementById('ad-create-form') as HTMLFormElement
-            if (form) fillTestData(form)
-          }}
-        >
-          Vyplnit testovací data
-        </button>
 
         <form onSubmit={handleSubmit} id="ad-create-form">
           {/* Základní informace */}

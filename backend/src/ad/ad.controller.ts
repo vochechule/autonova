@@ -39,8 +39,6 @@ export class AdController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req,
   ) {
-    console.log('🔥 FILES RECEIVED:', files?.length || 0);
-    console.log('🔥 FILES:', files?.map(f => ({ name: f.originalname, size: f.size })));
     
     // Přidej kontrolu počtu obrázků
     if (!files || files.length < 2) {
@@ -58,7 +56,6 @@ export class AdController {
   @Get()
   findAll(@Query() query: any) {
     // Log příchozích query parametrů pro debugging
-    console.log('Received query params:', JSON.stringify(query, null, 2));
     
     // Normalizuj multi-select filtry
     const multiSelectFields = ['fuel', 'bodyType', 'transmission', 'drivetrain', 'condition'];
@@ -68,7 +65,6 @@ export class AdController {
       }
     });
     
-    console.log('Normalized query params:', JSON.stringify(query, null, 2));
     
     // ✅ OPRAVENO - Předej query i do findAll
     if (Object.keys(query).filter(key => !['sortBy', 'sortOrder'].includes(key)).length === 0) {
@@ -113,13 +109,9 @@ export class AdController {
     @Req() req
   ) {
     try {
-      console.log('🔥 UPDATE - FILES RECEIVED:', files?.length || 0);
-      console.log('🔥 UPDATE - DTO RECEIVED:', dto);
-      console.log('🔥 UPDATE - REQ.BODY:', req.body); // ✅ PŘIDÁNO - debug raw body
 
       // ✅ PŘIDÁNO - Ručně extrahuj imagesToDelete z req.body
       const imagesToDelete = req.body.imagesToDelete;
-      console.log('🔥 UPDATE - imagesToDelete from req.body:', imagesToDelete);
       
       // ✅ PŘIDÁNO - Předej imagesToDelete explicitně do service
       const dtoWithImages = {
@@ -127,7 +119,6 @@ export class AdController {
         imagesToDelete: imagesToDelete
       };
       
-      console.log('🔥 UPDATE - Final DTO with images:', dtoWithImages);
       
       if (!req.user || !req.user.id) {
         throw new UnauthorizedException('User not authenticated properly');
@@ -228,7 +219,6 @@ export class AdController {
       throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
     }
 
-    console.log('Returning ad with images:', ad.images || []);
     return ad;
   }
 }

@@ -14,10 +14,6 @@ export class AdService {
     const supabaseUrl = process.env.SUPABASE_URL || '';
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
     this.supabase = createClient(supabaseUrl, supabaseKey);
-    
-    // Log pro kontrolu inicializace
-    console.log('Supabase URL:', process.env.SUPABASE_URL);
-    console.log('Supabase initialized:', !!this.supabase);
   }
 
   async create(dto: any, userId: string, files?: Express.Multer.File[]) {
@@ -111,11 +107,6 @@ export class AdService {
         const fileExtension = path.extname(file.originalname || '.jpg');
         const filename = `ad_${Date.now()}_${i + 1}${fileExtension}`;
         
-        console.log('🔥 Original filename:', file.originalname);
-        console.log('🔥 Safe filename:', filename);
-        console.log('🔥 File size:', `${(file.size / 1024 / 1024).toFixed(2)}MB`);
-        console.log('🔥 File type:', file.mimetype);
-        
         const { data, error } = await this.supabase
           .storage
           .from('photos')
@@ -125,18 +116,13 @@ export class AdService {
           });
 
         if (error) {
-          console.error('❌ Supabase upload error:', error);
           throw new BadRequestException(`Upload failed: ${error.message}`);
         }
-
-        console.log('✅ Upload successful:', data);
 
         const { data: urlData } = this.supabase
           .storage
           .from('photos')
           .getPublicUrl(filename);
-
-        console.log('🔗 Generated URL:', urlData?.publicUrl);
 
         await this.prisma.image.create({
           data: {
@@ -159,26 +145,13 @@ export class AdService {
   }
 
   async findWithFilters(query: any) {
-  console.log('🔍 Backend received ALL query params:', JSON.stringify(query, null, 2));
-  
   const sortBy = query.sortBy || 'newest';
   const sortOrder = query.sortOrder || 'desc';
-  
-  console.log('🔄 Sort params:', { sortBy, sortOrder });
 
   // ✅ PŘIDÁNO - Více detailní debug
   const nearLatitude = query.nearLatitude;
   const nearLongitude = query.nearLongitude;
   const nearDistance = query.nearDistance;
-  
-  console.log('🗺️ Location params check:', {
-    nearLatitude: nearLatitude,
-    nearLongitude: nearLongitude,
-    nearDistance: nearDistance,
-    hasLat: !!nearLatitude,
-    hasLng: !!nearLongitude,
-    hasDist: !!nearDistance
-  });
 
   // ✅ PŘIDÁNO PAGINATION PARAMETRY
   const page = parseInt(query.page) || 1;
@@ -218,8 +191,6 @@ export class AdService {
     const lng = parseFloat(nearLongitude);
     const distance = parseFloat(nearDistance);
 
-    console.log(`🗺️ Starting distance filtering: ${distance}km from (${lat}, ${lng})`);
-
     // Nejdřív zkontrolujte kolik inzerátů má lokaci
     const adsWithLocation = await this.prisma.ad.count({
       where: {
@@ -227,11 +198,8 @@ export class AdService {
         longitude: { not: null }
       }
     });
-    
-    console.log(`📊 Total ads with location: ${adsWithLocation}`);
 
     if (adsWithLocation === 0) {
-      console.log('⚠️ No ads have location data!');
       return {
         ads: [],
         pagination: {
@@ -265,7 +233,6 @@ export class AdService {
     `;
 
     try {
-      console.log('🗄️ Executing distance query...');
       const nearbyAds = await this.prisma.$queryRawUnsafe(
         distanceQuery,
         lat,
@@ -273,13 +240,9 @@ export class AdService {
         distance
       ) as { id: string; distance: number }[];
 
-      console.log(`✅ Distance query result: ${nearbyAds.length} ads found`);
-      console.log('📍 First 3 results:', nearbyAds.slice(0, 3));
-
       distanceFilteredAds = nearbyAds.map(ad => ad.id);
       
     } catch (error) {
-      console.error('❌ Distance filtering SQL error:', error);
       // Pokud distance filtering selže, pokračujeme bez něj
       distanceFilteredAds = null;
     }
@@ -369,38 +332,28 @@ export class AdService {
     }
   });
 
-  console.log('🔍 Final WHERE clause:', JSON.stringify(where, null, 2));
-
   // ✅ PŘIDÁNO - Dynamické řazení
   const getOrderBy = () => {
     switch (sortBy) {
       case 'price':
-        console.log('💰 Sorting by price:', sortOrder);
         return { price: sortOrder as 'asc' | 'desc' }; // ✅ Type assertion
       case 'mileage':
-        console.log('🏃‍♂️ Sorting by mileage:', sortOrder);
         return { mileage: sortOrder as 'asc' | 'desc' };
       case 'year':
-        console.log('🚀 Sorting by year:', sortOrder);
         return { year: sortOrder as 'asc' | 'desc' };
       case 'views':
-        console.log('👀 Sorting by views:', sortOrder);
         return { views: sortOrder as 'asc' | 'desc' };
       case 'title':
-        console.log('🔤 Sorting by title:', sortOrder);
         return { title: sortOrder as 'asc' | 'desc' };
       case 'oldest':
-        console.log('📅 Sorting by oldest');
         return { createdAt: 'asc' as const };
       case 'newest':
       default:
-        console.log('🆕 Sorting by newest');
         return { createdAt: 'desc' as const };
     }
   };
 
   const orderBy = getOrderBy();
-  console.log('📊 Final orderBy object:', JSON.stringify(orderBy, null, 2)); // ✅ DEBUG
 
   const [ads, total] = await Promise.all([
     this.prisma.ad.findMany({
@@ -413,20 +366,6 @@ export class AdService {
     this.prisma.ad.count({ where })
   ]);
 
-  // ✅ DEBUG - Výpis prvních 3 inzerátů pro kontrolu řazení
-  console.log('📋 First 3 ads after sorting:');
-  ads.slice(0, 3).forEach((ad, index) => {
-    const sortValue = sortBy === 'price' ? ad.price : 
-                     sortBy === 'mileage' ? ad.mileage :
-                     sortBy === 'year' ? ad.year :
-                     sortBy === 'views' ? ad.views :
-                     sortBy === 'title' ? ad.title :
-                     ad.createdAt;
-    console.log(`  ${index + 1}. ${ad.title} - ${sortBy}: ${sortValue}`);
-  });
-
-  console.log(`📊 Final result: ${ads.length} ads returned, ${total} total`);
-  
   // ✅ SPECIÁLNÍ HANDLING pro distance sorting
   if (distanceFilteredAds && nearLatitude && nearLongitude) {
     const lat = parseFloat(nearLatitude);
@@ -466,9 +405,6 @@ export class AdService {
     });
     (ad.user as any).averageRating = avg._avg.rating;
   }
-
-  console.log(`📊 FINAL RESULT: ${ads.length} ads returned out of ${total} total`);
-  console.log('🔍 First 2 ad IDs:', ads.slice(0, 2).map(ad => ({ id: ad.id, title: ad.title, hasLocation: !!(ad.latitude && ad.longitude) })));
 
   return {
     ads,
@@ -550,7 +486,6 @@ export class AdService {
       });
     } catch (error) {
       // Pokud inzerát neexistuje, nebude se počítadlo zvyšovat
-      console.error('Error incrementing views:', error);
     }
   }
 
@@ -590,12 +525,6 @@ export class AdService {
   }
 
   async update(id: string, dto: any, userId: string, files?: Express.Multer.File[]) {
-    // ✅ VYLEPŠENÝ DEBUG
-    console.log('🔍 UPDATE SERVICE - DTO keys:', Object.keys(dto));
-    console.log('🔍 UPDATE SERVICE - imagesToDelete raw:', dto.imagesToDelete);
-    console.log('🔍 UPDATE SERVICE - imagesToDelete type:', typeof dto.imagesToDelete);
-    console.log('🔍 UPDATE SERVICE - files count:', files?.length || 0);
-
     // Kontrola vlastnictví
     const existingAd = await this.prisma.ad.findUnique({
       where: { id },
@@ -626,75 +555,45 @@ export class AdService {
     if (dto.imagesToDelete) {
       let imagesToDelete: string[] = [];
       try {
-        console.log('🗑️ Raw imagesToDelete value:', dto.imagesToDelete);
-        console.log('🗑️ Type of imagesToDelete:', typeof dto.imagesToDelete);
-        
         if (typeof dto.imagesToDelete === 'string') {
           try {
             imagesToDelete = JSON.parse(dto.imagesToDelete);
-            console.log('🗑️ Parsed as JSON:', imagesToDelete);
           } catch (parseError) {
-            console.log('🗑️ Not JSON, treating as single ID:', dto.imagesToDelete);
             imagesToDelete = [dto.imagesToDelete];
           }
         } else if (Array.isArray(dto.imagesToDelete)) {
           imagesToDelete = dto.imagesToDelete;
-          console.log('🗑️ Already array:', imagesToDelete);
         } else {
-          console.log('🗑️ Unknown type, converting to string array');
           imagesToDelete = [String(dto.imagesToDelete)];
         }
-        
-        console.log('🗑️ Final images to delete:', imagesToDelete);
 
         if (Array.isArray(imagesToDelete) && imagesToDelete.length > 0) {
           for (const imageId of imagesToDelete) {
-            console.log('🗑️ Processing deletion of image ID:', imageId);
-            
             // Najdi obrázek v databázi
             const imageToDelete = await this.prisma.image.findUnique({
               where: { id: imageId }
             });
 
             if (imageToDelete && imageToDelete.adId === id) {
-              console.log('🗑️ Found image to delete:', imageToDelete.url);
-
               // Extrahuj název souboru z URL
               const fileName = imageToDelete.url.split('/').pop();
               if (fileName) {
-                console.log('🗑️ Attempting to delete from Supabase:', fileName);
-                
                 // Smaž ze Supabase storage
                 const { error: deleteError } = await this.supabase
                   .storage
                   .from('photos')
                   .remove([fileName]);
-
-                if (deleteError) {
-                  console.error('❌ Supabase delete error:', deleteError);
-                } else {
-                  console.log('✅ Deleted from Supabase:', fileName);
-                }
               }
 
               // Smaž z databáze
               await this.prisma.image.delete({
                 where: { id: imageId }
               });
-              console.log('✅ Deleted from database:', imageId);
-            } else {
-              console.log('⚠️ Image not found or doesn\'t belong to this ad:', imageId);
             }
           }
-        } else {
-          console.log('⚠️ No valid images to delete after processing');
         }
       } catch (error) {
-        console.error('❌ Error processing imagesToDelete:', error);
-        console.error('❌ Raw imagesToDelete value:', dto.imagesToDelete);
       }
-    } else {
-      console.log('ℹ️ No images to delete (dto.imagesToDelete is falsy)');
     }
 
     // Odstraň features a imagesToDelete ze základních dat
@@ -784,8 +683,6 @@ export class AdService {
           const fileExtension = path.extname(file.originalname || '.jpg');
           const filename = `ad_${Date.now()}_edit_${i + 1}${fileExtension}`;
           
-          console.log('📤 Uploading new file:', filename);
-          
           const { data: uploadData, error } = await this.supabase
             .storage
             .from('photos')
@@ -810,10 +707,7 @@ export class AdService {
               adId: updatedAd.id,
             },
           });
-          
-          console.log('✅ New image uploaded and saved:', filename);
         } catch (err) {
-          console.error('❌ File upload error during update:', err);
           if (err instanceof BadRequestException) {
             throw err;
           }
@@ -830,8 +724,6 @@ export class AdService {
     if (currentImageCount < 2) {
       throw new BadRequestException('Inzerát musí mít alespoň 2 obrázky. Přidejte další obrázky.');
     }
-
-    console.log(`✅ Ad updated successfully. Final image count: ${currentImageCount}`);
 
     // Vrať kompletní data
     return this.prisma.ad.findUnique({

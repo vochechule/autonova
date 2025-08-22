@@ -78,7 +78,6 @@ export default function FilterSidebar({
   // Handlery pro změny v komponentách
   // ✅ OPRAVENÉ handlery - používají novou hodnotu přímo
   const handleBrandChange = (brandValue: string) => {
-    console.log('🏷️ Brand changing to:', brandValue)
     setSelectedBrand(brandValue)
     setSelectedModel('') // Reset model
     
@@ -131,8 +130,6 @@ export default function FilterSidebar({
         const newParamsString = params.toString()
         const currentParamsString = searchParams.toString()
         
-        console.log('🔄 Brand - Current:', currentParamsString)
-        console.log('🔄 Brand - New:', newParamsString)
         
         if (currentParamsString !== newParamsString) {
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
@@ -143,7 +140,6 @@ export default function FilterSidebar({
   }
 
   const handleModelChange = (modelValue: string) => {
-    console.log('🚗 Model changing to:', modelValue)
     setSelectedModel(modelValue)
     
     setTimeout(() => {
@@ -243,18 +239,14 @@ export default function FilterSidebar({
       setError(null);
       
       const url = `http://localhost:3000/ad${paramsString ? `?${paramsString}` : ''}`;
-      console.log('🚀 FETCHING URL:', url); // ✅ PŘIDÁNO
       
       const res = await fetch(url);
-      console.log('📡 Response status:', res.status); // ✅ PŘIDÁNO
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       
       const data = await res.json();
-      console.log('📦 FULL RESPONSE DATA:', data); // ✅ PŘIDÁNO
-      console.log('📊 Number of ads returned:', data.ads?.length || 'No ads property'); // ✅ PŘIDÁNO
       
       if (onResults) {
         onResults(data);
@@ -308,7 +300,6 @@ export default function FilterSidebar({
       params.set('nearDistance', locationFilter.distance.toString())
     }
 
-    console.log('🔧 BuildParams result:', params.toString())
     return params
   }, [selectedBrand, selectedModel, selectedColor, selectedColorFinish, priceFrom, priceTo, mileageFrom, mileageTo, locationFilter]) // ✅ PŘIDÁNO locationFilter
 
@@ -392,7 +383,6 @@ export default function FilterSidebar({
     address: string
     distance: number
   } | null) => {
-    console.log('🗺️ FilterSidebar: Location changed:', location)
     setLocationFilter(location)
     
     // Předej dál do parent komponenty
@@ -405,16 +395,13 @@ export default function FilterSidebar({
       const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
       if (form) {
         const params = buildParams(form)
-        console.log('🔧 Final params being sent:', params.toString()) // ✅ PŘIDÁNO
         const newParamsString = params.toString()
         const currentParamsString = searchParams.toString()
         
         if (currentParamsString !== newParamsString) {
-          console.log('🚀 Navigating to:', `/ads${newParamsString ? `?${newParamsString}` : ''}`) // ✅ PŘIDÁNO
           router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
           fetchAds(newParamsString) // ✅ String místo URLSearchParams
         } else {
-          console.log('⚠️ Params unchanged, not fetching') // ✅ PŘIDÁNO
         }
       }
     }, 0)
@@ -505,7 +492,6 @@ export default function FilterSidebar({
             <ColorSelect
               value={selectedColor}
               onChange={(value) => {
-                console.log('🎨 Color changed to:', value)
                 setSelectedColor(value)
               }}
               placeholder="Všechny barvy"
@@ -519,7 +505,6 @@ export default function FilterSidebar({
             <ColorFinishSelect
               value={selectedColorFinish}
               onChange={(value) => {
-                console.log('✨ ColorFinish changed to:', value)
                 setSelectedColorFinish(value)
               }}
               placeholder="Všechny úpravy"

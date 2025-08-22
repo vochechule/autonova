@@ -45,7 +45,6 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
       } catch (error) {
         // ✅ PŘIDÁNO - Ignore aborted requests
         if (error.name === 'AbortError') {
-          console.log('FavoriteButton: Request was cancelled');
           return;
         }
         console.error('Error checking saved status:', error);

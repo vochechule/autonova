@@ -37,7 +37,6 @@ export default function LoginForm() {
       }
       
       const data = await res.json()
-      console.log('Login response:', data) // Debug log
       
       // ZMĚNA: data.token místo data.access_token
       localStorage.setItem('token', data.token)

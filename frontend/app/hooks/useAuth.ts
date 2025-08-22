@@ -49,13 +49,11 @@ export function useAuth() {
         .catch((error) => {
           // ✅ PŘIDÁNO - Ignore aborted requests
           if (error.name === 'AbortError') {
-            console.log('useAuth: Request was cancelled');
             return;
           }
           
           // ✅ OPRAVENO - Only remove token for auth errors, not network errors
           if (error.message === 'Unauthorized') {
-            console.log('useAuth: Token is invalid, removing');
             localStorage.removeItem('token');
             setUser(null);
           } else {

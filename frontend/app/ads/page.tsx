@@ -78,7 +78,6 @@ export default function AdsPage() {
     distance: number
   } | null) => {
     setLocationFilter(location)
-    console.log('🗺️ Location filter changed:', location)
     
     const newSearchParams = new URLSearchParams(searchParams.toString())
     

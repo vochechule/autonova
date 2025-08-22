@@ -25,7 +25,6 @@ export default function ShareButton({ title, url, className = '' }: ShareButtonP
         await navigator.share(shareData)
         setIsOpen(false)
       } catch (err) {
-        console.log('Sharing cancelled or failed')
       }
     } else {
       setIsOpen(!isOpen)
