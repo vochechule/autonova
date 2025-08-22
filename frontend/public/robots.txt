@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://carta.cz/sitemap.xml

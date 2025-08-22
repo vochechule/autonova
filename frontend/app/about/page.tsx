@@ -1,6 +1,12 @@
 import "../styles/AboutPage.scss";
 import ContactForm from "../components/ContactForm";
 
+export const metadata = {
+  title: "O projektu | Carta.cz",
+  description:
+    "Zjistěte více o projektu Carta.cz, naší vizi a hodnotách. Prodej a koupě aut jednoduše, bez reklam a zdarma.",
+};
+
 export default function AboutPage() {
   return (
     <main className="about-page">
