@@ -1,4 +1,5 @@
 import "../styles/AboutPage.scss";
+import ContactForm from "../components/ContactForm";
 
 export default function AboutPage() {
   return (
@@ -45,6 +46,15 @@ export default function AboutPage() {
           <p>
             Budeme rádi za jakoukoli zpětnou vazbu – ať už jde o nápad na novou funkci, návrh na vylepšení nebo připomínku k tomu, co by mohlo fungovat lépe. Každý podnět nám pomáhá posouvat platformu dál a dělá z ní místo, které odpovídá skutečným potřebám uživatelů.
           </p>
+          <div style={{ marginTop: "2rem" }}>
+            <ContactForm
+              title="Dejte nám vědět, co byste vylepšili"
+              description="Napište nám svůj nápad, připomínku nebo cokoliv, co by vám na stránce chybělo. Každý podnět nám pomáhá zlepšovat platformu pro všechny."
+              buttonText="Odeslat zpětnou vazbu"
+              successMessage="Děkujeme za vaši zpětnou vazbu! 👍"
+              placeholder="Vaše zpráva, nápad nebo připomínka"
+            />
+          </div>
         </section>
       </div>
     </main>

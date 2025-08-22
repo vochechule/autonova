@@ -9,6 +9,7 @@ import { SavedAdModule } from './saved-ad/saved-ad.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { AdminModule } from './admin/admin.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AdminModule } from './admin/admin.module';
     MulterModule.register({
       dest: './uploads',
     }),
+    ContactModule,
   ],
   controllers: [AppController],
   providers: [AppService],

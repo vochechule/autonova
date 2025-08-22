@@ -6,6 +6,7 @@ import StartupBanner from './components/StartupBanner'
 import WhyCartaSection from './components/WhyCartaSection'
 import UserReviewsSection from './components/UserReviewsSection'
 import SellCarCTA from './components/SellCarCTA'
+import ContactForm from './components/ContactForm'
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
       <WhyCartaSection />
       <UserReviewsSection />
       <SellCarCTA />
+      <ContactForm />
     </main>
   )
 }
