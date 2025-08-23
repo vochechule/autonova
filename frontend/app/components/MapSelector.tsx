@@ -14,12 +14,14 @@ const DynamicMapComponent = dynamic(() => import('./MapComponent'), {
   )
 })
 
+interface Location {
+  latitude: number
+  longitude: number
+  address: string
+}
+
 interface MapSelectorProps {
-  onLocationSelect: (location: {
-    latitude: number
-    longitude: number
-    address: string
-  }) => void
+  onLocationSelect: (location: Location) => void
   initialPosition?: [number, number]
   height?: string
 }
@@ -31,7 +33,7 @@ export default function MapSelector({
 }: MapSelectorProps) {
   const [address, setAddress] = useState<string>('')
 
-  const handleLocationSelect = (location: any) => {
+  const handleLocationSelect = (location: Location) => {
     setAddress(location.address)
     onLocationSelect(location)
   }

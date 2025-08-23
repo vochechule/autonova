@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import '../styles/components/Header.scss'
 
 export default function Header() {
@@ -64,7 +65,7 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header__container">
-        <a href="/" className="header__logo">
+        <Link href="/" className="header__logo">
           <Image
             src={isDarkMode ? "/carta-logo-negative.svg" : "/carta-logo.svg"}
             alt="Carta.cz"
@@ -74,15 +75,15 @@ export default function Header() {
             className="header__logo-image"
           />
           <h1>Carta.cz</h1>
-        </a>
+        </Link>
         
         <nav className="header__nav">
-          <a href="/" className="header__link">Domů</a>
-          <a href="/ads" className="header__link">Inzeráty</a>
+          <Link href="/" className="header__link">Domů</Link>
+          <Link href="/ads" className="header__link">Inzeráty</Link>
           
           {/* ✅ CONDITIONAL LINK - Only show when loaded and logged in */}
           {authLoaded && loggedIn && (
-            <a href="/saved-ads" className="header__link">Oblíbené</a>
+            <Link href="/saved-ads" className="header__link">Oblíbené</Link>
           )}
           
           {/* ✅ AUTH BUTTONS - Always present but with loading states */}
@@ -96,36 +97,36 @@ export default function Header() {
             ) : loggedIn ? (
               // ✅ LOGGED IN STATE
               <>
-                <a href="/ads/create" className="header__button header__button--primary">
+                <Link href="/ads/create" className="header__button header__button--primary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                   Přidat inzerát
-                </a>
-                <a href="/profile" className="header__button header__button--secondary">
+                </Link>
+                <Link href="/profile" className="header__button header__button--secondary">
                   <div className="header__profile-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
                     </svg>
                   </div>
                   Profil
-                </a>
+                </Link>
               </>
             ) : (
               // ✅ NOT LOGGED IN STATE
               <>
-                <a href="/login" className="header__button header__button--secondary">
+                <Link href="/login" className="header__button header__button--secondary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Přihlásit se
-                </a>
-                <a href="/register" className="header__button header__button--primary">
+                </Link>
+                <Link href="/register" className="header__button header__button--primary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M12.5 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM20 8v6M23 11h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   Registrovat se
-                </a>
+                </Link>
               </>
             )}
           </div>

@@ -12,7 +12,14 @@ import '../styles/components/AdFilter.scss'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => void }) {
+// Přidej typ pro inzerát místo any
+interface Ad {
+  id: string;
+  // přidej další pole podle své struktury inzerátu
+  [key: string]: unknown;
+}
+
+export default function AdFilter({ onResults }: { onResults?: (ads: Ad[]) => void }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [showAllFilters, setShowAllFilters] = useState(false)
@@ -114,7 +121,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     try {
       const res = await fetch(`${API_URL}/ad?${params.toString()}`)
       const data = await res.json()
-      const ads = data.ads || data
+      const ads: Ad[] = data.ads || data
       setNoResults(ads.length === 0)
       onResults?.(ads)
     } catch (error) {
@@ -160,7 +167,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
       fetch(`${API_URL}/ad?${params}`)
         .then(res => res.json())
         .then(data => {
-          const ads = data.ads || data
+          const ads: Ad[] = data.ads || data
           setNoResults(ads.length === 0)
           setLoading(false)
           onResults?.(ads)

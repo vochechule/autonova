@@ -67,7 +67,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
         // ✅ PŘIDÁNO - Toast pro chybu
         showError('Chyba při změně hesla', errorMessage)
       }
-    } catch (err) {
+    } catch {
       const errorMessage = 'Nepodařilo se změnit heslo'
       setError(errorMessage)
       showError('Chyba sítě', errorMessage)
@@ -148,11 +148,17 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
   )
 }
 
+interface UserProfile {
+  name: string
+  email: string
+  [key: string]: unknown
+}
+
 interface EditProfileModalProps {
   isOpen: boolean
   onClose: () => void
-  user: any
-  onSuccess: (updatedUser: any) => void
+  user: UserProfile
+  onSuccess: (updatedUser: UserProfile) => void
 }
 
 export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfileModalProps) {
@@ -180,7 +186,7 @@ export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfi
       })
 
       if (res.ok) {
-        const updatedUser = await res.json()
+        const updatedUser: UserProfile = await res.json()
         // ✅ UPRAVENO - Toast místo alert
         showSuccess('Profil aktualizován', 'Vaše údaje byly úspěšně aktualizovány')
         onSuccess(updatedUser)
@@ -191,7 +197,7 @@ export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfi
         setError(errorMessage)
         showError('Chyba při aktualizaci', errorMessage)
       }
-    } catch (err) {
+    } catch {
       const errorMessage = 'Nepodařilo se aktualizovat profil'
       setError(errorMessage)
       showError('Chyba sítě', errorMessage)
@@ -307,7 +313,7 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
         setError(errorMessage)
         showError('Chyba při mazání účtu', errorMessage)
       }
-    } catch (err) {
+    } catch {
       const errorMessage = 'Nepodařilo se smazat účet'
       setError(errorMessage)
       showError('Chyba sítě', errorMessage)

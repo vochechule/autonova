@@ -3,21 +3,19 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import '../styles/LoginForm.scss'
-// ✅ PŘIDÁNO - Loading states a toast
 import { ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
-import { useAuth } from '../hooks/AuthProvider';
+import { useAuth } from '../hooks/AuthProvider'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function LoginForm() {
   const router = useRouter()
-  const { login } = useAuth();
+  const { login } = useAuth()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // ✅ PŘIDÁNO - Toast hook
-  const { showSuccess, showError, showInfo } = useToast()
+  const { showSuccess, showError } = useToast()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -33,32 +31,31 @@ export default function LoginForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
         const errorMessage = errorData.message || 'Přihlášení se nezdařilo'
         throw new Error(errorMessage)
       }
-      
-      const data = await res.json()
-      
-      // ZMĚNA: data.token místo data.access_token
+
+      const data: { token: string } = await res.json()
+
       localStorage.setItem('token', data.token)
-      login(data.token);
-      window.dispatchEvent(new Event('loginStatusChanged'));
-      setSuccess(true);
-      setLoading(false);
-      showSuccess('Přihlášení úspěšné', 'Vítejte zpět! Přesměrovávám na hlavní stránku...');
-      setTimeout(() => router.push('/'), 1000); // Počkej 1s a přesměruj
-    } catch (err: any) {
-      setError(err.message)
+      login(data.token)
+      window.dispatchEvent(new Event('loginStatusChanged'))
+      setSuccess(true)
       setLoading(false)
-      
-      // ✅ PŘIDÁNO - Toast pro chybu přihlášení
-      if (err.message.includes('Unauthorized') || err.message.includes('Invalid credentials')) {
+      showSuccess('Přihlášení úspěšné', 'Vítejte zpět! Přesměrovávám na hlavní stránku...')
+      setTimeout(() => router.push('/'), 1000)
+    } catch (err) {
+      const errorObj = err as Error
+      setError(errorObj.message)
+      setLoading(false)
+
+      if (errorObj.message.includes('Unauthorized') || errorObj.message.includes('Invalid credentials')) {
         showError('Neplatné údaje', 'Email nebo heslo není správné')
       } else {
-        showError('Chyba přihlášení', err.message)
+        showError('Chyba přihlášení', errorObj.message)
       }
     }
   }

@@ -185,7 +185,8 @@ export default function LocationFilter({ onLocationChange, initialDistance = 25,
         onLocationChange(null)
       }
     }
-  }, []) // ✅ Prázdné deps - spustí se pouze při mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onLocationChange]) // <-- přidáno onLocationChange do dependencies
 
   return (
     <div className={`location-filter ${className}`}>

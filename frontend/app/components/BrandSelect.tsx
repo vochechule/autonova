@@ -1,15 +1,16 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { getBrandsGroupedByLetter } from '../data/carData'
+import Image from 'next/image'
 import './BrandSelect.scss'
 
 interface BrandSelectProps {
   value: string
   onChange: (value: string) => void
-  required?: boolean
+  required?: boolean // eslint-disable-line @typescript-eslint/no-unused-vars
 }
 
-export default function BrandSelect({ value, onChange, required = false }: BrandSelectProps) {
+export default function BrandSelect({ value, onChange }: BrandSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -101,18 +102,22 @@ export default function BrandSelect({ value, onChange, required = false }: Brand
         <div className="brand-select__value">
           {selectedBrand ? (
             <>
-              <img 
-                src={selectedBrand.logo} 
-                alt={`${selectedBrand.label} logo`}
-                className="brand-select__logo"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                }}
-              />
+              {selectedBrand.logo && (
+                <Image 
+                  src={selectedBrand.logo} 
+                  alt={`${selectedBrand.label} logo`}
+                  className="brand-select__logo"
+                  width={24}
+                  height={24}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none'
+                  }}
+                />
+              )}
               <span>{selectedBrand.label}</span>
             </>
           ) : (
-            <span className="placeholder">Vyberte značku...</span>
+            <span className="placeholder">Vyberte značku…</span>
           )}
         </div>
         <div className={`brand-select__arrow ${isOpen ? 'open' : ''}`}>
@@ -134,7 +139,7 @@ export default function BrandSelect({ value, onChange, required = false }: Brand
             <input
               ref={inputRef}
               type="text"
-              placeholder="Hledat značku..."
+              placeholder="Hledat značku…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="brand-select__search-input"
@@ -145,7 +150,7 @@ export default function BrandSelect({ value, onChange, required = false }: Brand
           <div className="brand-select__options">
             {Object.keys(filteredBrands).length === 0 ? (
               <div className="brand-select__no-results">
-                Žádné výsledky pro "{searchTerm}"
+                Žádné výsledky pro &quot;{searchTerm}&quot;
               </div>
             ) : (
               Object.entries(filteredBrands)

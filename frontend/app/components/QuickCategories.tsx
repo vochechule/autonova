@@ -51,10 +51,12 @@ const quickCategories = [
   }
 ];
 
+type QuickCategoryQuery = Record<string, string | number | boolean>;
+
 export default function QuickCategories() {
   const router = useRouter();
 
-  function handleQuickFilter(query: Record<string, any>) {
+  function handleQuickFilter(query: QuickCategoryQuery) {
     const params = new URLSearchParams();
     Object.entries(query).forEach(([key, value]) => {
       params.append(key, String(value));

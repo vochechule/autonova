@@ -1,23 +1,70 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import '../styles/components/AdCreateForm.scss'
 import '../styles/components/SuccessMessage.scss'
-import { carBrands, getBrandsList, getModelsList, getBrandsGroupedByLetter } from '../data/carData';
-import BrandSelect from './BrandSelect';
-import ModelSelect from './ModelSelect';
+import { getModelsList } from '../data/carData'
+import BrandSelect from './BrandSelect'
+import ModelSelect from './ModelSelect'
 import ColorSelect from './ColorSelect'
 import ColorFinishSelect from './ColorFinishSelect'
-// ✅ PŘIDÁNO - Loading states a toast
 import { FormLoading, ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
 import MapSelector from './MapSelector'
+import Image from 'next/image'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 interface EditAdFormProps {
   adId: string
-  initialData?: any
+  initialData?: AdData
+}
+
+interface AdImage {
+  id: string
+  url: string
+}
+
+interface AdData {
+  brand: string
+  model: string
+  color: string
+  colorFinish: string
+  images: AdImage[]
+  latitude?: number
+  longitude?: number
+  address?: string
+  title?: string
+  description?: string
+  price?: number
+  mileage?: number
+  year?: number
+  firstRegistration?: number
+  bodyType?: string
+  doorCount?: number
+  seatCount?: number
+  airbagCount?: number
+  fuel?: string
+  engineVolume?: number
+  power?: number
+  avgConsumption?: number
+  transmission?: string
+  gearCount?: number
+  airConditioning?: string
+  drivetrain?: string
+  condition?: string
+  technicalCheckUntil?: string
+  countryOfOrigin?: string
+  euroStandard?: string
+  warrantyUntil?: string
+  ecoTaxPaid?: boolean
+  isFirstOwner?: boolean
+  isDisabledAdapted?: boolean
+  wasCrashed?: boolean
+  hasServiceBook?: boolean
+  contactName?: string
+  contactPhone?: string
+  contactEmail?: string
 }
 
 export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
@@ -26,32 +73,20 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [images, setImages] = useState<File[]>([])
-  const [existingImages, setExistingImages] = useState<any[]>([])
+  const [existingImages, setExistingImages] = useState<AdImage[]>([])
   const [imageError, setImageError] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const [selectedBrand, setSelectedBrand] = useState<string>('')
   const [selectedModel, setSelectedModel] = useState<string>('')
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [selectedColorFinish, setSelectedColorFinish] = useState<string>('standard')
-  const [adData, setAdData] = useState<any>(null)
+  const [adData, setAdData] = useState<AdData | null>(null)
   const [initialLoading, setInitialLoading] = useState(false)
   const [location, setLocation] = useState<{ latitude: number, longitude: number, address: string } | null>(null)
-  // ✅ PŘIDÁNO - Toast hook
   const { showSuccess, showError, showWarning } = useToast()
 
   // Načti data inzerátu
-  useEffect(() => {
-    if (initialData) {
-      setAdData(initialData)
-      populateFormData(initialData)
-      // ✅ PŘIDÁNO - Toast jen pro initialData
-      showSuccess('Data načtena', 'Formulář byl naplněn aktuálními údaji')
-    } else if (adId) {
-      fetchAdData()
-    }
-  }, [adId, initialData])
-
-  const fetchAdData = async () => {
+  const fetchAdData = useCallback(async () => {
     try {
       setInitialLoading(true)
       const token = localStorage.getItem('token')
@@ -66,10 +101,9 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
         throw new Error('Nepodařilo se načíst data inzerátu')
       }
 
-      const data = await res.json()
+      const data: AdData = await res.json()
       setAdData(data)
       populateFormData(data)
-      // ✅ PŘIDÁNO - Toast jen pro fetch (ne pro initialData)
       showSuccess('Data načtena', 'Formulář byl naplněn aktuálními údaji')
     } catch (err) {
       console.error('Error fetching ad data:', err)
@@ -78,17 +112,26 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
     } finally {
       setInitialLoading(false)
     }
-  }
+  }, [adId, showSuccess, showError])
 
-  const populateFormData = (data: any) => {
-    // Nastav state hodnoty
+  useEffect(() => {
+    if (initialData) {
+      setAdData(initialData)
+      populateFormData(initialData)
+      showSuccess('Data načtena', 'Formulář byl naplněn aktuálními údaji')
+    } else if (adId) {
+      fetchAdData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adId, initialData, fetchAdData])
+
+  const populateFormData = (data: AdData) => {
     setSelectedBrand(data.brand || '')
     setSelectedModel(data.model || '')
     setSelectedColor(data.color || '')
     setSelectedColorFinish(data.colorFinish || 'standard')
     setExistingImages(data.images || [])
 
-    // ✅ PŘIDÁNO - Lokace
     if (data.latitude && data.longitude && data.address) {
       setLocation({
         latitude: data.latitude,
@@ -100,7 +143,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
 
   const handleBrandChange = (brand: string) => {
     setSelectedBrand(brand)
-    setSelectedModel('') // Reset model při změně značky
+    setSelectedModel('')
   }
 
   const handleModelChange = (model: string) => {
@@ -109,7 +152,6 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
 
   const modelsList = selectedBrand ? getModelsList(selectedBrand) : []
 
-  // Image handling funkce (stejné jako v AdCreateForm)
   const validateAndAddFiles = (newFiles: File[]) => {
     const maxSize = 10 * 1024 * 1024
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -135,7 +177,6 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       errors.push(`Můžete mít maximálně 10 obrázků. Aktuálně máte ${existingImages.length + images.length}, snažíte se přidat ${validFiles.length}.`)
     } else {
       setImages(prev => [...prev, ...validFiles])
-      // ✅ PŘIDÁNO - Toast po přidání obrázků
       if (validFiles.length > 0) {
         showSuccess('Obrázky přidány', `Přidáno ${validFiles.length} ${validFiles.length === 1 ? 'obrázek' : 'obrázků'}`)
       }
@@ -143,7 +184,6 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
 
     if (errors.length > 0) {
       setImageError(errors.join('\n'))
-      // ✅ PŘIDÁNO - Toast pro chyby obrázků
       showWarning('Problém s obrázky', errors[0])
     } else {
       setImageError(null)
@@ -175,13 +215,11 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
   const handleImageRemove = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index))
     setImageError(null)
-    // ✅ PŘIDÁNO - Toast po odebrání
     showSuccess('Obrázek odebrán', 'Nový obrázek byl odebrán ze seznamu')
   }
 
   const handleExistingImageRemove = (imageId: string) => {
     setExistingImages(prev => prev.filter(img => img.id !== imageId))
-    // ✅ PŘIDÁNO - Toast po odebrání existujícího
     showWarning('Obrázek bude smazán', 'Existující obrázek bude smazán při uložení')
   }
 
@@ -195,12 +233,10 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       setLoading(true)
       setError(null)
 
-      // Validace - musí mít alespoň 2 obrázky celkem
       const totalImages = existingImages.length + images.length
       if (totalImages < 2) {
         setImageError('Musíte mít alespoň dva obrázky.')
         setLoading(false)
-        // ✅ PŘIDÁNO - Toast pro validační chybu
         showError('Nedostatek obrázků', 'Inzerát musí mít alespoň 2 obrázky')
         return
       } else {
@@ -215,7 +251,6 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       const formData = new FormData()
       const formValues = new FormData(form)
 
-      // ✅ PŘESUNUTO - Kontaktní údaje HNED na začátek
       const contactPhone = formValues.get('contactPhone')
       const contactEmail = formValues.get('contactEmail')
 
@@ -227,7 +262,6 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
         throw new Error('Email je povinný')
       }
 
-      // Přidej kontaktní údaje do formData
       formData.append('contactPhone', contactPhone.toString())
       formData.append('contactEmail', contactEmail.toString())
 
@@ -236,23 +270,20 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
         formData.append('contactName', contactName.toString())
       }
 
-      // Brand a model ze state
       formData.append('brand', selectedBrand)
       formData.append('model', selectedModel)
       formData.append('color', selectedColor)
       formData.append('colorFinish', selectedColorFinish || 'standard')
 
-      // String hodnoty
       const stringFields = ['title', 'description', 'bodyType', 
-                           'fuel', 'transmission', 'drivetrain', 'airConditioning', 'condition', 
-                           'countryOfOrigin', 'euroStandard']
-      
+        'fuel', 'transmission', 'drivetrain', 'airConditioning', 'condition', 
+        'countryOfOrigin', 'euroStandard']
+
       stringFields.forEach(field => {
         const value = formValues.get(field)
         if (value) formData.append(field, value.toString())
       })
 
-      // Integer hodnoty
       const requiredIntegerFields = ['price', 'mileage', 'year', 'firstRegistration', 'doorCount', 'seatCount', 'engineVolume', 'power']
       const optionalIntegerFields = ['airbagCount', 'gearCount']
 
@@ -271,51 +302,43 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
         }
       })
 
-      // avgConsumption jako povinná
       const avgConsumptionValue = formValues.get('avgConsumption')
       if (!avgConsumptionValue || !avgConsumptionValue.toString().trim()) {
         throw new Error('Průměrná spotřeba je povinná')
       }
       formData.append('avgConsumption', avgConsumptionValue.toString())
 
-      // Boolean hodnoty
       const booleanFields = ['ecoTaxPaid', 'isFirstOwner', 'isDisabledAdapted', 'wasCrashed', 'hasServiceBook']
       booleanFields.forEach(field => {
         const checkbox = form.querySelector(`[name="${field}"]`) as HTMLInputElement
         formData.append(field, checkbox?.checked ? 'true' : 'false')
       })
 
-      // Datum hodnoty
       const techCheckValue = formValues.get('technicalCheckUntil')
       if (techCheckValue) {
         formData.append('technicalCheckUntil', new Date(techCheckValue.toString()).toISOString())
       }
-      
+
       const warrantyValue = formValues.get('warrantyUntil')
       if (warrantyValue) {
         formData.append('warrantyUntil', new Date(warrantyValue.toString()).toISOString())
       }
 
-      // Nové obrázky
       if (images.length > 0) {
         images.forEach(img => {
           formData.append('images', img)
         })
       }
 
-      // Které existující obrázky smazat
-      const imagesToDelete = adData.images.filter((img: any) => 
+      const imagesToDelete = adData?.images.filter((img) =>
         !existingImages.find(existing => existing.id === img.id)
-      )
-      
+      ) ?? []
+
       if (imagesToDelete.length > 0) {
-        const idsToDelete = imagesToDelete.map((img: any) => img.id);
-        formData.append('imagesToDelete', JSON.stringify(idsToDelete));
+        const idsToDelete = imagesToDelete.map((img) => img.id)
+        formData.append('imagesToDelete', JSON.stringify(idsToDelete))
       }
 
-      // ✅ ODSTRANĚNO - duplikát kontaktních údajů (byl tu druhý blok)
-
-      // ✅ PŘIDÁNO - Lokace
       if (location) {
         formData.append('latitude', location.latitude.toString())
         formData.append('longitude', location.longitude.toString())
@@ -331,31 +354,27 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
         body: formData,
         credentials: 'include'
       })
-      
+
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
         console.error('❌ Backend error response:', errData)
-        
+
         let errorMessage = 'Chyba při aktualizaci inzerátu'
-        
+
         if (errData.message) {
-          errorMessage = Array.isArray(errData.message) 
-            ? errData.message.join(', ') 
+          errorMessage = Array.isArray(errData.message)
+            ? errData.message.join(', ')
             : errData.message
         } else if (errData.error) {
           errorMessage = errData.error
         }
-        
+
         throw new Error(errorMessage)
       }
 
-      const result = await res.json()
       setSuccess(true)
-
-      // ✅ PŘIDÁNO - Toast po úspěšném uložení
       showSuccess('Inzerát aktualizován', 'Všechny změny byly úspěšně uloženy')
 
-      // Redirect po 2 sekundách
       setTimeout(() => {
         router.push(`/ads/${adId}`)
       }, 2000)
@@ -364,7 +383,6 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       console.error('🔍 Submit error:', err)
       if (err instanceof Error) {
         setError(err.message)
-        // ✅ PŘIDÁNO - Toast pro chybu
         showError('Chyba při ukládání', err.message)
       } else {
         setError('Neznámá chyba')
@@ -375,17 +393,18 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
     }
   }
 
-  // ✅ UPRAVENO - Loading states
   if (initialLoading && !adData) {
     return (
       <div className="ad-create-form">
         <div className="form-container">
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ 
-                width: '40px', 
-                height: '40px', 
-                border: '3px solid #e2e8f0', 
+            <div style={{
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                border: '3px solid #e2e8f0',
                 borderTop: '3px solid #0070f3',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite',
@@ -407,7 +426,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <h3 style={{ color: '#e53e3e', marginBottom: '16px' }}>Chyba při načítání</h3>
             <p style={{ color: '#718096', marginBottom: '24px' }}>Nepodařilo se načíst data inzerátu</p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               style={{
                 background: '#0070f3',
@@ -782,7 +801,13 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
                 <div className="image-gallery">
                   {existingImages.map((image) => (
                     <div key={image.id} className="image-preview">
-                      <img src={image.url} alt="Současný obrázek" />
+                      <Image
+                        src={image.url}
+                        alt="Současný obrázek"
+                        width={180}
+                        height={120}
+                        style={{ objectFit: 'cover' }}
+                      />
                       <button
                         type="button"
                         className="remove-image-btn"
@@ -804,10 +829,13 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
                 <div className="image-gallery">
                   {images.map((image, index) => (
                     <div key={index} className="image-preview">
-                      <img 
-                        src={URL.createObjectURL(image)} 
+                      <Image
+                        src={URL.createObjectURL(image)}
                         alt={`Nový náhled ${index + 1}`}
-                        onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+                        width={180}
+                        height={120}
+                        style={{ objectFit: 'cover' }}
+                        onLoad={() => URL.revokeObjectURL(URL.createObjectURL(image))}
                       />
                       <button
                         type="button"

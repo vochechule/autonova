@@ -5,7 +5,7 @@ import '../styles/components/CookiesPopup.scss'
 // ✅ PŘIDÁNO - TypeScript declaration pro gtag
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
+    gtag?: (...args: unknown[]) => void; // opraveno z any na unknown
   }
 }
 

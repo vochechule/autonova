@@ -1,5 +1,5 @@
 'use client'
-import { colorFinishes, getColorFinishByValue } from '../data/colorData'
+import { colorFinishes } from '../data/colorData'
 
 interface ColorFinishSelectProps {
   value: string
@@ -16,8 +16,6 @@ export default function ColorFinishSelect({
   className = "",
   placeholder = "Vyberte povrchovou úpravu"
 }: ColorFinishSelectProps) {
-  const selectedFinish = getColorFinishByValue(value)
-
   return (
     <div className={`color-finish-select ${className}`}>
       <select 

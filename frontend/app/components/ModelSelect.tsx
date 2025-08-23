@@ -7,7 +7,7 @@ interface ModelSelectProps {
   onChange: (value: string) => void
   models: { value: string; label: string }[]
   disabled?: boolean
-  required?: boolean
+  required?: boolean // eslint-disable-line @typescript-eslint/no-unused-vars
 }
 
 export default function ModelSelect({ 
@@ -15,7 +15,7 @@ export default function ModelSelect({
   onChange, 
   models, 
   disabled = false, 
-  required = false 
+  required = false // eslint-disable-line @typescript-eslint/no-unused-vars
 }: ModelSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')

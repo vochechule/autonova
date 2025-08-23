@@ -3,12 +3,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import '../styles/components/AdCreateForm.scss'
 import '../styles/components/SuccessMessage.scss'
-import { carBrands, getBrandsList, getModelsList, getBrandsGroupedByLetter } from '../data/carData';
+import { getModelsList } from '../data/carData';
 import BrandSelect from './BrandSelect';
 import ModelSelect from './ModelSelect';
 import ColorSelect from './ColorSelect'
 import ColorFinishSelect from './ColorFinishSelect'
-// ✅ PŘIDÁNO - Loading states a toast
 import { FormLoading, ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
 import MapSelector from './MapSelector'
@@ -34,7 +33,6 @@ export default function AdCreateForm() {
     longitude: number
     address: string
   } | null>(null)
-  // ✅ PŘIDÁNO - Toast hook
   const { showSuccess, showError, showWarning } = useToast()
 
   const [adCount, setAdCount] = useState<number | null>(null)
@@ -42,7 +40,7 @@ export default function AdCreateForm() {
 
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
-  const [uploadStep, setUploadStep] = useState<string>('') // např. "Nahrávám obrázky..."
+  const [uploadStep, setUploadStep] = useState<string>('')
 
   const modelsList = getModelsList(selectedBrand)
 
@@ -74,10 +72,6 @@ export default function AdCreateForm() {
     setSelectedModel(modelValue)
   }
 
-  const handleImageAdd = (newFiles: File[]) => {
-    validateAndAddFiles(newFiles)
-  }
-
   const handleImageRemove = (index: number) => {
     const newImages = images.filter((_, i) => i !== index)
     setImages(newImages)
@@ -88,7 +82,6 @@ export default function AdCreateForm() {
       setImageError(null)
     }
     
-    // ✅ PŘIDÁNO - Toast po odebrání
     showSuccess('Obrázek odebrán', 'Obrázek byl odebrán ze seznamu')
   }
 
@@ -122,7 +115,6 @@ export default function AdCreateForm() {
     validateAndAddFiles(files)
   }
 
-  // ✅ NOVÁ FUNKCE - Nová funkce pro validaci souborů
   const validateAndAddFiles = (newFiles: File[]) => {
     const maxSize = 10 * 1024 * 1024 // 10MB
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -166,7 +158,6 @@ export default function AdCreateForm() {
     }
   }
 
-  // V handleSubmit funkci aktualizujte validaci:
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     // ✅ Kontrola limitu před validací
@@ -757,6 +748,7 @@ export default function AdCreateForm() {
               <div className="image-gallery">
                 {images.map((image, index) => (
                   <div key={index} className="image-preview">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={URL.createObjectURL(image)} 
                       alt={`Náhled ${index + 1}`}
