@@ -39,6 +39,8 @@ interface AdCardProps {
 }
 
 export default function AdCard({ ad, viewMode }: AdCardProps) {
+  console.log('AdCard render', ad.id);
+
   if (viewMode === 'grid') {
     return <GridCard ad={ad} />
   }

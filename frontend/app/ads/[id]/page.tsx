@@ -8,21 +8,81 @@ import '../../styles/AdDetailPage.scss'
 import Link from 'next/link'
 import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatter'
 import { conditionMap, fuelMap, transmissionMap, colorMap, colorFinishMap } from '../../utils/labelMaps'
-// ✅ PŘIDÁNO - Import loading states a error pages
 import { PageLoading } from '../../components/LoadingStates'
 import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
 import { useToast } from '../../contexts/ToastContext'
 import AdMap from '../../components/AdMap'
+import Image from 'next/image'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// Přidej typy pro ad a obrázky
+interface AdImage {
+  id: string;
+  url: string;
+}
+
+interface AdUser {
+  id?: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+  location?: string;
+}
+
+interface AdType {
+  id: string;
+  title: string;
+  brand: string;
+  model: string;
+  year: number;
+  mileage: number;
+  price: number;
+  images: AdImage[];
+  user?: AdUser;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  createdAt?: string;
+  views?: number;
+  bodyType?: string;
+  transmission?: string;
+  power?: number;
+  engineVolume?: number;
+  fuel?: string;
+  gearCount?: number;
+  drivetrain?: string;
+  seatCount?: number;
+  doorCount?: number;
+  color?: string;
+  colorFinish?: string;
+  airbagCount?: number;
+  airConditioning?: string;
+  isFirstOwner?: boolean;
+  hasServiceBook?: boolean;
+  wasCrashed?: boolean;
+  technicalCheckUntil?: string;
+  warrantyUntil?: string;
+  ecoTaxPaid?: boolean;
+  countryOfOrigin?: string;
+  avgConsumption?: number;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  features?: string[];
+  condition?: string;
+  firstRegistration?: string; // ← přidáno
+  euroStandard?: string;      // ← přidáno
+}
+
 export default function AdDetailPage() {
   const { id } = useParams()
-  const [ad, setAd] = useState<any>(null)
+  const [ad, setAd] = useState<AdType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [imgIndex, setImgIndex] = useState(0)
-  // ✅ PŘIDÁNO - Toast hook
   const { showError } = useToast()
 
   useEffect(() => {
@@ -53,7 +113,6 @@ export default function AdDetailPage() {
       }
     }
 
-    // Debounce - počkej 100ms před voláním
     const timeoutId = setTimeout(fetchAd, 100)
     return () => clearTimeout(timeoutId)
   }, [id, showError])
@@ -79,7 +138,6 @@ export default function AdDetailPage() {
     trackMouse: true,
   })
 
-  // ✅ UPRAVENO - Lepší loading a error handling
   if (loading) return <PageLoading message="Načítám detail inzerátu..." />
   if (error === 'not-found') return <NotFoundPage />
   if (error === 'network-error') return <NetworkErrorPage onRetry={handleRetry} />
@@ -119,10 +177,14 @@ export default function AdDetailPage() {
           <div className="ad-detail-page__carousel" {...swipeHandlers}>
             {ad.images && ad.images.length > 0 ? (
               <>
-                <img
+                <Image
                   src={ad.images[imgIndex].url}
                   alt={ad.title}
                   className="ad-detail-page__carousel-img"
+                  width={800}
+                  height={600}
+                  style={{ objectFit: 'cover' }}
+                  priority={imgIndex === 0}
                 />
                 {ad.images.length > 1 && (
                   <>
@@ -143,8 +205,7 @@ export default function AdDetailPage() {
                 )}
                 {ad.images.length > 1 && (
                   <div className="ad-detail-page__carousel-dots">
-                    {ad.images.map((img: any, i: number) => {
-                      // Zobraz jen tečky v okolí aktuálního obrázku (max 2 vlevo/vpravo)
+                    {ad.images.map((img, i) => {
                       if (Math.abs(i - imgIndex) > 2) return null
                       return (
                         <button
@@ -176,7 +237,7 @@ export default function AdDetailPage() {
              {formatCarTitle(ad.brand, ad.model)}
             </h1>
             <div className="ad-detail-page__subtitle">
-              {ad.year} &bull; {ad.mileage?.toLocaleString()} km &bull; {fuelMap[ad.fuel] ?? ad.fuel ?? '-'}
+              {ad.year} &bull; {ad.mileage?.toLocaleString()} km &bull; {ad.fuel ? fuelMap[ad.fuel as string] ?? ad.fuel : '-'}
             </div>
             
             {/* Datum přidání a počet zobrazení */}
@@ -212,8 +273,10 @@ export default function AdDetailPage() {
               </div>
               <div className="ad-detail-page__key-spec">
                 <span className="ad-detail-page__key-spec-icon">⚙️</span>
-                <span>{transmissionMap[ad.transmission] ?? ad.transmission ?? '-'}</span>
-              </div>
+                  <span className="ad-detail-page__spec-value">
+                    {ad.transmission ? transmissionMap[ad.transmission as string] ?? ad.transmission : '-'}
+                  </span>              
+                </div>
               {ad.power && (
                 <div className="ad-detail-page__key-spec">
                   <span className="ad-detail-page__key-spec-icon">⚡</span>
@@ -232,7 +295,7 @@ export default function AdDetailPage() {
             <div className="ad-detail-page__seller-compact">
               <div className="ad-detail-page__seller-avatar">
                 {ad.user?.avatar
-                  ? <img src={ad.user.avatar} alt="avatar" />
+                  ? <Image src={ad.user.avatar} alt="avatar" width={48} height={48} style={{ borderRadius: '50%' }} />
                   : <div className="ad-detail-page__seller-avatar-placeholder">
                       {(ad.user?.firstName?.charAt(0) || ad.contactName?.charAt(0) || 'U')}
                     </div>}
@@ -245,7 +308,7 @@ export default function AdDetailPage() {
                 </div>
                 <div className="ad-detail-page__seller-location">{ad.user?.location ?? 'Neuvedeno'}</div>
                 
-                {/* ✅ PŘIDÁNO - Kontaktní údaje přímo zde */}
+                {/* Kontaktní údaje přímo zde */}
                 <div className="ad-detail-page__contact-info">
                   {ad.contactPhone && (
                     <a href={`tel:${ad.contactPhone}`} className="ad-detail-page__contact-link">
@@ -303,7 +366,9 @@ export default function AdDetailPage() {
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Stav</span>
-                <span className="ad-detail-page__spec-value">{conditionMap[ad.condition] ?? ad.condition ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">
+                  {ad.condition ? conditionMap[ad.condition as string] ?? ad.condition : '-'}
+                </span>
               </div>
             </div>
 
@@ -311,7 +376,7 @@ export default function AdDetailPage() {
               <h3>Motor a výkon</h3>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Palivo</span>
-                <span className="ad-detail-page__spec-value">{fuelMap[ad.fuel] ?? ad.fuel ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{ad.fuel ? fuelMap[ad.fuel as string] ?? ad.fuel : '-'}</span>
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Objem motoru</span>
@@ -335,7 +400,7 @@ export default function AdDetailPage() {
               <h3>Převodovka a podvozek</h3>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Převodovka</span>
-                <span className="ad-detail-page__spec-value">{transmissionMap[ad.transmission] ?? ad.transmission ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{ad.transmission ? transmissionMap[ad.transmission as string] ?? ad.transmission : '-'}</span>
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Počet rychlostí</span>
@@ -363,11 +428,11 @@ export default function AdDetailPage() {
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Barva</span>
-                <span className="ad-detail-page__spec-value">{colorMap[ad.color] ?? ad.color ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{ad.color ? colorMap[ad.color as string] ?? ad.color : '-'}</span>
               </div>
               <div className="ad-detail-page__spec-item">
                 <span className="ad-detail-page__spec-label">Lak</span>
-                <span className="ad-detail-page__spec-value">{colorFinishMap[ad.colorFinish] ?? ad.colorFinish ?? '-'}</span>
+                <span className="ad-detail-page__spec-value">{ad.colorFinish ? colorFinishMap[ad.colorFinish as string] ?? ad.colorFinish : '-'}</span>
               </div>
             </div>
 

@@ -1,9 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../hooks/AuthProvider'
 import FavoriteButton from '../components/FavoriteButton'
 import Link from 'next/link'
 import '../styles/SavedAdsPage.scss'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 interface SavedAd {
   id: string
@@ -30,9 +32,10 @@ export default function SavedAdsPage() {
   const [loadingAds, setLoadingAds] = useState(true)
 
   useEffect(() => {
+    if (loading) return;
     if (isAuthenticated && user) {
       const token = localStorage.getItem('token')
-      fetch('http://localhost:3000/saved-ads', {
+      fetch(`${API_URL}/saved-ads`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -45,8 +48,8 @@ export default function SavedAdsPage() {
         .catch(() => {
           setLoadingAds(false)
         })
-    } else if (!loading) {
-      setLoadingAds(false)
+    } else {
+      setLoadingAds(false);
     }
   }, [isAuthenticated, user, loading])
 
@@ -144,4 +147,4 @@ export default function SavedAdsPage() {
       </div>
     </main>
   )
-} 
+}

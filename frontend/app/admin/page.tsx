@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import '../styles/Admin.scss'; // Import stylů pro admin panel'
+import Image from 'next/image';
+import '../styles/Admin.scss';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -52,7 +53,7 @@ interface User {
 const DynamicAdminMap = dynamic(() => import('../components/AdminMap'), {
   ssr: false,
   loading: () => <div className="admin-loading">Načítání mapy...</div>
-})
+});
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -63,34 +64,37 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Funkce pro API volání s autentizací
-  const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return null;
-    }
+  // useCallback kvůli eslint/react-hooks/exhaustive-deps
+  const apiCall = useCallback(
+    async (endpoint: string, options: RequestInit = {}) => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return null;
+      }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        ...options.headers,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers: {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-    if (response.status === 403) {
-      setError('Nemáte oprávnění pro přístup do admin panelu');
-      return null;
-    }
+      if (response.status === 403) {
+        setError('Nemáte oprávnění pro přístup do admin panelu');
+        return null;
+      }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    return response.json();
-  };
+      return response.json();
+    },
+    [router]
+  );
 
   // Načtení dat při načtení stránky
   useEffect(() => {
@@ -107,15 +111,15 @@ export default function AdminPage() {
         if (statsData) setStats(statsData);
         if (adsData) setAds(adsData);
         if (usersData) setUsers(usersData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Chyba při načítání dat');
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Chyba při načítání dat');
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [apiCall]);
 
   // Smazání inzerátu
   const deleteAd = async (adId: string) => {
@@ -131,7 +135,7 @@ export default function AdminPage() {
           totalAds: stats.totalAds - 1,
         });
       }
-    } catch (err) {
+    } catch {
       alert('Chyba při mazání inzerátu');
     }
   };
@@ -200,9 +204,12 @@ export default function AdminPage() {
               {ads.map(ad => (
                 <div key={ad.id} className="ad-row">
                   <div className="ad-image">
-                    <img 
+                    <Image 
                       src={ad.images[0]?.url || '/default-car.png'} 
                       alt={ad.title}
+                      width={80}
+                      height={60}
+                      style={{ objectFit: 'cover', borderRadius: 8 }}
                     />
                   </div>
                   <div className="ad-info">

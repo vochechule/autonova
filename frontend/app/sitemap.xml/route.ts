@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export async function GET() {
   // Získej seznam všech inzerátů z backendu (příklad)
-  const res = await fetch("http://localhost:3000/ad/all");
+  const res = await fetch(`${API_URL}/ad/all`);
   const ads = res.ok ? await res.json() : [];
 
   const urls = [

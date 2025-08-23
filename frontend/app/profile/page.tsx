@@ -4,19 +4,21 @@ import { ConfirmModal } from '../components/ConfirmModal'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import '../styles/ProfilePage.scss'
-// ✅ PŘIDÁNO - Loading states a error handling
 import { PageLoading, ButtonLoading } from '../components/LoadingStates'
 import { UnauthorizedPage, NetworkErrorPage } from '../components/ErrorPages'
 import { useToast } from '../contexts/ToastContext'
+import { useAuth } from '../hooks/AuthProvider';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null)
+  const { user, isAuthenticated, loading, getToken, refreshUser } = useAuth();
   const [ads, setAds] = useState<any[]>([])
   const [savedAds, setSavedAds] = useState<any[]>([])
   const [reviews, setReviews] = useState<any[]>([])
   const [avgRating, setAvgRating] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loadingState, setLoading] = useState(true)
   const [showAllReviews, setShowAllReviews] = useState(false)
   const [deletingAdId, setDeletingAdId] = useState<string | null>(null)
   const [removingSavedId, setRemovingSavedId] = useState<string | null>(null)
@@ -31,8 +33,9 @@ export default function ProfilePage() {
   const { showSuccess, showError } = useToast()
 
   useEffect(() => {
-    fetchProfileData()
-  }, [])
+    if (!user || loading) return;
+    fetchProfileData();
+  }, [user, loading])
 
   // ✅ NOVÁ FUNKCE - Centralizované načítání dat
   const fetchProfileData = async () => {
@@ -40,61 +43,43 @@ export default function ProfilePage() {
       setLoading(true)
       setError(null)
       
-      const token = localStorage.getItem('token')
-      if (!token) {
+      const token = getToken();
+      if (!token || !user) {
         setError('unauthorized')
         return
       }
 
-      const userResponse = await fetch('http://localhost:3000/auth/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      // Paralelní načítání všech dat
+      const [adsResponse, savedAdsResponse, reviewsResponse, avgRatingResponse] = await Promise.allSettled([
+        fetch(`${API_URL}/ad/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_URL}/saved-ads`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_URL}/user/${user.id}/reviews`),
+        fetch(`${API_URL}/user/${user.id}/average-rating`)
+      ])
 
-      if (userResponse.status === 401) {
-        setError('unauthorized')
-        return
+      // Zpracování výsledků s error handling
+      if (adsResponse.status === 'fulfilled' && adsResponse.value.ok) {
+        const adsData = await adsResponse.value.json()
+        setAds(adsData)
       }
 
-      if (!userResponse.ok) {
-        throw new Error('Failed to fetch user data')
+      if (savedAdsResponse.status === 'fulfilled' && savedAdsResponse.value.ok) {
+        const savedAdsData = await savedAdsResponse.value.json()
+        setSavedAds(savedAdsData)
       }
 
-      const userData = await userResponse.json()
-      setUser(userData)
+      if (reviewsResponse.status === 'fulfilled' && reviewsResponse.value.ok) {
+        const reviewsData = await reviewsResponse.value.json()
+        setReviews(reviewsData)
+      }
 
-      if (userData) {
-        // Paralelní načítání všech dat
-        const [adsResponse, savedAdsResponse, reviewsResponse, avgRatingResponse] = await Promise.allSettled([
-          fetch(`http://localhost:3000/ad/my`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`http://localhost:3000/saved-ads`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`http://localhost:3000/user/${userData.id}/reviews`),
-          fetch(`http://localhost:3000/user/${userData.id}/average-rating`)
-        ])
-
-        // Zpracování výsledků s error handling
-        if (adsResponse.status === 'fulfilled' && adsResponse.value.ok) {
-          const adsData = await adsResponse.value.json()
-          setAds(adsData)
-        }
-
-        if (savedAdsResponse.status === 'fulfilled' && savedAdsResponse.value.ok) {
-          const savedAdsData = await savedAdsResponse.value.json()
-          setSavedAds(savedAdsData)
-        }
-
-        if (reviewsResponse.status === 'fulfilled' && reviewsResponse.value.ok) {
-          const reviewsData = await reviewsResponse.value.json()
-          setReviews(reviewsData)
-        }
-
-        if (avgRatingResponse.status === 'fulfilled' && avgRatingResponse.value.ok) {
-          const avgData = await avgRatingResponse.value.json()
-          setAvgRating(avgData.averageRating)
-        }
+      if (avgRatingResponse.status === 'fulfilled' && avgRatingResponse.value.ok) {
+        const avgData = await avgRatingResponse.value.json()
+        setAvgRating(avgData.averageRating)
       }
     } catch (err) {
       console.error('Error fetching profile:', err)
@@ -110,7 +95,7 @@ export default function ProfilePage() {
     setDeletingAdId(adId)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:3000/ad/${adId}`, {
+      const res = await fetch(`${API_URL}/ad/${adId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -136,7 +121,7 @@ export default function ProfilePage() {
     setRemovingSavedId(savedAdId)
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:3000/saved-ads/${adId}`, {
+      const res = await fetch(`${API_URL}/saved-ads/${adId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -160,7 +145,7 @@ export default function ProfilePage() {
   }
 
   // ✅ UPRAVENO - Error handling
-  if (loading) return <PageLoading message="Načítám váš profil..." />
+  if (loadingState) return <PageLoading message="Načítám váš profil..." />
   if (error === 'unauthorized') return <UnauthorizedPage />
   if (error === 'network-error') return <NetworkErrorPage onRetry={handleRetry} />
 

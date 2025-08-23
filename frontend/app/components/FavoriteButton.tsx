@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/AuthProvider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -15,23 +15,25 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (!isAuthenticated || !user) return;
+  // Získej token mimo useEffect, aby nebyl v dependencies
+  const token = getToken();
 
-    // ✅ PŘIDÁNO - AbortController pro cleanup
+  useEffect(() => {
+    console.log('FavoriteButton useEffect', adId);
+
+    if (!isAuthenticated || !user || !token) return;
+
     const abortController = new AbortController();
-    
+
     const checkSavedStatus = async () => {
       try {
-        const token = getToken();
         const response = await fetch(`${API_URL}/saved-ads/${adId}/is-saved`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
-          signal: abortController.signal, // ✅ PŘIDÁNO
+          signal: abortController.signal,
         });
 
-        // ✅ PŘIDÁNO - Check if request was aborted
         if (abortController.signal.aborted) {
           return;
         }
@@ -40,27 +42,22 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
           const data = await response.json();
           setIsSaved(data.isSaved);
         } else {
-          // ✅ OPRAVENO - Don't handle 401 here, let useAuth handle it
-          console.warn('Failed to check saved status:', response.status);
           setIsSaved(false);
         }
       } catch (error) {
-        // ✅ PŘIDÁNO - Ignore aborted requests
         if (error.name === 'AbortError') {
           return;
         }
-        console.error('Error checking saved status:', error);
         setIsSaved(false);
       }
     };
 
     checkSavedStatus();
 
-    // ✅ PŘIDÁNO - Cleanup function
     return () => {
       abortController.abort();
     };
-  }, [adId, isAuthenticated, user, getToken]);
+  }, [adId, isAuthenticated, user, token]); // getToken už není v dependencies
 
   const handleToggleFavorite = async () => {
     if (!isAuthenticated) {
@@ -105,6 +102,8 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
       setLoading(false);
     }
   };
+
+  console.log('FavoriteButton render', adId);
 
   return (
     <button

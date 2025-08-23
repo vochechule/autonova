@@ -6,6 +6,7 @@ import '../styles/RegisterForm.scss'
 import { ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
 import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react'
+import { useAuth } from '../hooks/AuthProvider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
@@ -22,6 +23,7 @@ export default function RegisterForm() {
     hasNumber: false
   })
   const { showSuccess, showError } = useToast()
+  const { setToken } = useAuth();
 
   useEffect(() => {
     setPasswordStrength({
@@ -63,6 +65,7 @@ export default function RegisterForm() {
       const data = await res.json()
       if (data.token) {
         localStorage.setItem('token', data.token)
+        setToken(data.token)
         window.dispatchEvent(new CustomEvent('authChange', {
           detail: { isLoggedIn: true }
         }))

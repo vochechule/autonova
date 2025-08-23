@@ -1,6 +1,6 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import ActiveFilters from '../components/ActiveFilters'
 import FilterSidebar from '../components/FilterSidebar'
 import AdCard from '../components/AdCard'
@@ -38,16 +38,18 @@ type Ad = {
   distance?: number
 }
 
+type Pagination = {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
 type PaginationResponse = {
   ads: Ad[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-    hasNext: boolean
-    hasPrev: boolean
-  }
+  pagination: Pagination
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
@@ -55,18 +57,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL
 export default function AdsPage() {
   const searchParams = useSearchParams()
   const [ads, setAds] = useState<Ad[]>([])
-  const [pagination, setPagination] = useState<any>(null)
+  const [pagination, setPagination] = useState<Pagination | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
-  const [locationFilter, setLocationFilter] = useState<{
-    latitude: number
-    longitude: number
-    address: string
-    distance: number
-  } | null>(null)
   const { showError: showToastError } = useToast()
 
   const handleViewChange = (view: ViewMode) => {
@@ -79,8 +75,7 @@ export default function AdsPage() {
     address: string
     distance: number
   } | null) => {
-    setLocationFilter(location)
-    
+
     const newSearchParams = new URLSearchParams(searchParams.toString())
     
     if (location) {
@@ -97,11 +92,7 @@ export default function AdsPage() {
     fetchAds(true)
   }
 
-  useEffect(() => {
-    fetchAds(true)
-  }, [searchParams])
-
-  const fetchAds = async (isInitialLoad = false) => {
+  const fetchAds = useCallback(async (isInitialLoad = false) => {
     try {
       if (isInitialLoad) {
         setLoading(true)
@@ -110,7 +101,7 @@ export default function AdsPage() {
       }
       
       const params = new URLSearchParams(searchParams.toString())
-      params.set('page', isInitialLoad ? '1' : (pagination.page + 1).toString())
+      params.set('page', isInitialLoad ? '1' : (pagination?.page ? (pagination.page + 1).toString() : '1'))
       params.set('limit', '10')
 
       const response = await fetch(`${API_URL}/ad?${params}`)
@@ -136,7 +127,11 @@ export default function AdsPage() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }
+  }, [searchParams, showToastError])
+
+  useEffect(() => {
+    fetchAds(true)
+  }, [searchParams, fetchAds])
 
   const loadMore = async () => {
     if (!pagination?.hasNext || loadingMore) return
@@ -158,6 +153,8 @@ export default function AdsPage() {
   if (error === 'network-error') {
     return <NetworkErrorPage onRetry={handleRetry} />
   }
+
+  console.log('AdsPage render');
 
   return (
     <main className="ads-page">
@@ -225,7 +222,7 @@ export default function AdsPage() {
                         <>
                           Zobrazit další inzeráty 
                           <span className="load-more-count">
-                            ({Math.min(10, pagination.total - ads.length)})
+                            ({Math.min(10, (pagination?.total ?? 0) - ads.length)})
                           </span>
                         </>
                       )}
@@ -235,16 +232,16 @@ export default function AdsPage() {
                       <div 
                         className="load-more-progress-bar"
                         style={{ 
-                          width: `${(ads.length / pagination.total) * 100}%` 
+                          width: `${pagination && pagination.total ? (ads.length / pagination.total) * 100 : 0}%` 
                         }}
                       />
                     </div>
                   </div>
                 )}
 
-                {!pagination?.hasNext && pagination?.total > 10 && (
+                {!pagination?.hasNext && (pagination?.total ?? 0) > 10 && (
                   <div className="ads-page__end-message">
-                    Zobrazili jste všech {pagination.total} inzerátů
+                    Zobrazili jste všech {pagination?.total ?? 0} inzerátů
                   </div>
                 )}
               </>

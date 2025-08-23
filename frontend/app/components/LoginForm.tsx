@@ -6,11 +6,13 @@ import '../styles/LoginForm.scss'
 // ✅ PŘIDÁNO - Loading states a toast
 import { ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
+import { useAuth } from '../hooks/AuthProvider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function LoginForm() {
   const router = useRouter()
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,17 +44,12 @@ export default function LoginForm() {
       
       // ZMĚNA: data.token místo data.access_token
       localStorage.setItem('token', data.token)
-      
-      // Poslat event pro aktualizaci headeru
-      window.dispatchEvent(new Event('loginStatusChanged'))
-      
-      setSuccess(true)
-      setLoading(false)
-      
-      // ✅ PŘIDÁNO - Toast po úspěšném přihlášení
-      showSuccess('Přihlášení úspěšné', 'Vítejte zpět! Přesměrovávám na hlavní stránku...')
-      
-      setTimeout(() => router.push('/'), 1000) // Počkej 1s a přesměruj
+      login(data.token);
+      window.dispatchEvent(new Event('loginStatusChanged'));
+      setSuccess(true);
+      setLoading(false);
+      showSuccess('Přihlášení úspěšné', 'Vítejte zpět! Přesměrovávám na hlavní stránku...');
+      setTimeout(() => router.push('/'), 1000); // Počkej 1s a přesměruj
     } catch (err: any) {
       setError(err.message)
       setLoading(false)

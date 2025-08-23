@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import CookiesPopup from "./components/CookiesPopup";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import Script from "next/script";
+import { AuthProvider } from "./hooks/AuthProvider"; // <-- přidej import
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
     siteName: "Carta.cz",
     images: [
       {
-        url: "/og-image.png", // Nahraj obrázek do /public
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Carta.cz - Inzerce aut zdarma",
@@ -79,16 +80,18 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <ToastProvider>
-          <div className="app-wrapper">
-            <Header />
-            <main className="main-content">{children}</main>
-            <Footer />
-            <BottomNavbar />
-            <CookiesPopup />
-          </div>
-          <ScrollToTopButton />
-        </ToastProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <div className="app-wrapper">
+              <Header />
+              <main className="main-content">{children}</main>
+              <Footer />
+              <BottomNavbar />
+              <CookiesPopup />
+            </div>
+            <ScrollToTopButton />
+          </ToastProvider>
+        </AuthProvider>
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-T59588T6DV"

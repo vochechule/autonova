@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import '../../styles/ProfilePageView.scss';
+import { useAuth } from '../../hooks/AuthProvider';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -17,12 +20,12 @@ export default function UserProfilePage() {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { user: authUser, isAuthenticated, loading: authLoading, getToken } = useAuth();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return setLoading(false);
-    // Fetch current user id
-    fetch("http://localhost:3000/auth/me", {
+    fetch(`${API_URL}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -35,19 +38,18 @@ export default function UserProfilePage() {
     if (!userId) return;
     setLoading(true);
     Promise.all([
-      fetch(`http://localhost:3000/user/${userId}`).then((res) => res.ok ? res.json() : null),
-      fetch(`http://localhost:3000/user/${userId}/reviews`).then((res) => res.ok ? res.json() : []),
-      fetch(`http://localhost:3000/user/${userId}/average-rating`).then((res) => res.ok ? res.json() : { averageRating: null }),
+      fetch(`${API_URL}/user/${userId}`).then((res) => res.ok ? res.json() : null),
+      fetch(`${API_URL}/user/${userId}/reviews`).then((res) => res.ok ? res.json() : []),
+      fetch(`${API_URL}/user/${userId}/average-rating`).then((res) => res.ok ? res.json() : { averageRating: null }),
     ])
       .then(([user, reviews, avg]) => {
         setUser(user);
         setReviews(reviews);
         setAvgRating(avg.averageRating);
         setLoading(false);
-        // Find my review if present
         const token = localStorage.getItem("token");
         if (token && user && reviews.length) {
-          fetch("http://localhost:3000/auth/me", {
+          fetch(`${API_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
           })
             .then((res) => (res.ok ? res.json() : null))
@@ -74,7 +76,7 @@ export default function UserProfilePage() {
     setSubmitting(true);
     const token = localStorage.getItem("token");
     if (!token) return;
-    const res = await fetch(`http://localhost:3000/user/${userId}/review`, {
+    const res = await fetch(`${API_URL}/user/${userId}/review`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -87,10 +89,9 @@ export default function UserProfilePage() {
       setMyReview(updated);
       setRating(updated.rating);
       setComment(updated.comment || "");
-      // Refresh reviews
-      const reviewsRes = await fetch(`http://localhost:3000/user/${userId}/reviews`);
+      const reviewsRes = await fetch(`${API_URL}/user/${userId}/reviews`);
       setReviews(await reviewsRes.json());
-      const avgRes = await fetch(`http://localhost:3000/user/${userId}/average-rating`);
+      const avgRes = await fetch(`${API_URL}/user/${userId}/average-rating`);
       setAvgRating((await avgRes.json()).averageRating);
     } else {
       alert("Nepodařilo se odeslat hodnocení");
