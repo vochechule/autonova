@@ -17,8 +17,16 @@ async function bootstrap() {
     whitelist: true,
   }));
 
+  const allowedOrigins = [
+    'http://localhost:3001',
+    'http://localhost:3000',
+    'https://carta.cz',
+    'https://www.carta.cz',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean) as string[]; // <- zajistí pouze stringy
+
   app.enableCors({
-    origin: 'http://localhost:3001', // nebo 3000 pokud Next běží tam
+    origin: allowedOrigins,
     credentials: true,
   });
 

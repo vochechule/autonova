@@ -13,6 +13,8 @@ import { FormLoading, ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
 import MapSelector from './MapSelector'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function AdCreateForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -50,7 +52,7 @@ export default function AdCreateForm() {
       setShowLoginModal(true)
       return
     }
-    fetch('http://localhost:3000/ad/my', {
+    fetch(`${API_URL}/ad/my`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.ok ? res.json() : [])
@@ -352,7 +354,7 @@ export default function AdCreateForm() {
       formData.append('address', location.address)
 
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:3000/ad', {
+      const res = await fetch(`${API_URL}/ad`, {
         method: 'POST',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import '../styles/Admin.scss'; // Import stylů pro admin panel'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Stats {
   totalUsers: number;
   totalAds: number;
@@ -69,7 +71,7 @@ export default function AdminPage() {
       return null;
     }
 
-    const response = await fetch(`http://localhost:3000${endpoint}`, {
+    const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
       headers: {
         ...options.headers,

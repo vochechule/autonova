@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface FavoriteButtonProps {
   adId: string;
   className?: string;
@@ -22,7 +24,7 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
     const checkSavedStatus = async () => {
       try {
         const token = getToken();
-        const response = await fetch(`http://localhost:3000/saved-ads/${adId}/is-saved`, {
+        const response = await fetch(`${API_URL}/saved-ads/${adId}/is-saved`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -71,7 +73,7 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
 
     try {
       if (isSaved) {
-        const response = await fetch(`http://localhost:3000/saved-ads/${adId}`, {
+        const response = await fetch(`${API_URL}/saved-ads/${adId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -83,7 +85,7 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
           onToggle?.(false);
         }
       } else {
-        const response = await fetch('http://localhost:3000/saved-ads', {
+        const response = await fetch(`${API_URL}/saved-ads`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

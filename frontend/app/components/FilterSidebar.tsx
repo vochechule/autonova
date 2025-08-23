@@ -10,6 +10,8 @@ import ColorFinishSelect from './ColorFinishSelect' // ✅ PŘIDÁNO
 import LocationFilter from './LocationFilter'
 import '../styles/components/FilterSidebar.scss'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface FilterSidebarProps {
   onResults?: (adsData: any) => void
   isVisible?: boolean
@@ -238,8 +240,7 @@ export default function FilterSidebar({
       setLoading(true);
       setError(null);
       
-      const url = `http://localhost:3000/ad${paramsString ? `?${paramsString}` : ''}`;
-      
+      const url = `${API_URL}/ad${paramsString ? `?${paramsString}` : ''}`;
       const res = await fetch(url);
       
       if (!res.ok) {

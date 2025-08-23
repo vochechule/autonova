@@ -10,6 +10,8 @@ import ColorFinishSelect from './ColorFinishSelect'
 import LocationFilter from './LocationFilter'
 import '../styles/components/AdFilter.scss'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => void }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -110,7 +112,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
 
     // Fetch results
     try {
-      const res = await fetch(`http://localhost:3000/ad?${params.toString()}`)
+      const res = await fetch(`${API_URL}/ad?${params.toString()}`)
       const data = await res.json()
       const ads = data.ads || data
       setNoResults(ads.length === 0)
@@ -155,7 +157,7 @@ export default function AdFilter({ onResults }: { onResults?: (ads: any[]) => vo
     const params = searchParams.toString()
     if (params) {
       setLoading(true)
-      fetch(`http://localhost:3000/ad?${params}`)
+      fetch(`${API_URL}/ad?${params}`)
         .then(res => res.json())
         .then(data => {
           const ads = data.ads || data

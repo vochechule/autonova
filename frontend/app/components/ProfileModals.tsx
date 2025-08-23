@@ -5,6 +5,8 @@ import '../styles/components/ProfileModals.scss'
 import { FormLoading, ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+
 interface ChangePasswordModalProps {
   isOpen: boolean
   onClose: () => void
@@ -38,7 +40,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:3000/auth/change-password', {
+      const res = await fetch(`${API_URL}/auth/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +170,7 @@ export function EditProfileModal({ isOpen, onClose, user, onSuccess }: EditProfi
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:3000/user/update-profile', {
+      const res = await fetch(`${API_URL}/user/update-profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -283,7 +285,7 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
 
     try {
       const token = localStorage.getItem('token')
-      const res = await fetch('http://localhost:3000/user/delete-account', {
+      const res = await fetch(`${API_URL}/user/delete-account`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

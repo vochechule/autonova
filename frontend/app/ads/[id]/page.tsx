@@ -14,6 +14,8 @@ import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
 import { useToast } from '../../contexts/ToastContext'
 import AdMap from '../../components/AdMap'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function AdDetailPage() {
   const { id } = useParams()
   const [ad, setAd] = useState<any>(null)
@@ -29,7 +31,7 @@ export default function AdDetailPage() {
         setLoading(true)
         setError(null)
         
-        const response = await fetch(`http://localhost:3000/ad/${id}`)
+        const response = await fetch(`${API_URL}/ad/${id}`)
         
         if (response.status === 404) {
           setError('not-found')

@@ -2,6 +2,8 @@
 import { useState } from "react";
 import '../styles/ContactForm.scss';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 type ContactFormProps = {
   title?: string;
   description?: string;
@@ -30,7 +32,7 @@ export default function ContactForm({
     setError(null);
     setSuccess(false);
 
-    const res = await fetch("http://localhost:3000/contact", {
+    const res = await fetch(`${API_URL}/contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, message, website: "" }),

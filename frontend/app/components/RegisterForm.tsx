@@ -7,6 +7,8 @@ import { ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
 import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+
 export default function RegisterForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -49,7 +51,7 @@ export default function RegisterForm() {
     const name = form.name.value
 
     try {
-      const res = await fetch('http://localhost:3000/auth/register', {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, name }),

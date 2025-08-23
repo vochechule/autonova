@@ -50,6 +50,8 @@ type PaginationResponse = {
   }
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+
 export default function AdsPage() {
   const searchParams = useSearchParams()
   const [ads, setAds] = useState<Ad[]>([])
@@ -111,7 +113,7 @@ export default function AdsPage() {
       params.set('page', isInitialLoad ? '1' : (pagination.page + 1).toString())
       params.set('limit', '10')
 
-      const response = await fetch(`http://localhost:3000/ad?${params}`)
+      const response = await fetch(`${API_URL}/ad?${params}`)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

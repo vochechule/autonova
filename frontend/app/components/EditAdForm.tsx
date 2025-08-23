@@ -13,6 +13,8 @@ import { FormLoading, ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
 import MapSelector from './MapSelector'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface EditAdFormProps {
   adId: string
   initialData?: any
@@ -53,7 +55,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
     try {
       setInitialLoading(true)
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:3000/ad/${adId}`, {
+      const res = await fetch(`${API_URL}/ad/${adId}`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
@@ -321,7 +323,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       }
 
       const token = localStorage.getItem('token')
-      const res = await fetch(`http://localhost:3000/ad/${adId}`, {
+      const res = await fetch(`${API_URL}/ad/${adId}`, {
         method: 'PATCH',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
@@ -626,7 +628,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
 
           {/* Stav a údaje */}
           <div className="form-section">
-            <h3 className="form-section__title">Stav a údaje</h3>
+            <h3 className="form-section__title">Stav vozidla</h3>
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="condition">Stav vozidla <span className="required">*</span></label>
