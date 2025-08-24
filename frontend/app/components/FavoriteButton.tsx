@@ -45,7 +45,7 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
           setIsSaved(false);
         }
       } catch (error) {
-        if (error.name === 'AbortError') {
+        if (typeof error === 'object' && error !== null && 'name' in error && (error as { name?: string }).name === 'AbortError') {
           return;
         }
         setIsSaved(false);
