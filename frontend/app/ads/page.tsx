@@ -89,7 +89,6 @@ export default function AdsPage() {
     }
     
     window.history.pushState(null, '', `?${newSearchParams.toString()}`)
-    fetchAds(true)
   }
 
   const fetchAds = useCallback(async (isInitialLoad = false) => {
@@ -139,12 +138,6 @@ export default function AdsPage() {
     await fetchAds(false)
   }
 
-  const handleFilterResults = (newAdsData: PaginationResponse) => {
-    setAds(newAdsData?.ads || [])
-    setPagination(newAdsData?.pagination || null)
-    setError(null)
-  }
-
   const handleRetry = () => {
     setError(null)
     fetchAds(true)
@@ -165,7 +158,6 @@ export default function AdsPage() {
 
       <div className="ads-page__layout">
         <FilterSidebar 
-          onResults={handleFilterResults}
           isVisible={showMobileFilters}
           onClose={() => setShowMobileFilters(false)}
           onLocationChange={handleLocationChange}

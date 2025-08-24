@@ -124,22 +124,20 @@ export default function ActiveFilters() {
   })
 
   const removeFilter = (keyToRemove: string, valueToRemove?: string) => {
-    const newParams = new URLSearchParams()
-    
-    // Copy all params except the one we want to remove
-    Array.from(searchParams.entries()).forEach(([key, value]) => {
-      if (key === keyToRemove) {
-        // For multi-value fields, only remove the specific value
-        if (valueToRemove && multiValueFields.includes(key) && value !== valueToRemove) {
-          newParams.append(key, value)
-        }
-        // For single-value fields, don't add anything (removes the whole filter)
-      } else {
-        newParams.append(key, value)
-      }
-    })
-    
-    router.push(`/ads${newParams.toString() ? `?${newParams.toString()}` : ''}`)
+    const params = new URLSearchParams(searchParams.toString())
+    const multiValueFields = ['fuel', 'bodyType', 'transmission', 'drivetrain', 'condition']
+
+    if (valueToRemove && multiValueFields.includes(keyToRemove)) {
+      // Remove only the specific value for multi-value fields
+      const values = params.getAll(keyToRemove).filter(v => v !== valueToRemove)
+      params.delete(keyToRemove)
+      values.forEach(v => params.append(keyToRemove, v))
+    } else {
+      // Remove the whole key for single-value fields
+      params.delete(keyToRemove)
+    }
+
+    router.push(`/ads${params.toString() ? `?${params.toString()}` : ''}`)
   }
 
   const clearAllFilters = () => {

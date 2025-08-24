@@ -1,6 +1,6 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRef } from 'react'
 import { getModelsList } from '../data/carData'
 import BrandSelect from './BrandSelect'
 import ModelSelect from './ModelSelect'
@@ -10,15 +10,7 @@ import ColorFinishSelect from './ColorFinishSelect'
 import LocationFilter from './LocationFilter'
 import '../styles/components/FilterSidebar.scss'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-interface Ad {
-  id: string
-  [key: string]: unknown
-}
-
 interface FilterSidebarProps {
-  onResults?: (adsData: Ad[] | Record<string, unknown>) => void
   isVisible?: boolean
   onClose?: () => void
   onLocationChange?: (location: {
@@ -30,369 +22,146 @@ interface FilterSidebarProps {
 }
 
 export default function FilterSidebar({
-  onResults,
   isVisible = true,
   onClose,
   onLocationChange
 }: FilterSidebarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [loading, setLoading] = useState(false)
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
 
-  // State pro brand/model filtry
-  const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || '')
-  const [selectedModel, setSelectedModel] = useState(searchParams.get('model') || '')
-  const [selectedColor, setSelectedColor] = useState(searchParams.get('color') || '')
-  const [selectedColorFinish, setSelectedColorFinish] = useState(searchParams.get('colorFinish') || '')
-
-  // State pro range filtry
-  const [priceFrom, setPriceFrom] = useState(parseInt(searchParams.get('priceFrom') || '0') || 0)
-  const [priceTo, setPriceTo] = useState(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
-  const [mileageFrom, setMileageFrom] = useState(parseInt(searchParams.get('mileageFrom') || '0') || 0)
-  const [mileageTo, setMileageTo] = useState(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
-
-  const [locationFilter, setLocationFilter] = useState<{
-    latitude: number
-    longitude: number
-    address: string
-    distance: number
-  } | null>(null)
-
-  const [searchValue, setSearchValue] = useState(searchParams.get('search') || '')
-  const [yearFrom, setYearFrom] = useState(searchParams.get('yearFrom') || '')
-  const [yearTo, setYearTo] = useState(searchParams.get('yearTo') || '')
-
-  const [selectedFuels, setSelectedFuels] = useState<string[]>(searchParams.getAll('fuel'))
-  const [selectedBodyTypes, setSelectedBodyTypes] = useState<string[]>(searchParams.getAll('bodyType'))
-  const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>(searchParams.getAll('transmission'))
-  const [selectedDrivetrains, setSelectedDrivetrains] = useState<string[]>(searchParams.getAll('drivetrain'))
-  const [selectedConditions, setSelectedConditions] = useState<string[]>(searchParams.getAll('condition'))
-
-  const [doorCount, setDoorCount] = useState(searchParams.get('doorCount') || '')
-  const [seatCount, setSeatCount] = useState(searchParams.get('seatCount') || '')
-  const [powerFrom, setPowerFrom] = useState(searchParams.get('powerFrom') || '')
-  const [powerTo, setPowerTo] = useState(searchParams.get('powerTo') || '')
-
+  // Always read filter values from searchParams
+  const selectedBrand = searchParams.get('brand') || ''
+  const selectedModel = searchParams.get('model') || ''
+  const selectedColor = searchParams.get('color') || ''
+  const selectedColorFinish = searchParams.get('colorFinish') || ''
+  const priceFrom = parseInt(searchParams.get('priceFrom') || '0') || 0
+  const priceTo = parseInt(searchParams.get('priceTo') || '2000000') || 2000000
+  const mileageFrom = parseInt(searchParams.get('mileageFrom') || '0') || 0
+  const mileageTo = parseInt(searchParams.get('mileageTo') || '500000') || 500000
+  const searchValue = searchParams.get('search') || ''
+  const yearFrom = searchParams.get('yearFrom') || ''
+  const yearTo = searchParams.get('yearTo') || ''
+  const selectedFuels = searchParams.getAll('fuel')
+  const selectedBodyTypes = searchParams.getAll('bodyType')
+  const selectedTransmissions = searchParams.getAll('transmission')
+  const selectedDrivetrains = searchParams.getAll('drivetrain')
+  const selectedConditions = searchParams.getAll('condition')
+  const doorCount = searchParams.get('doorCount') || ''
+  const seatCount = searchParams.get('seatCount') || ''
+  const powerFrom = searchParams.get('powerFrom') || ''
+  const powerTo = searchParams.get('powerTo') || ''
   const modelsList = getModelsList(selectedBrand)
 
-  // --- fetchAds WRAPPED IN useCallback ---
-  const fetchAds = useCallback(async (paramsString: string) => {
-    try {
-      setLoading(true);
-      const url = `${API_URL}/ad${paramsString ? `?${paramsString}` : ''}`;
-      const res = await fetch(url);
+  // --- Handlers ---
+  const updateParams = (callback: (params: URLSearchParams) => void) => {
+    const params = new URLSearchParams(searchParams.toString())
+    callback(params)
+    router.push(`/ads${params.toString() ? `?${params.toString()}` : ''}`, { scroll: false })
+  }
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const data = await res.json();
-
-      if (onResults) {
-        onResults(data);
-      }
-    } catch (err) {
-      console.error('❌ Error fetching ads:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [onResults]);
-
-  // --- buildParams WRAPPED IN useCallback ---
-  const buildParams = useCallback((form: HTMLFormElement) => {
-    const formData = new FormData(form)
-    const params = new URLSearchParams()
-
-    // Multi-value fields (checkboxes)
-    const multiFields = ['fuel', 'bodyType', 'transmission', 'drivetrain', 'condition']
-    multiFields.forEach(field => {
-      const values = Array.from(form.querySelectorAll(`input[name='${field}']:checked`)).map((el: HTMLInputElement) => el.value)
-      values.forEach(val => params.append(field, val))
-    })
-
-    // Single-value fields
-    for (const [key, value] of formData.entries()) {
-      if (multiFields.includes(key)) continue // skip, already handled
-      if (value && value.toString().trim() !== '') {
-        params.set(key, value.toString().trim())
-      }
-    }
-
-    // Přidat state hodnoty
-    if (selectedBrand) params.set('brand', selectedBrand)
-    if (selectedModel) params.set('model', selectedModel)
-    if (selectedColor) params.set('color', selectedColor)
-    if (selectedColorFinish) params.set('colorFinish', selectedColorFinish)
-
-    if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
-    if (priceTo < 2000000) params.set('priceTo', priceTo.toString())
-    if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
-    if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
-
-    if (locationFilter) {
-      params.set('nearLatitude', locationFilter.latitude.toString())
-      params.set('nearLongitude', locationFilter.longitude.toString())
-      params.set('nearDistance', locationFilter.distance.toString())
-    }
-
-    return params
-  }, [
-    selectedBrand,
-    selectedModel,
-    selectedColor,
-    selectedColorFinish,
-    priceFrom,
-    priceTo,
-    mileageFrom,
-    mileageTo,
-    locationFilter
-  ])
-
-  // --- Handlery ---
   const handleBrandChange = (brandValue: string) => {
-    setSelectedBrand(brandValue)
-    setSelectedModel('')
-    setTimeout(() => {
-      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
-      if (form) {
-        const formData = new FormData(form)
-        const params = new URLSearchParams()
-        params.set('brand', brandValue)
-        if (selectedColor) params.set('color', selectedColor)
-        if (selectedColorFinish) params.set('colorFinish', selectedColorFinish)
-        if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
-        if (priceTo < 2000000) params.set('priceTo', priceTo.toString())
-        if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
-        if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
-        const search = formData.get('search') as string
-        if (search) params.set('search', search)
-        const yearFrom = formData.get('yearFrom') as string
-        if (yearFrom) params.set('yearFrom', yearFrom)
-        const yearTo = formData.get('yearTo') as string
-        if (yearTo) params.set('yearTo', yearTo)
-        const fuelValues = formData.getAll('fuel')
-        fuelValues.forEach(fuel => params.append('fuel', fuel as string))
-        const bodyTypeValues = formData.getAll('bodyType')
-        bodyTypeValues.forEach(bodyType => params.append('bodyType', bodyType as string))
-        const transmissionValues = formData.getAll('transmission')
-        transmissionValues.forEach(transmission => params.append('transmission', transmission as string))
-        const drivetrainValues = formData.getAll('drivetrain')
-        drivetrainValues.forEach(drivetrain => params.append('drivetrain', drivetrain as string))
-        const conditionValues = formData.getAll('condition')
-        conditionValues.forEach(condition => params.append('condition', condition as string))
-        if (locationFilter) {
-          params.set('nearLatitude', locationFilter.latitude.toString())
-          params.set('nearLongitude', locationFilter.longitude.toString())
-          params.set('nearDistance', locationFilter.distance.toString())
-        }
-        const newParamsString = params.toString()
-        const currentParamsString = searchParams.toString()
-        if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
-          fetchAds(newParamsString)
-        }
-      }
-    }, 0)
+    updateParams(params => {
+      if (brandValue) params.set('brand', brandValue)
+      else params.delete('brand')
+      params.delete('model') // reset model when brand changes
+    })
   }
 
   const handleModelChange = (modelValue: string) => {
-    setSelectedModel(modelValue)
-    setTimeout(() => {
-      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
-      if (form) {
-        const formData = new FormData(form)
-        const params = new URLSearchParams()
-        if (selectedBrand) params.set('brand', selectedBrand)
-        params.set('model', modelValue)
-        if (selectedColor) params.set('color', selectedColor)
-        if (selectedColorFinish) params.set('colorFinish', selectedColorFinish)
-        if (priceFrom > 0) params.set('priceFrom', priceFrom.toString())
-        if (priceTo < 2000000) params.set('priceTo', priceTo.toString())
-        if (mileageFrom > 0) params.set('mileageFrom', mileageFrom.toString())
-        if (mileageTo < 500000) params.set('mileageTo', mileageTo.toString())
-        const search = formData.get('search') as string
-        if (search) params.set('search', search)
-        const yearFrom = formData.get('yearFrom') as string
-        if (yearFrom) params.set('yearFrom', yearFrom)
-        const yearTo = formData.get('yearTo') as string
-        if (yearTo) params.set('yearTo', yearTo)
-        const fuelValues = formData.getAll('fuel')
-        fuelValues.forEach(fuel => params.append('fuel', fuel as string))
-        const bodyTypeValues = formData.getAll('bodyType')
-        bodyTypeValues.forEach(bodyType => params.append('bodyType', bodyType as string))
-        const transmissionValues = formData.getAll('transmission')
-        transmissionValues.forEach(transmission => params.append('transmission', transmission as string))
-        const drivetrainValues = formData.getAll('drivetrain')
-        drivetrainValues.forEach(drivetrain => params.append('drivetrain', drivetrain as string))
-        const conditionValues = formData.getAll('condition')
-        conditionValues.forEach(condition => params.append('condition', condition as string))
-        if (locationFilter) {
-          params.set('nearLatitude', locationFilter.latitude.toString())
-          params.set('nearLongitude', locationFilter.longitude.toString())
-          params.set('nearDistance', locationFilter.distance.toString())
-        }
-        const newParamsString = params.toString()
-        const currentParamsString = searchParams.toString()
-        if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
-          fetchAds(newParamsString)
-        }
-      }
-    }, 0)
+    updateParams(params => {
+      if (modelValue) params.set('model', modelValue)
+      else params.delete('model')
+    })
   }
 
   const handlePriceChange = (from: number, to: number) => {
-    setPriceFrom(from)
-    setPriceTo(to)
-    setTimeout(() => {
-      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
-      if (form) {
-        const params = buildParams(form)
-        const newParamsString = params.toString()
-        const currentParamsString = searchParams.toString()
-        if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
-          fetchAds(newParamsString)
-        }
-      }
-    }, 0)
+    updateParams(params => {
+      if (from > 0) params.set('priceFrom', from.toString())
+      else params.delete('priceFrom')
+      if (to < 2000000) params.set('priceTo', to.toString())
+      else params.delete('priceTo')
+    })
   }
 
   const handleMileageChange = (from: number, to: number) => {
-    setMileageFrom(from)
-    setMileageTo(to)
-    setTimeout(() => {
-      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
-      if (form) {
-        const params = buildParams(form)
-        const newParamsString = params.toString()
-        const currentParamsString = searchParams.toString()
-        if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
-          fetchAds(newParamsString)
-        }
-      }
-    }, 0)
+    updateParams(params => {
+      if (from > 0) params.set('mileageFrom', from.toString())
+      else params.delete('mileageFrom')
+      if (to < 500000) params.set('mileageTo', to.toString())
+      else params.delete('mileageTo')
+    })
   }
 
-  // --- Checkbox handler ---
-  const handleCheckboxChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const form = e.target.form!
-    const params = buildParams(form)
-    const newParamsString = params.toString()
-    const currentParamsString = searchParams.toString()
-    if (currentParamsString !== newParamsString) {
-      router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
-      await fetchAds(newParamsString)
-    }
-  }, [router, buildParams, fetchAds, searchParams])
-
-  // --- Text input handler (debounced) ---
-  const handleTextInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    if (name === 'search') setSearchValue(value)
-    else if (name === 'yearFrom') setYearFrom(value)
-    else if (name === 'yearTo') setYearTo(value)
-    else if (name === 'doorCount') setDoorCount(value)
-    else if (name === 'seatCount') setSeatCount(value)
-    else if (name === 'powerFrom') setPowerFrom(value)
-    else if (name === 'powerTo') setPowerTo(value)
-    const form = e.target.form!
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current)
-    }
-    debounceTimer.current = setTimeout(async () => {
-      const params = buildParams(form)
-      const newParamsString = params.toString()
-      const currentParamsString = searchParams.toString()
-      if (currentParamsString !== newParamsString) {
-        router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
-        await fetchAds(newParamsString)
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, checked } = e.target
+    updateParams(params => {
+      const values = params.getAll(name)
+      params.delete(name)
+      if (checked) {
+        values.push(value)
+      } else {
+        const idx = values.indexOf(value)
+        if (idx > -1) values.splice(idx, 1)
       }
-    }, 500)
-  }, [router, buildParams, fetchAds, searchParams])
+      values.forEach(v => params.append(name, v))
+    })
+  }
 
-  // --- Location change handler ---
+  const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => {
+      updateParams(params => {
+        if (value) params.set(name, value)
+        else params.delete(name)
+      })
+    }, 300)
+  }
+
+  const handleColorChange = (value: string) => {
+    updateParams(params => {
+      if (value) params.set('color', value)
+      else params.delete('color')
+    })
+  }
+
+  const handleColorFinishChange = (value: string) => {
+    updateParams(params => {
+      if (value) params.set('colorFinish', value)
+      else params.delete('colorFinish')
+    })
+  }
+
   const handleLocationChangeInternal = (location: {
     latitude: number
     longitude: number
     address: string
     distance: number
   } | null) => {
-    setLocationFilter(location)
-    if (onLocationChange) {
-      onLocationChange(location)
-    }
-    setTimeout(() => {
-      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
-      if (form) {
-        const params = buildParams(form)
-        const newParamsString = params.toString()
-        const currentParamsString = searchParams.toString()
-        if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
-          fetchAds(newParamsString)
-        }
+    updateParams(params => {
+      if (location) {
+        params.set('nearLatitude', location.latitude.toString())
+        params.set('nearLongitude', location.longitude.toString())
+        params.set('nearDistance', location.distance.toString())
+      } else {
+        params.delete('nearLatitude')
+        params.delete('nearLongitude')
+        params.delete('nearDistance')
       }
-    }, 0)
+    })
+    if (onLocationChange) onLocationChange(location)
   }
-
-  // --- useEffect pro color/colorFinish ---
-  useEffect(() => {
-    const triggerSearch = () => {
-      const form = document.querySelector('.filter-sidebar__form') as HTMLFormElement
-      if (form) {
-        const params = buildParams(form)
-        const newParamsString = params.toString()
-        const currentParamsString = searchParams.toString()
-        if (currentParamsString !== newParamsString) {
-          router.push(`/ads${newParamsString ? `?${newParamsString}` : ''}`, { scroll: false })
-          fetchAds(newParamsString)
-        }
-      }
-    }
-    const timeout = setTimeout(triggerSearch, 100)
-    return () => clearTimeout(timeout)
-  }, [selectedColor, selectedColorFinish, buildParams, fetchAds, router, searchParams])
-
-  // --- Synchronizace state s URL parametry ---
-  useEffect(() => {
-    setSelectedBrand(searchParams.get('brand') || '')
-    setSelectedModel(searchParams.get('model') || '')
-    setSelectedColor(searchParams.get('color') || '')
-    setSelectedColorFinish(searchParams.get('colorFinish') || '')
-    setPriceFrom(parseInt(searchParams.get('priceFrom') || '0') || 0)
-    setPriceTo(parseInt(searchParams.get('priceTo') || '2000000') || 2000000)
-    setMileageFrom(parseInt(searchParams.get('mileageFrom') || '0') || 0)
-    setMileageTo(parseInt(searchParams.get('mileageTo') || '500000') || 500000)
-    setSearchValue(searchParams.get('search') || '')
-    setYearFrom(searchParams.get('yearFrom') || '')
-    setYearTo(searchParams.get('yearTo') || '')
-    setDoorCount(searchParams.get('doorCount') || '')
-    setSeatCount(searchParams.get('seatCount') || '')
-    setPowerFrom(searchParams.get('powerFrom') || '')
-    setPowerTo(searchParams.get('powerTo') || '')
-    setSelectedFuels(searchParams.getAll('fuel'))
-    setSelectedBodyTypes(searchParams.getAll('bodyType'))
-    setSelectedTransmissions(searchParams.getAll('transmission'))
-    setSelectedDrivetrains(searchParams.getAll('drivetrain'))
-    setSelectedConditions(searchParams.getAll('condition'))
-  }, [searchParams])
 
   return (
     <aside className={`filter-sidebar ${isVisible ? 'filter-sidebar--visible' : ''}`}>
       <div className="filter-sidebar__content">
         <div className="filter-sidebar__header">
           <h2>Filtry</h2>
-          <button className="filter-sidebar__close" onClick={onClose}>
-            ✕
-          </button>
+          <button className="filter-sidebar__close" onClick={onClose}>✕</button>
         </div>
-        <form className="filter-sidebar__form">
-          {/* ✅ KAŽDÁ sekce má nyní wrapper .filter-sidebar__section */}
-          
-          {/* Search pole */}
+        <form className="filter-sidebar__form" onSubmit={e => e.preventDefault()}>
+          {/* Search */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Hledat</label>
             <input
@@ -404,8 +173,7 @@ export default function FilterSidebar({
               onChange={handleTextInputChange}
             />
           </div>
-
-          {/* Location Filter */}
+          {/* Location */}
           {onLocationChange && (
             <div className="filter-sidebar__section">
               <label className="filter-sidebar__label">Lokalita</label>
@@ -415,170 +183,66 @@ export default function FilterSidebar({
               />
             </div>
           )}
-
-          {/* Značka */}
+          {/* Brand */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Značka</label>
-            <BrandSelect
-              value={selectedBrand}
-              onChange={handleBrandChange}
-            />
+            <BrandSelect value={selectedBrand} onChange={handleBrandChange} />
           </div>
-
           {/* Model */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Model</label>
-            <ModelSelect
-              value={selectedModel}
-              onChange={handleModelChange}
-              models={modelsList}
-              disabled={!selectedBrand}
-            />
+            <ModelSelect value={selectedModel} onChange={handleModelChange} models={modelsList} disabled={!selectedBrand} />
           </div>
-
-          {/* Color Filter */}
+          {/* Color */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Barva</label>
-            <ColorSelect
-              value={selectedColor}
-              onChange={(value) => {
-                setSelectedColor(value)
-              }}
-              placeholder="Všechny barvy"
-              className="filter-sidebar__color-select"
-            />
+            <ColorSelect value={selectedColor} onChange={handleColorChange} placeholder="Všechny barvy" className="filter-sidebar__color-select" />
           </div>
-
-          {/* Color Finish Filter */}
+          {/* Color Finish */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Povrchová úprava</label>
-            <ColorFinishSelect
-              value={selectedColorFinish}
-              onChange={(value) => {
-                setSelectedColorFinish(value)
-              }}
-              placeholder="Všechny úpravy"
-              className="filter-sidebar__color-finish-select"
-            />
+            <ColorFinishSelect value={selectedColorFinish} onChange={handleColorFinishChange} placeholder="Všechny úpravy" className="filter-sidebar__color-finish-select" />
           </div>
-
           {/* Price Range */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Cena</label>
-            <RangeFilter
-              label="Cena"
-              namePrefix="price"
-              min={0}
-              max={2000000}
-              step={10000}
-              valueFrom={priceFrom}
-              valueTo={priceTo}
-              formatValue={(value) => `${(value / 1000).toFixed(0)}k Kč`}
-              onValueChange={handlePriceChange}
-            />
+            <RangeFilter label="Cena" namePrefix="price" min={0} max={2000000} step={10000} valueFrom={priceFrom} valueTo={priceTo} formatValue={v => `${(v / 1000).toFixed(0)}k Kč`} onValueChange={handlePriceChange} />
           </div>
-
           {/* Mileage Range */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Nájezd</label>
-            <RangeFilter
-              label="Nájezd"
-              namePrefix="mileage"
-              min={0}
-              max={500000}
-              step={5000}
-              valueFrom={mileageFrom}
-              valueTo={mileageTo}
-              formatValue={(value) => `${(value / 1000).toFixed(0)}k km`}
-              onValueChange={handleMileageChange}
-            />
+            <RangeFilter label="Nájezd" namePrefix="mileage" min={0} max={500000} step={5000} valueFrom={mileageFrom} valueTo={mileageTo} formatValue={v => `${(v / 1000).toFixed(0)}k km`} onValueChange={handleMileageChange} />
           </div>
-
-           {/* Door count */}
+          {/* Door count */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label" htmlFor="doorCount">Počet dveří</label>
-            <input
-              id="doorCount"
-              name="doorCount"
-              type="number"
-              min={2}
-              max={6}
-              className="filter-sidebar__input"
-              placeholder="Počet dveří"
-              value={doorCount}
-              onChange={handleTextInputChange}
-            />
+            <input id="doorCount" name="doorCount" type="number" min={2} max={6} className="filter-sidebar__input" placeholder="Počet dveří" value={doorCount} onChange={handleTextInputChange} />
           </div>
-
           {/* Seat count */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label" htmlFor="seatCount">Počet míst</label>
-            <input
-              id="seatCount"
-              name="seatCount"
-              type="number"
-              min={2}
-              max={9}
-              className="filter-sidebar__input"
-              placeholder="Počet míst"
-              value={seatCount}
-              onChange={handleTextInputChange}
-            />
+            <input id="seatCount" name="seatCount" type="number" min={2} max={9} className="filter-sidebar__input" placeholder="Počet míst" value={seatCount} onChange={handleTextInputChange} />
           </div>
-
           {/* Power from */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label" htmlFor="powerFrom">Výkon od (kW)</label>
-            <input
-              id="powerFrom"
-              name="powerFrom"
-              type="number"
-              className="filter-sidebar__input"
-              placeholder="Výkon od"
-              value={powerFrom}
-              onChange={handleTextInputChange}
-            />
+            <input id="powerFrom" name="powerFrom" type="number" className="filter-sidebar__input" placeholder="Výkon od" value={powerFrom} onChange={handleTextInputChange} />
           </div>
-
           {/* Power to */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label" htmlFor="powerTo">Výkon do (kW)</label>
-            <input
-              id="powerTo"
-              name="powerTo"
-              type="number"
-              className="filter-sidebar__input"
-              placeholder="Výkon do"
-              value={powerTo}
-              onChange={handleTextInputChange}
-            />
+            <input id="powerTo" name="powerTo" type="number" className="filter-sidebar__input" placeholder="Výkon do" value={powerTo} onChange={handleTextInputChange} />
           </div>
-
           {/* Year Range */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Rok výroby</label>
             <div className="filter-sidebar__range">
-              <input
-                type="number"
-                name="yearFrom"
-                className="filter-sidebar__input filter-sidebar__input--small"
-                placeholder="Od"
-                value={yearFrom}
-                onChange={handleTextInputChange}
-              />
+              <input type="number" name="yearFrom" className="filter-sidebar__input filter-sidebar__input--small" placeholder="Od" value={yearFrom} onChange={handleTextInputChange} />
               <span className="filter-sidebar__range-separator">-</span>
-              <input
-                type="number"
-                name="yearTo"
-                className="filter-sidebar__input filter-sidebar__input--small"
-                placeholder="Do"
-                value={yearTo}
-                onChange={handleTextInputChange}
-              />
+              <input type="number" name="yearTo" className="filter-sidebar__input filter-sidebar__input--small" placeholder="Do" value={yearTo} onChange={handleTextInputChange} />
             </div>
           </div>
-
-          {/* Fuel checkboxy */}
+          {/* Fuel checkboxes */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Palivo</label>
             <div className="filter-sidebar__checkbox-group">
@@ -603,8 +267,7 @@ export default function FilterSidebar({
               ))}
             </div>
           </div>
-
-          {/* BodyType checkboxy */}
+          {/* BodyType checkboxes */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Karoserie</label>
             <div className="filter-sidebar__checkbox-group">
@@ -632,16 +295,15 @@ export default function FilterSidebar({
               ))}
             </div>
           </div>
-
-          {/* Transmission checkboxy */}
+          {/* Transmission checkboxes */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Převodovka</label>
             <div className="filter-sidebar__checkbox-group">
               {[
                 { value: 'manual', label: 'Manuální' },
                 { value: 'automatic', label: 'Automatická' },
-                { value: 'cvt', label: 'CVT' },               // ✅ NEW
-                { value: 'sequential', label: 'Sekvenční' },  // ✅ NEW
+                { value: 'cvt', label: 'CVT' },
+                { value: 'sequential', label: 'Sekvenční' },
               ].map(opt => (
                 <label key={`transmission-${opt.value}`} className="filter-sidebar__checkbox-label">
                   <input
@@ -656,8 +318,7 @@ export default function FilterSidebar({
               ))}
             </div>
           </div>
-
-          {/* Drivetrain checkboxy */}
+          {/* Drivetrain checkboxes */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Pohon</label>
             <div className="filter-sidebar__checkbox-group">
@@ -680,8 +341,7 @@ export default function FilterSidebar({
               ))}
             </div>
           </div>
-
-          {/* Condition checkboxy */}
+          {/* Condition checkboxes */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Stav</label>
             <div className="filter-sidebar__checkbox-group">
@@ -704,12 +364,6 @@ export default function FilterSidebar({
               ))}
             </div>
           </div>
-
-          {loading && (
-            <div className="filter-sidebar__loading">
-              Načítám výsledky...
-            </div>
-          )}
         </form>
       </div>
     </aside>
