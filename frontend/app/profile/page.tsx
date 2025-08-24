@@ -10,15 +10,6 @@ import { UnauthorizedPage, NetworkErrorPage } from '../components/ErrorPages'
 import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../hooks/AuthProvider';
 
-// Extend User type to include createdAt and avatar
-interface User {
-  id: string;
-  name: string;
-  email?: string;
-  avatar?: string; // Ensure avatar is included
-  isDealer?: boolean;
-  createdAt?: string;
-}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -43,6 +34,7 @@ interface Review {
   createdAt: string;
   user?: { name?: string };
 }
+
 
 export default function ProfilePage() {
   const { user, loading, getToken } = useAuth();
