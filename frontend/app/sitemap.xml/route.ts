@@ -5,6 +5,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 type SitemapAd = { id: string };
 
 export async function GET() {
+  if (!API_URL) {
+    return new NextResponse("API_URL not configured", { status: 500 });
+  }
+
   // Získej seznam všech inzerátů z backendu (příklad)
   const res = await fetch(`${API_URL}/ad/all`);
   const ads: SitemapAd[] = res.ok ? await res.json() : [];
