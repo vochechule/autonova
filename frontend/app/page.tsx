@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import './styles/HomePage.scss'
 import AdFilter from './components/AdFilter'
 import QuickCategories from './components/QuickCategories'
@@ -13,8 +14,12 @@ export default function Home() {
     <main className="home-page">
       <HeroSection />
       <StartupBanner />
-      <AdFilter />
-      <QuickCategories />
+      <Suspense fallback={null}>
+        <AdFilter />
+      </Suspense>
+      <Suspense fallback={null}>
+        <QuickCategories />
+      </Suspense>
       <WhyCartaSection />
       <UserReviewsSection />
       <SellCarCTA />
