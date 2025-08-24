@@ -33,3 +33,5 @@ ${urls
     headers: { "Content-Type": "application/xml" },
   });
 }
+
+export const dynamic = 'force-dynamic';
