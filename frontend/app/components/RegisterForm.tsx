@@ -23,7 +23,7 @@ export default function RegisterForm() {
     hasNumber: false
   })
   const { showSuccess, showError } = useToast()
-  const { setToken } = useAuth();
+  const { login } = useAuth(); // <-- FIXED
 
   useEffect(() => {
     setPasswordStrength({
@@ -64,8 +64,7 @@ export default function RegisterForm() {
       }
       const data = await res.json()
       if (data.token) {
-        localStorage.setItem('token', data.token)
-        setToken(data.token)
+        login(data.token) // <-- FIXED
         window.dispatchEvent(new CustomEvent('authChange', {
           detail: { isLoggedIn: true }
         }))
@@ -74,10 +73,14 @@ export default function RegisterForm() {
       setLoading(false)
       showSuccess('Registrace úspěšná', `Vítejte, ${name}! Přesměrovávám na hlavní stránku...`)
       setTimeout(() => router.push('/'), 1000)
-    } catch (err: any) {
-      setError(err.message || 'Došlo k chybě při registraci')
+    } catch (err: unknown) {
+      let message = 'Došlo k chybě při registraci'
+      if (err instanceof Error) {
+        message = err.message
+      }
+      setError(message)
       setLoading(false)
-      showError('Chyba registrace', err.message || 'Došlo k chybě při registraci')
+      showError('Chyba registrace', message)
     }
   }
 

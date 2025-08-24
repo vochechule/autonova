@@ -2,16 +2,18 @@ import { NextResponse } from "next/server";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+type SitemapAd = { id: string };
+
 export async function GET() {
   // Získej seznam všech inzerátů z backendu (příklad)
   const res = await fetch(`${API_URL}/ad/all`);
-  const ads = res.ok ? await res.json() : [];
+  const ads: SitemapAd[] = res.ok ? await res.json() : [];
 
   const urls = [
     "",
     "about",
     // ...další statické stránky
-    ...ads.map((ad: any) => `ads/${ad.id}`),
+    ...ads.map((ad) => `ads/${ad.id}`),
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

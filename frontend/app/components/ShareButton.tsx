@@ -24,7 +24,8 @@ export default function ShareButton({ title, url, className = '' }: ShareButtonP
       try {
         await navigator.share(shareData)
         setIsOpen(false)
-      } catch (err) {
+      } catch {
+        // Do nothing or optionally handle error
       }
     } else {
       setIsOpen(!isOpen)
@@ -36,7 +37,7 @@ export default function ShareButton({ title, url, className = '' }: ShareButtonP
       await navigator.clipboard.writeText(url)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
+    } catch {
       // Fallback pro starší browsery
       const textArea = document.createElement('textarea')
       textArea.value = url

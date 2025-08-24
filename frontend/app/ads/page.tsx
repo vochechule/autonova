@@ -47,11 +47,6 @@ type Pagination = {
   hasPrev: boolean
 }
 
-type PaginationResponse = {
-  ads: Ad[]
-  pagination: Pagination
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function AdsPage() {

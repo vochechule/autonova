@@ -1,8 +1,9 @@
 'use client'
 import { ChangePasswordModal, EditProfileModal, DeleteAccountModal } from '../components/ProfileModals'
 import { ConfirmModal } from '../components/ConfirmModal'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import '../styles/ProfilePage.scss'
 import { PageLoading, ButtonLoading } from '../components/LoadingStates'
 import { UnauthorizedPage, NetworkErrorPage } from '../components/ErrorPages'
@@ -11,11 +12,33 @@ import { useAuth } from '../hooks/AuthProvider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+interface Ad {
+  id: string;
+  title: string;
+  price: number;
+  images?: { url: string }[];
+  brand?: string;
+  model?: string;
+}
+
+interface SavedAd {
+  id: string;
+  ad: Ad;
+}
+
+interface Review {
+  id: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+  user?: { name?: string };
+}
+
 export default function ProfilePage() {
-  const { user, isAuthenticated, loading, getToken, refreshUser } = useAuth();
-  const [ads, setAds] = useState<any[]>([])
-  const [savedAds, setSavedAds] = useState<any[]>([])
-  const [reviews, setReviews] = useState<any[]>([])
+  const { user, loading, getToken } = useAuth();
+  const [ads, setAds] = useState<Ad[]>([])
+  const [savedAds, setSavedAds] = useState<SavedAd[]>([])
+  const [reviews, setReviews] = useState<Review[]>([])
   const [avgRating, setAvgRating] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loadingState, setLoading] = useState(true)
@@ -24,32 +47,23 @@ export default function ProfilePage() {
   const [removingSavedId, setRemovingSavedId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
-  // Nové stavy pro modály
+  // Modals
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
 
-  // ✅ PŘIDÁNO - Toast hook
   const { showSuccess, showError } = useToast()
 
-  useEffect(() => {
-    if (!user || loading) return;
-    fetchProfileData();
-  }, [user, loading])
-
-  // ✅ NOVÁ FUNKCE - Centralizované načítání dat
-  const fetchProfileData = async () => {
+  // useCallback to fix react-hooks/exhaustive-deps warning
+  const fetchProfileData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      
       const token = getToken();
       if (!token || !user) {
         setError('unauthorized')
         return
       }
-
-      // Paralelní načítání všech dat
       const [adsResponse, savedAdsResponse, reviewsResponse, avgRatingResponse] = await Promise.allSettled([
         fetch(`${API_URL}/ad/my`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -60,23 +74,18 @@ export default function ProfilePage() {
         fetch(`${API_URL}/user/${user.id}/reviews`),
         fetch(`${API_URL}/user/${user.id}/average-rating`)
       ])
-
-      // Zpracování výsledků s error handling
       if (adsResponse.status === 'fulfilled' && adsResponse.value.ok) {
         const adsData = await adsResponse.value.json()
         setAds(adsData)
       }
-
       if (savedAdsResponse.status === 'fulfilled' && savedAdsResponse.value.ok) {
         const savedAdsData = await savedAdsResponse.value.json()
         setSavedAds(savedAdsData)
       }
-
       if (reviewsResponse.status === 'fulfilled' && reviewsResponse.value.ok) {
         const reviewsData = await reviewsResponse.value.json()
         setReviews(reviewsData)
       }
-
       if (avgRatingResponse.status === 'fulfilled' && avgRatingResponse.value.ok) {
         const avgData = await avgRatingResponse.value.json()
         setAvgRating(avgData.averageRating)
@@ -88,9 +97,19 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [getToken, showError, user])
 
-  // ✅ NOVÁ FUNKCE - Smazání inzerátu s loading
+  useEffect(() => {
+    if (!user || loading) return;
+    fetchProfileData();
+  }, [user, loading, fetchProfileData])
+
+  useEffect(() => {
+    if (!loading && !user) {
+      setLoading(false); // was setLoadingState(false)
+    }
+  }, [loading, user]);
+
   const handleDeleteAd = async (adId: string) => {
     setDeletingAdId(adId)
     try {
@@ -114,7 +133,6 @@ export default function ProfilePage() {
     }
   }
 
-  // ✅ NOVÁ FUNKCE - Odebrání z uložených s loading
   const handleRemoveSaved = async (savedAdId: string, adId: string) => {
     if (!confirm('Remove this ad from saved?')) return
 
@@ -144,7 +162,6 @@ export default function ProfilePage() {
     fetchProfileData()
   }
 
-  // ✅ UPRAVENO - Error handling
   if (loadingState) return <PageLoading message="Načítám váš profil..." />
   if (error === 'unauthorized') return <UnauthorizedPage />
   if (error === 'network-error') return <NetworkErrorPage onRetry={handleRetry} />
@@ -152,8 +169,10 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <main className="profile-page">
-        <h2>Nejste přihlášeni</h2>
-        <Link href="/login" className="profile-page__login-btn">Přihlásit se</Link>
+        <div className="profile-page__logged-out">
+          <h2>Nejste přihlášeni</h2>
+          <Link href="/login" className="profile-page__login-btn">Přihlásit se</Link>
+        </div>
       </main>
     )
   }
@@ -166,7 +185,7 @@ export default function ProfilePage() {
     <main className="profile-page">
       <section className="profile-page__header">
         <div className="profile-page__avatar">
-          <img src={user.avatar || '/default-avatar.png'} alt="avatar" />
+          <Image src={user.avatar || '/default-avatar.png'} alt="avatar" width={96} height={96} className="profile-page__avatar-img" />
         </div>
         <div>
           <h1 className="profile-page__name">{user.name}</h1>
@@ -190,7 +209,6 @@ export default function ProfilePage() {
 
       <section className="profile-page__ads">
         <h2>Moje inzeráty</h2>
-        {/* ✅ UKAZATEL LIMITU */}
         <div className="profile-page__ad-limit-indicator">
           <span>
             {ads.length} / 10 aktivních inzerátů
@@ -205,7 +223,6 @@ export default function ProfilePage() {
             />
           </div>
         </div>
-        {/* Desktop tabulka */}
         <table className="profile-page__ads-table">
           <thead>
             <tr>
@@ -220,7 +237,7 @@ export default function ProfilePage() {
               <tr key={ad.id}>
                 <td>
                   <Link href={`/ads/${ad.id}`}>
-                    <img src={ad.images?.[0]?.url || '/default-car.png'} alt="" className="profile-page__ad-img" />
+                    <Image src={ad.images?.[0]?.url || '/default-car.png'} alt="" width={80} height={60} className="profile-page__ad-img" />
                   </Link>
                 </td>
                 <td>
@@ -247,12 +264,11 @@ export default function ProfilePage() {
             ))}
           </tbody>
         </table>
-        {/* Mobilní karty */}
         <div className="profile-page__ads-cards">
           {ads.map(ad => (
             <div key={ad.id} className="profile-page__ad-card">
               <Link href={`/ads/${ad.id}`}>
-                <img src={ad.images?.[0]?.url || '/default-car.png'} alt="" className="profile-page__ad-img" />
+                <Image src={ad.images?.[0]?.url || '/default-car.png'} alt="" width={120} height={90} className="profile-page__ad-img" />
               </Link>
               <div className="profile-page__ad-info">
                 <Link href={`/ads/${ad.id}`} className="profile-page__ad-title-link">
@@ -290,7 +306,7 @@ export default function ProfilePage() {
           {savedAds.slice(0, 3).map(savedAd => (
             <div key={savedAd.id} className="profile-page__saved-ad">
               <Link href={`/ads/${savedAd.ad.id}`} className="profile-page__saved-link">
-                <img src={savedAd.ad.images?.[0]?.url || '/default-car.png'} alt="" />
+                <Image src={savedAd.ad.images?.[0]?.url || '/default-car.png'} alt="" width={80} height={60} />
                 <div className="profile-page__saved-info">
                   <div className="profile-page__saved-title">{savedAd.ad.title}</div>
                   <div className="profile-page__saved-brand">{savedAd.ad.brand} {savedAd.ad.model}</div>
@@ -315,7 +331,6 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      {/* Zbytek sections zůstává stejný... */}
       {reviews.length > 0 && (
         <section className="profile-page__reviews">
           <h2>Recenze</h2>
@@ -329,7 +344,7 @@ export default function ProfilePage() {
             </div>
             <div className="profile-page__rating-count">{reviews.length} reviews</div>
             <div className="profile-page__rating-bars">
-              {[5, 4, 3, 2, 1].map((star, i) => (
+              {[5, 4, 3, 2, 1].map((star) => (
                 <div key={star} className="profile-page__rating-bar-row">
                   <span>{star}</span>
                   <div className="profile-page__rating-bar">
@@ -376,7 +391,6 @@ export default function ProfilePage() {
         </section>
       )}
 
-      {/* Sekce pro nastavení účtu */}
       <section className="profile-page__settings">
         <h2>Správa účtu</h2>
         <div className="profile-page__settings-list">
@@ -402,7 +416,6 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      {/* ✅ UPRAVENO - Toast notifikace místo alert */}
       <ChangePasswordModal
         isOpen={showChangePassword}
         onClose={() => setShowChangePassword(false)}
@@ -414,8 +427,7 @@ export default function ProfilePage() {
         onClose={() => setShowEditProfile(false)}
         user={user}
         onSuccess={(updatedUser) => {
-          setUser(updatedUser)
-          // Toast už je v komponentě
+          // Optionally update user in parent if needed
         }}
       />
 

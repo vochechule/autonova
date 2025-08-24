@@ -1,26 +1,63 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import '../../styles/ProfilePageView.scss';
 import { useAuth } from '../../hooks/AuthProvider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+interface User {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  avatar?: string;
+  isDealer?: boolean;
+  location?: string;
+  ads?: Ad[];
+}
+
+interface Review {
+  id: string;
+  userId: string;
+  user?: {
+    firstName?: string;
+    lastName?: string;
+    name?: string;
+  };
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
+interface Ad {
+  id: string;
+  title: string;
+  price: number;
+  brand?: string;
+  model?: string;
+  year?: number;
+  mileage?: number;
+  fuelType?: string;
+  location?: string;
+  images?: { url: string }[];
+}
+
 export default function UserProfilePage() {
   const params = useParams();
   const userId = params.id as string;
-  const [user, setUser] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [avgRating, setAvgRating] = useState<number | null>(null);
-  const [myReview, setMyReview] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [myReview, setMyReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { user: authUser, isAuthenticated, loading: authLoading, getToken } = useAuth();
+  // Removed unused: error, authUser, isAuthenticated, authLoading, getToken
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -55,7 +92,7 @@ export default function UserProfilePage() {
             .then((res) => (res.ok ? res.json() : null))
             .then((me) => {
               if (me) {
-                const mine = reviews.find((r: any) => r.userId === me.id);
+                const mine = reviews.find((r: Review) => r.userId === me.id);
                 if (mine) {
                   setMyReview(mine);
                   setRating(mine.rating);
@@ -65,13 +102,15 @@ export default function UserProfilePage() {
             });
         }
       })
-      .catch((err) => {
-        setError("Nepodařilo se načíst profil: " + err.message);
+      .catch((err: unknown) => {
+        let message = "Nepodařilo se načíst profil";
+        if (err instanceof Error) message += ": " + err.message;
         setLoading(false);
+        // Optionally: show error to user
       });
   }, [userId]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
     const token = localStorage.getItem("token");
@@ -85,7 +124,7 @@ export default function UserProfilePage() {
       body: JSON.stringify({ rating, comment }),
     });
     if (res.ok) {
-      const updated = await res.json();
+      const updated: Review = await res.json();
       setMyReview(updated);
       setRating(updated.rating);
       setComment(updated.comment || "");
@@ -106,15 +145,20 @@ export default function UserProfilePage() {
     <main className="profile-page">
       <section className="profile-page__header">
         <div className="profile-page__avatar">
-          <img src={user.avatar || "/default-avatar.png"} alt="avatar" />
+          <Image
+            src={user.avatar || "/default-avatar.png"}
+            alt="avatar"
+            width={96}
+            height={96}
+            className="profile-page__avatar-img"
+          />
         </div>
         <div>
           <h1 className="profile-page__name">
-            {user.firstName && user.lastName 
+            {user.firstName && user.lastName
               ? `${user.firstName} ${user.lastName}`
               : user.name || 'Neznámý uživatel'}
           </h1>
-          {/* ❌ ODSTRANĚNO - email uživatele */}
           <div className="profile-page__meta">
             <span className="profile-page__user-type">
               {user.isDealer ? "🏢 Autobazar" : "👤 Soukromá osoba"}
@@ -128,7 +172,6 @@ export default function UserProfilePage() {
         </div>
       </section>
 
-      {/* ✅ VYLEPŠENÉ - Rating summary */}
       <section className="profile-page__reviews">
         <div className="profile-page__rating-summary">
           <div className="profile-page__rating-main">
@@ -145,7 +188,6 @@ export default function UserProfilePage() {
           </div>
         </div>
 
-        {/* ✅ PŘIDÁNO - Vylepšená sekce pro hodnocení */}
         {currentUserId && currentUserId !== userId && (
           <div className="profile-page__rate-user">
             <h3>
@@ -157,21 +199,21 @@ export default function UserProfilePage() {
             <form onSubmit={handleSubmit} className="profile-page__rate-form">
               <div className="profile-page__rate-field">
                 <label>Hodnocení <span className="required">*</span></label>
-                <select 
-                  value={rating} 
-                  onChange={e => setRating(Number(e.target.value))} 
+                <select
+                  value={rating}
+                  onChange={e => setRating(Number(e.target.value))}
                   required
                   className="profile-page__rate-select"
                 >
                   <option value={0}>Vyberte hodnocení</option>
-                  {[1,2,3,4,5].map(star => (
+                  {[1, 2, 3, 4, 5].map(star => (
                     <option key={star} value={star}>
                       {"★".repeat(star)} ({star} {star === 1 ? 'hvězda' : star < 5 ? 'hvězdy' : 'hvězd'})
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="profile-page__rate-field">
                 <label>Komentář</label>
                 <input
@@ -187,8 +229,8 @@ export default function UserProfilePage() {
                 </small>
               </div>
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={submitting || rating === 0}
                 className="profile-page__rate-submit"
               >
@@ -204,7 +246,6 @@ export default function UserProfilePage() {
           </div>
         )}
 
-        {/* ✅ VYLEPŠENÉ - Seznam hodnocení */}
         <div className="profile-page__reviews-section">
           <h2>Hodnocení od uživatelů</h2>
           <div className="profile-page__review-list">
@@ -217,7 +258,7 @@ export default function UserProfilePage() {
                 <small>Hodnocení se zobrazí poté, co ostatní uživatelé ohodnotí tohoto prodejce.</small>
               </div>
             ) : (
-              reviews.map((r: any) => (
+              reviews.map((r) => (
                 <div key={r.id} className="profile-page__review">
                   <div className="profile-page__review-header">
                     <div className="profile-page__review-user">
@@ -226,7 +267,7 @@ export default function UserProfilePage() {
                       </div>
                       <div>
                         <div className="profile-page__review-author">
-                          {r.user?.firstName && r.user?.lastName 
+                          {r.user?.firstName && r.user?.lastName
                             ? `${r.user.firstName} ${r.user.lastName}`
                             : r.user?.name || "Neznámý uživatel"}
                         </div>
@@ -240,7 +281,7 @@ export default function UserProfilePage() {
                     </div>
                   </div>
                   {r.comment && (
-                    <div className="profile-page__review-text">"{r.comment}"</div>
+                    <div className="profile-page__review-text">&quot;{r.comment}&quot;</div>
                   )}
                 </div>
               ))
@@ -249,24 +290,25 @@ export default function UserProfilePage() {
         </div>
       </section>
 
-      {/* ✅ NOVÉ - Seller's ads section */}
       <section className="profile-page__seller-ads">
         <h2>Inzeráty prodejce ({user.ads?.length || 0})</h2>
-        
+
         {user.ads && user.ads.length > 0 ? (
           <div className="profile-page__ads-grid">
-            {user.ads.map((ad: any) => (
-              <Link 
-                key={ad.id} 
-                href={`/ads/${ad.id}`} 
+            {user.ads.map((ad) => (
+              <Link
+                key={ad.id}
+                href={`/ads/${ad.id}`}
                 className="profile-page__ad-card"
               >
                 <div className="profile-page__ad-image-container">
                   {ad.images && ad.images.length > 0 ? (
-                    <img 
-                      src={ad.images[0].url} 
+                    <Image
+                      src={ad.images[0].url}
                       alt={ad.title}
-                      loading="lazy"
+                      width={320}
+                      height={180}
+                      className="profile-page__ad-image"
                     />
                   ) : (
                     <div className="profile-page__ad-placeholder">🚗</div>
@@ -275,21 +317,21 @@ export default function UserProfilePage() {
                     {ad.price?.toLocaleString('cs-CZ')} Kč
                   </div>
                 </div>
-                
+
                 <div className="profile-page__ad-content">
                   <h3 className="profile-page__ad-title">{ad.title}</h3>
-                  
+
                   <div className="profile-page__ad-details">
                     <div className="profile-page__ad-brand">
                       {ad.brand} {ad.model}
                     </div>
-                    
+
                     <div className="profile-page__ad-specs">
                       {ad.year && <span>{ad.year}</span>}
                       {ad.mileage && <span>{ad.mileage?.toLocaleString('cs-CZ')} km</span>}
                       {ad.fuelType && <span>{ad.fuelType}</span>}
                     </div>
-                    
+
                     {ad.location && (
                       <div className="profile-page__ad-location">
                         {ad.location}
