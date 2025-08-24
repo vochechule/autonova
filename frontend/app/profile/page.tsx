@@ -126,7 +126,11 @@ export default function ProfilePage() {
         const errorData = await res.json()
         throw new Error(errorData.message || 'Smazání se nezdařilo')
       }
-    } 
+    } catch (error) {
+      showError('Chyba při mazání', error instanceof Error ? error.message : 'Smazání se nezdařilo')
+    } finally {
+      setDeletingAdId(null)
+    }
   }
 
   const handleRemoveSaved = async (savedAdId: string, adId: string) => {
@@ -440,11 +444,7 @@ export default function ProfilePage() {
         cancelText="Zrušit"
         loading={deletingAdId === confirmDeleteId}
         onCancel={() => setConfirmDeleteId(null)}
-        onConfirm={() => {catch (error) {
-      showError('Chyba při mazání', error instanceof Error ? error.message : 'Smazání se nezdařilo')
-    } finally {
-      setDeletingAdId(null)
-    }
+        onConfirm={() => {
           if (confirmDeleteId) handleDeleteAd(confirmDeleteId)
           setConfirmDeleteId(null)
         }}
