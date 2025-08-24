@@ -101,7 +101,7 @@ export default function UserProfilePage() {
             });
         }
       })
-      .catch((err: unknown) => {
+      .catch(() => {
         setLoading(false);
         // Optionally: show error to user
       });
