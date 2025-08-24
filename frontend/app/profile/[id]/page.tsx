@@ -4,7 +4,6 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import '../../styles/ProfilePageView.scss';
-import { useAuth } from '../../hooks/AuthProvider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -103,8 +102,6 @@ export default function UserProfilePage() {
         }
       })
       .catch((err: unknown) => {
-        let message = "Nepodařilo se načíst profil";
-        if (err instanceof Error) message += ": " + err.message;
         setLoading(false);
         // Optionally: show error to user
       });

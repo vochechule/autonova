@@ -126,11 +126,7 @@ export default function ProfilePage() {
         const errorData = await res.json()
         throw new Error(errorData.message || 'Smazání se nezdařilo')
       }
-    } catch (error) {
-      showError('Chyba při mazání', error instanceof Error ? error.message : 'Smazání se nezdařilo')
-    } finally {
-      setDeletingAdId(null)
-    }
+    } 
   }
 
   const handleRemoveSaved = async (savedAdId: string, adId: string) => {
@@ -150,7 +146,7 @@ export default function ProfilePage() {
       } else {
         throw new Error('Failed to remove from saved')
       }
-    } catch (error) {
+    } catch {
       showError('Chyba při odebírání', 'Failed to remove from saved')
     } finally {
       setRemovingSavedId(null)
@@ -426,7 +422,7 @@ export default function ProfilePage() {
         isOpen={showEditProfile}
         onClose={() => setShowEditProfile(false)}
         user={user}
-        onSuccess={(updatedUser) => {
+        onSuccess={() => {
           // Optionally update user in parent if needed
         }}
       />
@@ -444,7 +440,11 @@ export default function ProfilePage() {
         cancelText="Zrušit"
         loading={deletingAdId === confirmDeleteId}
         onCancel={() => setConfirmDeleteId(null)}
-        onConfirm={() => {
+        onConfirm={() => {catch (error) {
+      showError('Chyba při mazání', error instanceof Error ? error.message : 'Smazání se nezdařilo')
+    } finally {
+      setDeletingAdId(null)
+    }
           if (confirmDeleteId) handleDeleteAd(confirmDeleteId)
           setConfirmDeleteId(null)
         }}
