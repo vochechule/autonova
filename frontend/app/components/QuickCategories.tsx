@@ -1,9 +1,10 @@
 'use client'
+import React from 'react';
 import { useRouter } from 'next/navigation'
 import { PiggyBank, Zap, Users, Crown } from 'lucide-react'
 import '../styles/QuickCategories.scss'
 
-const quickCategories = [
+const quickCategories: { label: string; icon: React.ReactElement; query: QuickCategoryQuery }[] = [
   {
     label: 'Auta do 50 000 Kč',
     icon: <PiggyBank color="#2563eb" size={38} strokeWidth={2.2} />,
@@ -34,7 +35,9 @@ export default function QuickCategories() {
   function handleQuickFilter(query: QuickCategoryQuery) {
     const params = new URLSearchParams();
     Object.entries(query).forEach(([key, value]) => {
-      params.append(key, String(value));
+      if (value !== undefined) {
+        params.append(key, String(value));
+      }
     });
     router.push(`/ads?${params.toString()}`);
   }

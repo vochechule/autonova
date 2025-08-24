@@ -48,9 +48,9 @@ export default function RegisterForm() {
       return
     }
     setLoading(true)
-    const form = e.currentTarget
-    const email = form.email.value
-    const name = form.name.value
+    const form = e.currentTarget as HTMLFormElement
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value
+    const name = (form.elements.namedItem('name') as HTMLInputElement).value
 
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
