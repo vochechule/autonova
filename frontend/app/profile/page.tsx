@@ -35,9 +35,21 @@ interface Review {
   user?: { name?: string };
 }
 
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  isDealer?: boolean;
+  createdAt?: string;
+  ads?: Ad[];
+  [key: string]: unknown; // <-- Add this line!
+}
+
 
 export default function ProfilePage() {
   const { user, loading, getToken } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [ads, setAds] = useState<Ad[]>([])
   const [savedAds, setSavedAds] = useState<SavedAd[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
@@ -66,6 +78,18 @@ export default function ProfilePage() {
         setError('unauthorized')
         return
       }
+      // Fetch profile
+      const profileRes = await fetch(`${API_URL}/user/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!profileRes.ok) {
+        setError('network-error');
+        setLoading(false);
+        return;
+      }
+      const profileData = await profileRes.json();
+      setProfile(profileData);
+
       const [adsResponse, savedAdsResponse, reviewsResponse, avgRatingResponse] = await Promise.allSettled([
         fetch(`${API_URL}/ad/my`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -164,7 +188,7 @@ export default function ProfilePage() {
     fetchProfileData()
   }
 
-  if (loadingState) return <PageLoading message="Načítám váš profil..." />
+  if (loadingState || !profile) return <PageLoading message="Načítám váš profil..." />
   if (error === 'unauthorized') return <UnauthorizedPage />
   if (error === 'network-error') return <NetworkErrorPage onRetry={handleRetry} />
 
@@ -187,13 +211,13 @@ export default function ProfilePage() {
     <main className="profile-page">
       <section className="profile-page__header">
         <div className="profile-page__avatar">
-          <Image src={user.avatar || '/default-avatar.png'} alt="avatar" width={96} height={96} className="profile-page__avatar-img" />
+          <Image src={profile.avatar || '/default-avatar.png'} alt="avatar" width={96} height={96} className="profile-page__avatar-img" />
         </div>
         <div>
-          <h1 className="profile-page__name">{user.name}</h1>
+          <h1 className="profile-page__name">{profile.name}</h1>
           <div className="profile-page__email">
             {(() => {
-              const email = user.email || '';
+              const email = profile.email || '';
               const [name, domain] = email.split('@');
               if (!name || !domain) return 'Přihlášen jako -';
               const masked =
@@ -204,7 +228,7 @@ export default function ProfilePage() {
             })()}
           </div>
           <div className="profile-page__meta">
-            {user.isDealer ? 'Autobazar' : 'Soukromý prodejce'} &middot; Připojen {user.createdAt ? new Date(user.createdAt).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : 'N/A'}
+            {profile.isDealer ? 'Autobazar' : 'Soukromý prodejce'} &middot; Připojen {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : 'N/A'}
           </div>
         </div>
       </section>
@@ -427,9 +451,9 @@ export default function ProfilePage() {
       <EditProfileModal
         isOpen={showEditProfile}
         onClose={() => setShowEditProfile(false)}
-        user={user}
+        user={profile}
         onSuccess={() => {
-          // Optionally update user in parent if needed
+          // Optionally update profile in parent if needed
         }}
       />
 
