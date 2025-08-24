@@ -350,7 +350,6 @@ export default function LocationFilter({ onLocationChange, initialDistance = 25,
               <DynamicLocationMapComponent
                 onLocationSelect={handleMapLocationSelect}
                 initialPosition={[49.75, 15.5]}
-                height="100%"
               />
             </div>
             <div style={{
