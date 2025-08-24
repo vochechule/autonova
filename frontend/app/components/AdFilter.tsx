@@ -1,5 +1,4 @@
 'use client'
-import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { getModelsList } from '../data/carData'
@@ -20,7 +19,7 @@ interface Ad {
   [key: string]: unknown;
 }
 
-function AdFilterContent({ onResults }: { onResults?: (ads: Ad[]) => void }) {
+export default function AdFilter({ onResults }: { onResults?: (ads: Ad[]) => void }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [showAllFilters, setShowAllFilters] = useState(false)
@@ -415,15 +414,5 @@ function AdFilterContent({ onResults }: { onResults?: (ads: Ad[]) => void }) {
         </div>
       )}
     </section>
-  )
-}
-
-type AdFilterProps = React.ComponentProps<typeof AdFilterContent>
-
-export default function AdFilter(props: AdFilterProps) {
-  return (
-    <Suspense fallback={null}>
-      <AdFilterContent {...props} />
-    </Suspense>
   )
 }
