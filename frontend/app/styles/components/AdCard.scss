@@ -165,26 +165,26 @@
 
   // ✅ DESKTOP vs MOBILE LAYOUTS
   &__desktop-layout {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
 
     @media (max-width: 768px) {
-      display: none; // Skrýt desktop layout na mobilu
+      display: none !important; // Skrýt desktop layout na mobilu
     }
   }
 
   &__mobile-layout {
-    display: none; // Skrýt mobile layout na desktopu
+    display: none !important; // Skrýt mobile layout na desktopu
 
     @media (max-width: 768px) {
-      display: flex;
+      display: flex !important;
       flex-direction: column;
       gap: 6px;
 
       .ad-card--list & {
-        display: flex;
+        display: flex !important;
       }
     }
 
