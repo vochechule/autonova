@@ -604,3 +604,19 @@
     }
   }
 }
+
+// ✅ DEBUG STYLES (Remove after fixing)
+.debug-desktop-layout {
+  border: 3px solid red !important;
+  background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.debug-mobile-layout {
+  border: 3px solid blue !important;
+  background: rgba(0, 0, 255, 0.1) !important;
+}
+
+.debug-ad-card {
+  border: 3px solid green !important;
+  background: rgba(0, 255, 0, 0.1) !important;
+}

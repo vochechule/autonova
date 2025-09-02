@@ -39,7 +39,7 @@ interface AdCardProps {
 }
 
 export default function AdCard({ ad, viewMode }: AdCardProps) {
-  console.log('AdCard render', ad.id);
+  console.log('AdCard render', ad.id, 'viewMode:', viewMode);
 
   if (viewMode === 'grid') {
     return <GridCard ad={ad} />
@@ -111,7 +111,7 @@ function GridCard({ ad }: { ad: Ad }) {
 // ✅ LIST CARD COMPONENT - OPRAVENO pro češtinu
 function ListCard({ ad }: { ad: Ad }) {
   return (
-    <div className="ad-card ad-card--list">
+    <div className="ad-card ad-card--list debug-ad-card">
       <Link href={`/ads/${ad.id}`} className="ad-card__link">
         <div className="ad-card__image-container ad-card__image-container--list">
           <img
@@ -124,7 +124,7 @@ function ListCard({ ad }: { ad: Ad }) {
         
         <div className="ad-card__content ad-card__content--list">
           {/* ✅ DESKTOP LAYOUT */}
-          <div className="ad-card__desktop-layout">
+          <div className="ad-card__desktop-layout debug-desktop-layout">
             <div className="ad-card__header">
               <h3 className="ad-card__title ad-card__title--list">
                 {ad.title}
@@ -194,7 +194,7 @@ function ListCard({ ad }: { ad: Ad }) {
           </div>
 
           {/* ✅ MOBILE LAYOUT */}
-          <div className="ad-card__mobile-layout">
+          <div className="ad-card__mobile-layout debug-mobile-layout">
             <h3 className="ad-card__title ad-card__title--mobile">
               {ad.title}
             </h3>
