@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import FavoriteButton from './FavoriteButton'
 import { formatCarTitle } from '../utils/CarFormatter'
 import '../styles/components/AdCard.scss'
@@ -110,6 +111,9 @@ function GridCard({ ad }: { ad: Ad }) {
 
 // ✅ LIST CARD COMPONENT - OPRAVENO pro češtinu
 function ListCard({ ad }: { ad: Ad }) {
+  // Check if we're on desktop (simple check)
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768;
+  
   return (
     <div className="ad-card ad-card--list debug-ad-card">
       <Link href={`/ads/${ad.id}`} className="ad-card__link">
@@ -124,7 +128,15 @@ function ListCard({ ad }: { ad: Ad }) {
         
         <div className="ad-card__content ad-card__content--list">
           {/* ✅ DESKTOP LAYOUT */}
-          <div className="ad-card__desktop-layout debug-desktop-layout">
+          <div 
+            className="ad-card__desktop-layout debug-desktop-layout"
+            style={{ 
+              display: isDesktop ? 'flex' : 'none',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              height: '100%'
+            }}
+          >
             <div className="ad-card__header">
               <h3 className="ad-card__title ad-card__title--list">
                 {ad.title}
@@ -194,7 +206,12 @@ function ListCard({ ad }: { ad: Ad }) {
           </div>
 
           {/* ✅ MOBILE LAYOUT */}
-          <div className="ad-card__mobile-layout debug-mobile-layout">
+          <div 
+            className="ad-card__mobile-layout debug-mobile-layout"
+            style={{ 
+              display: !isDesktop ? 'flex' : 'none'
+            }}
+          >
             <h3 className="ad-card__title ad-card__title--mobile">
               {ad.title}
             </h3>

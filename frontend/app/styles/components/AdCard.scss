@@ -163,29 +163,38 @@
     }
   }
 
-  // ✅ DESKTOP vs MOBILE LAYOUTS
+  // ✅ DESKTOP vs MOBILE LAYOUTS - EXPLICIT FIX
   &__desktop-layout {
-    display: flex !important;
+    display: flex;
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
 
+    // Multiple explicit rules to ensure visibility
+    &:not(.hidden) {
+      display: flex;
+    }
+
+    @media (min-width: 769px) {
+      display: flex !important;
+    }
+
     @media (max-width: 768px) {
-      display: none !important; // Skrýt desktop layout na mobilu
+      display: none !important;
     }
   }
 
   &__mobile-layout {
-    display: none !important; // Skrýt mobile layout na desktopu
+    display: none;
+
+    @media (min-width: 769px) {
+      display: none !important;
+    }
 
     @media (max-width: 768px) {
       display: flex !important;
       flex-direction: column;
       gap: 6px;
-
-      .ad-card--list & {
-        display: flex !important;
-      }
     }
 
     @media (max-width: 480px) {
