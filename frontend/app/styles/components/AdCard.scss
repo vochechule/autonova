@@ -71,6 +71,7 @@
     overflow: hidden;
     background: #f8fafc;
     flex-shrink: 0;
+    position: relative; // Required for Next.js Image fill
 
     &--grid {
       width: 100%;
@@ -87,7 +88,7 @@
 
     &--list {
       width: 200px;
-      height: auto;
+      height: 120px; // Add proper height for Next.js Image
 
       @media (max-width: 768px) {
         width: 80px;

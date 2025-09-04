@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import FavoriteButton from './FavoriteButton'
 import { formatCarTitle } from '../utils/CarFormatter'
 import '../styles/components/AdCard.scss'
@@ -55,11 +55,13 @@ function GridCard({ ad }: { ad: Ad }) {
     <div className="ad-card ad-card--grid">
       <Link href={`/ads/${ad.id}`} className="ad-card__link">
         <div className="ad-card__image-container ad-card__image-container--grid">
-          <img
+          <Image
             src={ad.images?.[0]?.url || '/no-image.png'}
             alt={ad.title}
             className="ad-card__image"
-            loading="lazy"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            style={{ objectFit: 'cover' }}
           />
         </div>
         
@@ -118,11 +120,13 @@ function ListCard({ ad }: { ad: Ad }) {
     <div className="ad-card ad-card--list debug-ad-card">
       <Link href={`/ads/${ad.id}`} className="ad-card__link">
         <div className="ad-card__image-container ad-card__image-container--list">
-          <img
+          <Image
             src={ad.images?.[0]?.url || '/no-image.png'}
             alt={ad.title}
             className="ad-card__image"
-            loading="lazy"
+            fill
+            sizes="(max-width: 768px) 80px, 200px"
+            style={{ objectFit: 'cover' }}
           />
         </div>
         
