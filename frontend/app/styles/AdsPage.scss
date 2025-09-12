@@ -1,9 +1,8 @@
 // ✅ IMPORTS
-@use './components/AdCreateForm.scss';
-@use './components/ActiveFilters.scss';
-@use './components/FilterSidebar.scss';
-@use './components/FavoriteButton.scss';
-@use './components/AdCard.scss';
+@import './components/AdCreateForm.scss';
+@import './components/ActiveFilters.scss';
+@import './components/FilterSidebar.scss';
+@import './components/FavoriteButton.scss';
 
 // ✅ MAIN PAGE LAYOUT
 .ads-page {

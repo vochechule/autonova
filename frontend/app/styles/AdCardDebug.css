@@ -1,0 +1,116 @@
+/* AdCard Debug Styles - This file ensures critical AdCard CSS loads */
+
+.ad-card {
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  position: relative !important;
+}
+
+.ad-card--grid {
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 420px !important;
+}
+
+.ad-card--list {
+  flex-direction: row !important;
+}
+
+.ad-card__link {
+  display: flex !important;
+  flex: 1 !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  min-width: 0 !important;
+}
+
+.ad-card--grid .ad-card__link {
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+.ad-card--list .ad-card__link {
+  flex-direction: row !important;
+}
+
+.ad-card__image-container {
+  overflow: hidden !important;
+  background: #f8fafc !important;
+  flex-shrink: 0 !important;
+}
+
+.ad-card__image-container--grid {
+  width: 100% !important;
+  height: 180px !important;
+}
+
+.ad-card__image-container--list {
+  width: 200px !important;
+  height: auto !important;
+}
+
+.ad-card__image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+.ad-card__content {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+}
+
+.ad-card__content--grid {
+  padding: 1rem 1.25rem !important;
+  gap: 0.75rem !important;
+  flex: 1 !important;
+  justify-content: space-between !important;
+}
+
+.ad-card__content--list {
+  padding: 1.25rem 1.5rem !important;
+  justify-content: space-between !important;
+  flex: 1 !important;
+}
+
+.ad-card__title {
+  font-weight: 600 !important;
+  color: #111827 !important;
+  line-height: 1.3 !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.ad-card__title--grid {
+  font-size: 1.1rem !important;
+  -webkit-line-clamp: 2 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.ad-card__title--list {
+  font-size: 1.125rem !important;
+  margin-bottom: 0.75rem !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+.ad-card__price {
+  font-weight: 700 !important;
+  color: #059669 !important;
+}
+
+.ad-card__price--grid {
+  font-size: 1.4rem !important;
+  text-align: center !important;
+  margin-top: 0.5rem !important;
+}
+
+.ad-card__price--list {
+  font-size: 1.375rem !important;
+  margin-bottom: 0.5rem !important;
+}
