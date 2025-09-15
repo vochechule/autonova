@@ -35,9 +35,9 @@ type Ad = {
 interface AdCardProps {
   ad: Ad
 }
-
 export default function AdCard({ ad }: AdCardProps) {
   console.log('AdCard render', ad.id);
+
 
   return (
     <div className="ad-card">
@@ -103,4 +103,5 @@ export default function AdCard({ ad }: AdCardProps) {
       </div>
     </div>
   )
+
 }
