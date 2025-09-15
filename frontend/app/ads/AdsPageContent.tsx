@@ -10,8 +10,6 @@ import { NetworkErrorPage } from '../components/ErrorPages'
 import { useToast } from '../contexts/ToastContext'
 import SortBar from '../components/SortBar'
 
-type ViewMode = 'grid' | 'list'
-
 type Ad = {
   id: number
   title: string
@@ -57,12 +55,7 @@ export default function AdsPageContent() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const { showError: showToastError } = useToast()
-
-  const handleViewChange = (view: ViewMode) => {
-    setViewMode(view)
-  }
 
   const handleLocationChange = (location: {
     latitude: number
@@ -70,7 +63,6 @@ export default function AdsPageContent() {
     address: string
     distance: number
   } | null) => {
-
     const newSearchParams = new URLSearchParams(searchParams.toString())
     
     if (location) {
@@ -96,7 +88,7 @@ export default function AdsPageContent() {
       
       const params = new URLSearchParams(searchParams.toString())
       params.set('page', isInitialLoad ? '1' : (pagination?.page ? (pagination.page + 1).toString() : '1'))
-      params.set('limit', '10')
+      params.set('limit', '12')
 
       const response = await fetch(`${API_URL}/ad?${params}`)
       
@@ -174,10 +166,10 @@ export default function AdsPageContent() {
           <ActiveFilters />
           
           <div className="ads-page__results">
-            <SortBar totalCount={pagination?.total} onViewChange={handleViewChange} />
+            <SortBar totalCount={pagination?.total} />
             
             {loading ? (
-              <CardsLoading count={8} />
+              <CardsLoading count={12} />
             ) : ads.length === 0 ? (
               <div className="ads-page__no-results">
                 <p>Žádné inzeráty nebyly nalezeny.</p>
@@ -187,9 +179,9 @@ export default function AdsPageContent() {
               </div>
             ) : (
               <>
-                <div className={`ads-page__list ads-page__list--${viewMode}`}>
+                <div className="ads-page__grid">
                   {ads.map(ad => (
-                    <AdCard key={ad.id} ad={ad} viewMode={viewMode} />
+                    <AdCard key={ad.id} ad={ad} />
                   ))}
                 </div>
 
@@ -206,7 +198,7 @@ export default function AdsPageContent() {
                         <>
                           Zobrazit další inzeráty 
                           <span className="load-more-count">
-                            ({Math.min(10, (pagination?.total ?? 0) - ads.length)})
+                            ({Math.min(12, (pagination?.total ?? 0) - ads.length)})
                           </span>
                         </>
                       )}
@@ -223,7 +215,7 @@ export default function AdsPageContent() {
                   </div>
                 )}
 
-                {!pagination?.hasNext && (pagination?.total ?? 0) > 10 && (
+                {!pagination?.hasNext && (pagination?.total ?? 0) > 12 && (
                   <div className="ads-page__end-message">
                     Zobrazili jste všech {pagination?.total ?? 0} inzerátů
                   </div>
@@ -232,7 +224,7 @@ export default function AdsPageContent() {
             )}
           </div>
         </div>
-        </div>
+      </div>
     </main>
   )
 }

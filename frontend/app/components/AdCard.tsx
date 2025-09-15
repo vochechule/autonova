@@ -4,9 +4,7 @@ import Image from 'next/image'
 import FavoriteButton from './FavoriteButton'
 import { formatCarTitle } from '../utils/CarFormatter'
 import '../styles/components/AdCard.scss'
-
-// ✅ Přidej import map
-import { fuelMap, transmissionMap, colorMap } from '../utils/labelMaps'
+import { fuelMap } from '../utils/labelMaps'
 
 type Ad = {
   id: number
@@ -36,37 +34,28 @@ type Ad = {
 
 interface AdCardProps {
   ad: Ad
-  viewMode: 'grid' | 'list'
 }
+export default function AdCard({ ad }: AdCardProps) {
+  console.log('AdCard render', ad.id);
 
-export default function AdCard({ ad, viewMode }: AdCardProps) {
-  console.log('AdCard render', ad.id, 'viewMode:', viewMode);
 
-  if (viewMode === 'grid') {
-    return <GridCard ad={ad} />
-  }
-  
-  return <ListCard ad={ad} />
-}
-
-// ✅ GRID CARD COMPONENT (doplněno mapování)
-function GridCard({ ad }: { ad: Ad }) {
   return (
-    <div className="ad-card ad-card--grid">
+    <div className="ad-card">
       <Link href={`/ads/${ad.id}`} className="ad-card__link">
-        <div className="ad-card__image-container ad-card__image-container--grid">
+        <div className="ad-card__image-container">
           <Image
             src={ad.images?.[0]?.url || '/no-image.png'}
             alt={ad.title}
             className="ad-card__image"
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1199px) 50vw, (max-width: 1399px) 33vw, 25vw"
+
             style={{ objectFit: 'cover' }}
           />
         </div>
         
-        <div className="ad-card__content ad-card__content--grid">
-          <h3 className="ad-card__title ad-card__title--grid">
+        <div className="ad-card__content">
+          <h3 className="ad-card__title">
             {ad.title}
           </h3>
           
@@ -78,7 +67,7 @@ function GridCard({ ad }: { ad: Ad }) {
             {ad.fuel && <span className="ad-card__spec">{fuelMap[ad.fuel] ?? ad.fuel}</span>}
           </div>
           
-          <div className="ad-card__details ad-card__details--grid">
+          <div className="ad-card__details">
             <div className="ad-card__detail-item">
               <span className="ad-card__detail-label">Nájezd</span>
               <span className="ad-card__detail-value">{ad.mileage?.toLocaleString()} km</span>
@@ -91,7 +80,7 @@ function GridCard({ ad }: { ad: Ad }) {
             )}
           </div>
           
-          <div className="ad-card__price ad-card__price--grid">
+          <div className="ad-card__price">
             {ad.price?.toLocaleString()} Kč
           </div>
           
@@ -109,133 +98,5 @@ function GridCard({ ad }: { ad: Ad }) {
       </div>
     </div>
   )
-}
 
-// ✅ LIST CARD COMPONENT - OPRAVENO pro češtinu
-function ListCard({ ad }: { ad: Ad }) {
-  // Check if we're on desktop (simple check)
-  const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768;
-  
-  return (
-    <div className="ad-card ad-card--list debug-ad-card">
-      <Link href={`/ads/${ad.id}`} className="ad-card__link">
-        <div className="ad-card__image-container ad-card__image-container--list">
-          <Image
-            src={ad.images?.[0]?.url || '/no-image.png'}
-            alt={ad.title}
-            className="ad-card__image"
-            fill
-            sizes="(max-width: 768px) 80px, 200px"
-            style={{ objectFit: 'cover' }}
-          />
-        </div>
-        
-        <div className="ad-card__content ad-card__content--list">
-          {/* ✅ DESKTOP LAYOUT */}
-          <div 
-            className="ad-card__desktop-layout debug-desktop-layout"
-            style={{ 
-              display: isDesktop ? 'flex' : 'none',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              height: '100%'
-            }}
-          >
-            <div className="ad-card__header">
-              <h3 className="ad-card__title ad-card__title--list">
-                {ad.title}
-              </h3>
-              
-              <div className="ad-card__specs ad-card__specs--list">
-                {ad.brand && ad.model && (
-                  <span className="ad-card__spec">{formatCarTitle(ad.brand, ad.model)}</span>
-                )}
-                {ad.year && <span className="ad-card__spec">{ad.year}</span>}
-                {ad.fuel && <span className="ad-card__spec">{fuelMap[ad.fuel] ?? ad.fuel}</span>}
-                {ad.bodyType && <span className="ad-card__spec">{ad.bodyType}</span>}
-                {ad.transmission && <span className="ad-card__spec">{transmissionMap[ad.transmission] ?? ad.transmission}</span>}
-              </div>
-            </div>
-            
-            <div className="ad-card__details ad-card__details--list">
-              <div className="ad-card__detail-row">
-                <span className="ad-card__detail-label">Nájezd:</span>
-                <span className="ad-card__detail-value">{ad.mileage?.toLocaleString()} km</span>
-              </div>
-              {ad.power && (
-                <div className="ad-card__detail-row">
-                  <span className="ad-card__detail-label">Výkon:</span>
-                  <span className="ad-card__detail-value">{ad.power} kW</span>
-                </div>
-              )}
-              {ad.color && (
-                <div className="ad-card__detail-row">
-                  <span className="ad-card__detail-label">Barva:</span>
-                  <span className="ad-card__detail-value">{colorMap[ad.color] ?? ad.color}</span>
-                </div>
-              )}
-              {ad.address && (
-                <div className="ad-card__detail-row">
-                  <span className="ad-card__detail-label">Lokalita:</span>
-                  <span className="ad-card__detail-value">
-                    📍 {ad.address}
-                    {ad.distance && (
-                      <span className="ad-card__distance"> • {ad.distance} km</span>
-                    )}
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            <div className="ad-card__footer">
-              <div className="ad-card__price ad-card__price--list">
-                {ad.price?.toLocaleString()} Kč
-              </div>
-              
-              <div className="ad-card__seller">
-                <span className="ad-card__seller-name">
-                  {ad.user?.name ?? "Neznámý prodejce"}
-                </span>
-                {typeof ad.user?.averageRating === "number" && (
-                  <span className="ad-card__seller-rating">
-                    {"★".repeat(Math.round(ad.user.averageRating))}
-                    {"☆".repeat(5 - Math.round(ad.user.averageRating))}
-                    <span className="ad-card__seller-rating-number">
-                      {ad.user.averageRating.toFixed(1)}
-                    </span>
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ✅ MOBILE LAYOUT */}
-          <div 
-            className="ad-card__mobile-layout debug-mobile-layout"
-            style={{ 
-              display: !isDesktop ? 'flex' : 'none'
-            }}
-          >
-            <h3 className="ad-card__title ad-card__title--mobile">
-              {ad.title}
-            </h3>
-            
-            <div className="ad-card__price ad-card__price--mobile">
-              {ad.price?.toLocaleString()} Kč
-            </div>
-            
-            <div className="ad-card__specs-line">
-              {ad.year && <span>{ad.year}</span>}
-              {ad.mileage && <span>{ad.mileage?.toLocaleString()} km</span>}
-              {ad.fuel && <span>{ad.fuel}</span>}
-            </div>
-          </div>
-        </div>
-      </Link>
-      
-      <div className="ad-card__favorite">
-        <FavoriteButton adId={ad.id.toString()} className="favorite-button--card" />
-      </div>
-    </div>
-  )
 }
