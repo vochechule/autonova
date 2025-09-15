@@ -1,9 +1,10 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import FavoriteButton from './FavoriteButton'
 import { formatCarTitle } from '../utils/CarFormatter'
 import '../styles/components/AdCard.scss'
-import { fuelMap, transmissionMap, colorMap } from '../utils/labelMaps'
+import { fuelMap } from '../utils/labelMaps'
 
 type Ad = {
   id: number
@@ -42,11 +43,13 @@ export default function AdCard({ ad }: AdCardProps) {
     <div className="ad-card">
       <Link href={`/ads/${ad.id}`} className="ad-card__link">
         <div className="ad-card__image-container">
-          <img
+          <Image
             src={ad.images?.[0]?.url || '/no-image.png'}
             alt={ad.title}
             className="ad-card__image"
-            loading="lazy"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1199px) 50vw, (max-width: 1399px) 33vw, 25vw"
+            style={{ objectFit: 'cover' }}
           />
         </div>
         
