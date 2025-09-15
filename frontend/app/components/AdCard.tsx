@@ -35,9 +35,9 @@ type Ad = {
 interface AdCardProps {
   ad: Ad
 }
-
 export default function AdCard({ ad }: AdCardProps) {
   console.log('AdCard render', ad.id);
+
 
   return (
     <div className="ad-card">
@@ -49,6 +49,7 @@ export default function AdCard({ ad }: AdCardProps) {
             className="ad-card__image"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1199px) 50vw, (max-width: 1399px) 33vw, 25vw"
+
             style={{ objectFit: 'cover' }}
           />
         </div>
@@ -97,4 +98,5 @@ export default function AdCard({ ad }: AdCardProps) {
       </div>
     </div>
   )
+
 }

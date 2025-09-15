@@ -53,6 +53,7 @@
       height: 200px;
     }
 
+
     @media (max-width: 480px) {
       height: 180px;
     }
@@ -60,6 +61,7 @@
     // Target the actual img element inside Next.js Image component
     img {
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
     }
   }
 
@@ -72,6 +74,15 @@
     gap: 1rem;
     flex: 1;
     justify-content: space-between;
+
+    // Multiple explicit rules to ensure visibility
+    &:not(.hidden) {
+      display: flex;
+    }
+
+    @media (min-width: 769px) {
+      display: flex !important;
+    }
 
     @media (max-width: 768px) {
       padding: 1.25rem;
@@ -293,4 +304,20 @@
       }
     }
   }
+}
+
+// ✅ DEBUG STYLES (Remove after fixing)
+.debug-desktop-layout {
+  border: 3px solid red !important;
+  background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.debug-mobile-layout {
+  border: 3px solid blue !important;
+  background: rgba(0, 0, 255, 0.1) !important;
+}
+
+.debug-ad-card {
+  border: 3px solid green !important;
+  background: rgba(0, 255, 0, 0.1) !important;
 }
