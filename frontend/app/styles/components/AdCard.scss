@@ -12,6 +12,11 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  
+  // Firefox specific fixes
+  @supports (-moz-appearance: none) {
+    min-height: 400px;
+  }
 
   &:hover {
     box-shadow: 
@@ -47,23 +52,43 @@
     overflow: hidden;
     background: #f8fafc;
     flex-shrink: 0;
-    position: relative; // Required for Next.js Image with fill
+    position: relative;
+    
+    // Firefox fallback
+    @supports (-moz-appearance: none) {
+      display: block;
+      min-height: 220px;
+    }
     
     @media (max-width: 768px) {
       height: 200px;
+      
+      @supports (-moz-appearance: none) {
+        min-height: 200px;
+      }
     }
 
     @media (max-width: 480px) {
       height: 180px;
+      
+      @supports (-moz-appearance: none) {
+        min-height: 180px;
+      }
     }
 
     // Target the actual img element inside Next.js Image component
     img {
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      // Firefox specific
+      @supports (-moz-appearance: none) {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+        object-position: center;
+      }
     }
   }
-
-  // Remove the old &__image selector since it's not needed with Next.js Image
 
   &__content {
     display: flex;
@@ -92,12 +117,14 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    line-clamp: 2; // Standard property for compatibility
     overflow: hidden;
     margin: 0;
 
     @media (max-width: 768px) {
       font-size: 1rem;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
     }
 
     @media (max-width: 480px) {
@@ -146,7 +173,7 @@
       gap: 0.5rem;
     }
   }
-
+  
   &__detail-item {
     text-align: center;
 
