@@ -1,16 +1,12 @@
 'use client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import ViewToggle from './ViewToggle'
-
-type ViewMode = 'grid' | 'list'
 
 interface SortBarProps {
   totalCount?: number
-  onViewChange?: (view: ViewMode) => void
 }
 
-export default function SortBar({ totalCount, onViewChange }: SortBarProps) {
+export default function SortBar({ totalCount }: SortBarProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'newest')
@@ -40,10 +36,6 @@ export default function SortBar({ totalCount, onViewChange }: SortBarProps) {
     router.push(`/ads${newParams.toString() ? `?${newParams.toString()}` : ''}`)
   }
 
-  const handleViewChange = (view: ViewMode) => {
-    onViewChange?.(view)
-  }
-
   const formatCount = (count: number) => {
     if (count === 0) return 'Žádné výsledky'
     if (count === 1) return '1 inzerát'
@@ -62,12 +54,6 @@ export default function SortBar({ totalCount, onViewChange }: SortBarProps) {
       </div>
 
       <div className="sort-bar__controls">
-        {/* View Toggle */}
-        <div className="sort-bar__view-toggle">
-          <ViewToggle onViewChange={handleViewChange} />
-        </div>
-
-        {/* Sort Controls */}
         <div className="sort-bar__sort">
           <label htmlFor="sort" className="sort-bar__sort-label">
             Řadit podle:
