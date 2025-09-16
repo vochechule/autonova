@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useState, useCallback } from 'react'
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import '../styles/components/Toast.scss'
 
 interface Toast {
@@ -8,10 +8,11 @@ interface Toast {
   title: string
   message?: string
   duration?: number
+  createdAt: number // ✅ Add timestamp
 }
 
 interface ToastContextType {
-  showToast: (toast: Omit<Toast, 'id'>) => void
+  showToast: (toast: Omit<Toast, 'id' | 'createdAt'>) => void
   showSuccess: (title: string, message?: string) => void
   showError: (title: string, message?: string) => void
   showWarning: (title: string, message?: string) => void
@@ -27,11 +28,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts(prev => prev.filter(toast => toast.id !== id))
   }, [])
 
-  const showToast = useCallback((toast: Omit<Toast, 'id'>) => {
+  const showToast = useCallback((toast: Omit<Toast, 'id' | 'createdAt'>) => {
     const id = Math.random().toString(36).substr(2, 9)
-    const duration = toast.duration || 5000
+    const duration = toast.duration || 3000
+    const createdAt = Date.now() // ✅ Track creation time
 
-    setToasts(prev => [...prev, { ...toast, id }])
+    setToasts(prev => [...prev, { ...toast, id, createdAt }])
 
     setTimeout(() => {
       removeToast(id)
@@ -81,8 +83,40 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
 }
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
+  const [progress, setProgress] = useState(100) // ✅ Start at 100%
+  const [isPaused, setIsPaused] = useState(false) // ✅ Pause on hover
+  
+  const duration = toast.duration || 3000
+
+  useEffect(() => {
+    if (isPaused) return
+
+    const interval = setInterval(() => {
+      const now = Date.now()
+      const elapsed = now - toast.createdAt
+      const remaining = Math.max(0, duration - elapsed)
+      const progressPercent = (remaining / duration) * 100
+
+      setProgress(progressPercent)
+
+      if (remaining <= 0) {
+        clearInterval(interval)
+      }
+    }, 50) // Update every 50ms for smooth animation
+
+    return () => clearInterval(interval)
+  }, [toast.createdAt, duration, isPaused])
+
   const handleClose = () => {
     onRemove(toast.id)
+  }
+
+  const handleMouseEnter = () => {
+    setIsPaused(true)
+  }
+
+  const handleMouseLeave = () => {
+    setIsPaused(false)
   }
 
   const getIcon = () => {
@@ -121,7 +155,22 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
   }
 
   return (
-    <div className={`toast toast--${toast.type}`}>
+    <div 
+      className={`toast toast--${toast.type} ${isPaused ? 'toast--paused' : ''}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* ✅ Progress bar */}
+      <div className="toast__progress-bar">
+        <div 
+          className="toast__progress-fill"
+          style={{ 
+            width: `${progress}%`,
+            animationPlayState: isPaused ? 'paused' : 'running'
+          }}
+        />
+      </div>
+
       <div className="toast__icon">
         {getIcon()}
       </div>

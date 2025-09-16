@@ -32,42 +32,98 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
+    
     fetch(`${API_URL}/auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` },
     })
-      .then(res => res.ok ? res.json() : null)
+      .then(res => {
+        if (!res.ok) {
+          // ✅ If token is invalid, remove it
+          localStorage.removeItem('token');
+          throw new Error('Invalid token');
+        }
+        return res.json();
+      })
       .then(data => setUser(data))
-      .catch(() => setUser(null))
+      .catch(() => {
+        setUser(null);
+        localStorage.removeItem('token'); // ✅ Clean up invalid token
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  const getToken = () => localStorage.getItem('token');
+  // ✅ Listen for auth changes from other components
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+      }
+    };
+
+    window.addEventListener('authChange', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('authChange', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
+
+  const getToken = () => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('token');
+  };
 
   const refreshUser = () => {
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    
     setLoading(true);
     fetch(`${API_URL}/auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` },
     })
-      .then(res => res.ok ? res.json() : null)
+      .then(res => {
+        if (!res.ok) {
+          localStorage.removeItem('token');
+          throw new Error('Invalid token');
+        }
+        return res.json();
+      })
       .then(data => setUser(data))
-      .catch(() => setUser(null))
+      .catch(() => {
+        setUser(null);
+        localStorage.removeItem('token');
+      })
       .finally(() => setLoading(false));
   };
 
   const login = (token: string) => {
     localStorage.setItem('token', token);
+    window.dispatchEvent(new Event('authChange')); // ✅ Notify other components
     refreshUser();
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    setLoading(false); // ✅ Immediately set loading to false
+    window.dispatchEvent(new Event('authChange')); // ✅ Notify other components
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, getToken, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      isAuthenticated: !!user && !loading, // ✅ Only authenticated if user exists and not loading
+      getToken, 
+      login, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   );
