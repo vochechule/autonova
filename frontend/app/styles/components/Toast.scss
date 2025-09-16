@@ -29,6 +29,17 @@
   animation: toastSlideIn 0.3s ease-out;
   position: relative;
   overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  &--paused {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  }
 
   &::before {
     content: '';
@@ -46,6 +57,9 @@
     .toast__icon {
       color: #10b981;
     }
+    .toast__progress-fill {
+      background: linear-gradient(90deg, #10b981, #059669);
+    }
   }
 
   &--error {
@@ -54,6 +68,9 @@
     }
     .toast__icon {
       color: #ef4444;
+    }
+    .toast__progress-fill {
+      background: linear-gradient(90deg, #ef4444, #dc2626);
     }
   }
 
@@ -64,6 +81,9 @@
     .toast__icon {
       color: #f59e0b;
     }
+    .toast__progress-fill {
+      background: linear-gradient(90deg, #f59e0b, #d97706);
+    }
   }
 
   &--info {
@@ -73,7 +93,29 @@
     .toast__icon {
       color: #3b82f6;
     }
+    .toast__progress-fill {
+      background: linear-gradient(90deg, #3b82f6, #2563eb);
+    }
   }
+}
+
+// ✅ Progress bar styles
+.toast__progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.toast__progress-fill {
+  height: 100%;
+  background: #3b82f6;
+  transition: width 0.05s linear;
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
 }
 
 @keyframes toastSlideIn {
@@ -132,6 +174,10 @@
   .toast {
     background: #1a202c;
     border-color: #4a5568;
+  }
+
+  .toast__progress-bar {
+    background: rgba(255, 255, 255, 0.1);
   }
 
   .toast__title {
