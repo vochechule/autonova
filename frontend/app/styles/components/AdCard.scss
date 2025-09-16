@@ -1,4 +1,4 @@
-.ad-card {
+.listing-card {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
@@ -25,7 +25,7 @@
     transform: translateY(-4px);
     border-color: #d1d5db;
 
-    .ad-card__image-container img {
+    .listing-card__image-container img {
       transform: scale(1.05);
     }
 
@@ -67,7 +67,6 @@
         min-height: 200px;
       }
     }
-
 
     @media (max-width: 480px) {
       height: 180px;
@@ -275,7 +274,7 @@
 
 // Dark mode styles
 [data-theme="dark"] {
-  .ad-card {
+  .listing-card {
     background: rgba(30, 41, 59, 0.95);
     border-color: rgba(71, 85, 105, 0.4);
 
@@ -343,7 +342,7 @@
   background: rgba(0, 0, 255, 0.1) !important;
 }
 
-.debug-ad-card {
+.debug-listing-card {
   border: 3px solid green !important;
   background: rgba(0, 255, 0, 0.1) !important;
 }

@@ -5,7 +5,7 @@
 @use './components/FavoriteButton.scss';
 
 // ✅ MAIN PAGE LAYOUT
-.ads-page {
+.listings-page {
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
   background: #fafbfc;
@@ -25,7 +25,7 @@
     min-width: 0;
     width: 100%;
     
-    .ads-page__container {
+    .listings-page__container {
       max-width: 1400px;
       margin: 0 auto;
       width: 100%;
@@ -428,7 +428,7 @@
 
 // Dark mode
 [data-theme="dark"] {
-  .ads-page {
+  .listings-page {
     background: #0f172a;
 
     &__heading {

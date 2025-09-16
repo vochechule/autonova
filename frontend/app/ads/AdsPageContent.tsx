@@ -135,22 +135,22 @@ export default function AdsPageContent() {
   }
 
   return (
-    <main className="ads-page">
+    <main className="listings-page">
       <div 
         className={`filter-sidebar-overlay ${showMobileFilters ? 'filter-sidebar-overlay--visible' : ''}`}
         onClick={() => setShowMobileFilters(false)}
       />
 
-      <div className="ads-page__layout">
+      <div className="listings-page__layout">
         <FilterSidebar 
           isVisible={showMobileFilters}
           onClose={() => setShowMobileFilters(false)}
           onLocationChange={handleLocationChange}
         />
 
-        <div className="ads-page__main">
-          <div className="ads-page__header">
-            <h1 className="ads-page__heading">Inzeráty</h1>
+        <div className="listings-page__main">
+          <div className="listings-page__header">
+            <h1 className="listings-page__heading">Inzeráty</h1>
             
             <button 
               className="mobile-filter-button"
@@ -165,13 +165,13 @@ export default function AdsPageContent() {
 
           <ActiveFilters />
           
-          <div className="ads-page__results">
+          <div className="listings-page__results">
             <SortBar totalCount={pagination?.total} />
             
             {loading ? (
               <CardsLoading count={12} />
             ) : ads.length === 0 ? (
-              <div className="ads-page__no-results">
+              <div className="listings-page__no-results">
                 <p>Žádné inzeráty nebyly nalezeny.</p>
                 <button onClick={handleRetry} className="retry-button">
                   Zkusit znovu
@@ -179,14 +179,14 @@ export default function AdsPageContent() {
               </div>
             ) : (
               <>
-                <div className="ads-page__grid">
+                <div className="listings-page__grid">
                   {ads.map(ad => (
                     <AdCard key={ad.id} ad={ad} />
                   ))}
                 </div>
 
                 {pagination?.hasNext && (
-                  <div className="ads-page__load-more">
+                  <div className="listings-page__load-more">
                     <button 
                       onClick={loadMore}
                       className="load-more-button"
@@ -216,7 +216,7 @@ export default function AdsPageContent() {
                 )}
 
                 {!pagination?.hasNext && (pagination?.total ?? 0) > 12 && (
-                  <div className="ads-page__end-message">
+                  <div className="listings-page__end-message">
                     Zobrazili jste všech {pagination?.total ?? 0} inzerátů
                   </div>
                 )}
