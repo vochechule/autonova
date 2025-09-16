@@ -183,7 +183,6 @@ export default function Footer() {
           <h4 className="footer__title">Připravujeme</h4>
           <ul className="footer__coming-soon">
             <li>📋 Nápověda a FAQ</li>
-            <li>⚖️ Právní dokumenty</li>
             <li>📱 Mobilní aplikace</li>
           </ul>
         </div>

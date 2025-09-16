@@ -1,7 +1,7 @@
 @use './components/FavoriteButton.scss';
 
 // Moderní a responsivní styl pro detail inzerátu - světlé téma podle obrázku
-.ad-detail-page {
+.listing-detail-page {
   background: #f8fafc;
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -14,7 +14,7 @@
   }
 }
 
-.ad-detail-page__container {
+.listing-detail-page__container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
@@ -28,8 +28,7 @@
   }
 }
 
-// Header s navigací a cenou - minimalistický styl
-.ad-detail-page__header {
+.listing-detail-page__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -39,30 +38,32 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   position: sticky;
-  top: 0;
+  top: 64px; // ✅ Account for main header height (~70px)
   z-index: 10;
   
   @media (min-width: 768px) {
     padding: 24px 0;
     margin-bottom: 40px;
+    top: 64px; // ✅ Slightly more on desktop for larger header
   }
 
   @media (max-width: 768px) {
-    padding: 12px 16px; // ✅ Kompaktnější padding
-    margin-bottom: 0; // ✅ Žádná mezera pod headerem
+    padding: 12px 16px;
+    margin-bottom: 0;
     border-bottom: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    top: 49px; // ✅ Account for smaller mobile header
   }
 
-  // ✅ EXTRA MALÉ TELEFONY
   @media (max-width: 400px) {
     padding: 10px 12px;
     flex-wrap: wrap;
     gap: 8px;
+    top: 49px; // ✅ Even smaller for extra small screens
   }
 }
 
-.ad-detail-page__back-btn {
+.listing-detail-page__back-btn {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -118,7 +119,7 @@
   }
 }
 
-.ad-detail-page__price {
+.listing-detail-page__price {
   font-size: 32px;
   font-weight: 800;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -144,7 +145,7 @@
   }
 }
 
-.ad-detail-page__actions {
+.listing-detail-page__actions {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -159,16 +160,16 @@
   }
 }
 
-.ad-detail-page__favorite-btn {
+.listing-detail-page__favorite-btn {
   flex-shrink: 0;
 }
 
-.ad-detail-page__share-btn {
+.listing-detail-page__share-btn {
   flex-shrink: 0;
 }
 
 // Hlavní obsah - layout podle obrázku
-.ad-detail-page__main-content {
+.listing-detail-page__main-content {
   display: grid;
   gap: 32px;
   margin-bottom: 48px;
@@ -192,7 +193,7 @@
 }
 
 // Carousel obrázků - podle stylu z obrázku
-.ad-detail-page__carousel {
+.listing-detail-page__carousel {
   position: relative;
   background: #fff;
   border-radius: 20px;
@@ -222,14 +223,14 @@
   }
 }
 
-.ad-detail-page__carousel-img {
+.listing-detail-page__carousel-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s ease;
 }
 
-.ad-detail-page__carousel-btn {
+.listing-detail-page__carousel-btn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -311,7 +312,7 @@
   }
 }
 
-.ad-detail-page__carousel-counter {
+.listing-detail-page__carousel-counter {
   position: absolute;
   top: 20px;
   right: 20px;
@@ -341,7 +342,7 @@
   }
 }
 
-.ad-detail-page__carousel-dots {
+.listing-detail-page__carousel-dots {
   position: absolute;
   bottom: 20px;
   left: 50%;
@@ -367,7 +368,7 @@
   }
 }
 
-.ad-detail-page__carousel-dot {
+.listing-detail-page__carousel-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -397,7 +398,7 @@
   }
 }
 
-.ad-detail-page__no-image {
+.listing-detail-page__no-image {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -446,7 +447,7 @@
 }
 
 // Základní informace - card style jako na obrázku
-.ad-detail-page__basic-info {
+.listing-detail-page__basic-info {
   background: #fff;
   padding: 32px;
   border-radius: 20px;
@@ -469,7 +470,7 @@
   }
 }
 
-.ad-detail-page__title {
+.listing-detail-page__title {
   font-size: 32px;
   font-weight: 800;
   margin: 0 0 12px 0;
@@ -495,7 +496,7 @@
   }
 }
 
-.ad-detail-page__subtitle {
+.listing-detail-page__subtitle {
   font-size: 17px;
   color: #718096;
   margin: 0 0 28px 0;
@@ -515,7 +516,7 @@
 }
 
 // Meta informace - datum a zobrazení
-.ad-detail-page__meta-info {
+.listing-detail-page__meta-info {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -534,8 +535,8 @@
   }
 }
 
-.ad-detail-page__date-added,
-.ad-detail-page__views {
+.listing-detail-page__date-added,
+.listing-detail-page__views {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -569,7 +570,7 @@
   }
 }
 
-.ad-detail-page__views {
+.listing-detail-page__views {
   color: #4a5568;
   
   svg {
@@ -578,7 +579,7 @@
 }
 
 // Klíčové specifikace - jako tagy
-.ad-detail-page__key-specs {
+.listing-detail-page__key-specs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
@@ -601,7 +602,7 @@
   }
 }
 
-.ad-detail-page__key-spec {
+.listing-detail-page__key-spec {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -639,7 +640,7 @@
   }
 }
 
-.ad-detail-page__key-spec-icon {
+.listing-detail-page__key-spec-icon {
   font-size: 18px;
   filter: grayscale(0.2);
 
@@ -654,7 +655,7 @@
 }
 
 // Kompaktní info o prodejci - card style
-.ad-detail-page__seller-compact {
+.listing-detail-page__seller-compact {
   display: flex;
   align-items: flex-start;
   gap: 16px;
@@ -681,7 +682,7 @@
   }
 }
 
-.ad-detail-page__seller-avatar {
+.listing-detail-page__seller-avatar {
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -706,7 +707,7 @@
   }
 }
 
-.ad-detail-page__seller-avatar-placeholder {
+.listing-detail-page__seller-avatar-placeholder {
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -732,12 +733,12 @@
   }
 }
 
-.ad-detail-page__seller-details {
+.listing-detail-page__seller-details {
   flex: 1;
   min-width: 0;
 }
 
-.ad-detail-page__seller-name {
+.listing-detail-page__seller-name {
   font-weight: 700;
   font-size: 17px;
   color: #1a202c;
@@ -754,7 +755,7 @@
   }
 }
 
-.ad-detail-page__seller-location {
+.listing-detail-page__seller-location {
   font-size: 14px;
   color: #718096;
   font-weight: 500;
@@ -773,7 +774,7 @@
 }
 
 // ✅ JEDNODUCHÝ - Kontaktní info
-.ad-detail-page__contact-info {
+.listing-detail-page__contact-info {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -791,7 +792,7 @@
   }
 }
 
-.ad-detail-page__contact-link {
+.listing-detail-page__contact-link {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -835,7 +836,7 @@
   }
 }
 
-.ad-detail-page__contact-btn {
+.listing-detail-page__contact-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -877,7 +878,7 @@
 }
 
 // Sekce nadpisy
-.ad-detail-page__section-title {
+.listing-detail-page__section-title {
   font-size: 28px;
   font-weight: 800;
   margin: 0 0 24px 0;
@@ -899,7 +900,7 @@
 }
 
 // Specifikace - card grid podle obrázku
-.ad-detail-page__specs {
+.listing-detail-page__specs {
   margin-bottom: 48px;
 
   @media (max-width: 768px) {
@@ -912,7 +913,7 @@
   }
 }
 
-.ad-detail-page__specgrid {
+.listing-detail-page__specgrid {
   display: grid;
   gap: 28px;
   
@@ -934,7 +935,7 @@
   }
 }
 
-.ad-detail-page__spec-group {
+.listing-detail-page__spec-group {
   background: #fff;
   padding: 28px;
   border-radius: 20px;
@@ -988,7 +989,7 @@
   }
 }
 
-.ad-detail-page__spec-item {
+.listing-detail-page__spec-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1013,7 +1014,7 @@
   }
 }
 
-.ad-detail-page__spec-label {
+.listing-detail-page__spec-label {
   font-size: 15px;
   color: #718096;
   font-weight: 600;
@@ -1028,7 +1029,7 @@
   }
 }
 
-.ad-detail-page__spec-value {
+.listing-detail-page__spec-value {
   font-size: 15px;
   color: #1a202c;
   font-weight: 700;
@@ -1046,7 +1047,7 @@
 }
 
 // Popis - card style
-.ad-detail-page__description {
+.listing-detail-page__description {
   background: #fff;
   padding: 36px;
   border-radius: 20px;
@@ -1071,7 +1072,7 @@
   }
 }
 
-.ad-detail-page__description-content {
+.listing-detail-page__description-content {
   p {
     margin: 0;
     font-size: 17px;
@@ -1093,7 +1094,7 @@
 }
 
 // Features - tag style podle obrázku
-.ad-detail-page__features {
+.listing-detail-page__features {
   background: #fff;
   padding: 36px;
   border-radius: 20px;
@@ -1118,7 +1119,7 @@
   }
 }
 
-.ad-detail-page__features-list {
+.listing-detail-page__features-list {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
@@ -1133,7 +1134,7 @@
   }
 }
 
-.ad-detail-page__feature-tag {
+.listing-detail-page__feature-tag {
   background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
   color: #4a5568;
   padding: 12px 20px;
@@ -1169,18 +1170,18 @@
 
 // ✅ MOBILNÍ SPECIFICKÉ TŘÍDY
 @media (max-width: 768px) {
-  .ad-detail-page__container {
+  .listing-detail-page__container {
     padding: 0;
   }
 
-  .ad-detail-page__main-content {
+  .listing-detail-page__main-content {
     gap: 0;
   }
 
   // Přidáme padding ke všem sekcím kromě fotek
-  .ad-detail-page__specs,
-  .ad-detail-page__description,
-  .ad-detail-page__features {
+  .listing-detail-page__specs,
+  .listing-detail-page__description,
+  .listing-detail-page__features {
     padding-left: 16px;
     padding-right: 16px;
   }
@@ -1188,9 +1189,9 @@
 
 // ✅ EXTRA MALÉ TELEFONY - specifické třídy
 @media (max-width: 400px) {
-  .ad-detail-page__specs,
-  .ad-detail-page__description,
-  .ad-detail-page__features {
+  .listing-detail-page__specs,
+  .listing-detail-page__description,
+  .listing-detail-page__features {
     padding-left: 12px;
     padding-right: 12px;
   }
@@ -1198,7 +1199,7 @@
 
 // Dark mode styly - přepínané pomocí data-theme="dark"
 [data-theme="dark"] {
-  .ad-detail-page {
+  .listing-detail-page {
     background: #0f1419;
     color: #e2e8f0;
 
@@ -1207,12 +1208,12 @@
     }
   }
 
-  .ad-detail-page__header {
+  .listing-detail-page__header {
     background: rgba(26, 32, 44, 0.95);
     border-bottom-color: #4a5568;
   }
 
-  .ad-detail-page__back-btn {
+  .listing-detail-page__back-btn {
     background: #1a202c;
     border-color: #4a5568;
     color: #e2e8f0;
@@ -1223,10 +1224,10 @@
     }
   }
 
-  .ad-detail-page__basic-info,
-  .ad-detail-page__spec-group,
-  .ad-detail-page__description,
-  .ad-detail-page__features {
+  .listing-detail-page__basic-info,
+  .listing-detail-page__spec-group,
+  .listing-detail-page__description,
+  .listing-detail-page__features {
     background: #1a202c;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     border-color: rgba(255, 255, 255, 0.1);
@@ -1237,31 +1238,31 @@
     }
   }
 
-  .ad-detail-page__title,
-  .ad-detail-page__section-title {
+  .listing-detail-page__title,
+  .listing-detail-page__section-title {
     color: #e2e8f0;
   }
 
-  .ad-detail-page__spec-group h3 {
+  .listing-detail-page__spec-group h3 {
     color: #e2e8f0;
     border-bottom-color: #4a5568;
   }
 
-  .ad-detail-page__spec-value {
+  .listing-detail-page__spec-value {
     color: #e2e8f0;
   }
 
-  .ad-detail-page__seller-name {
+  .listing-detail-page__seller-name {
     color: #e2e8f0;
   }
 
-  .ad-detail-page__key-spec {
+  .listing-detail-page__key-spec {
     background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
     color: #e2e8f0;
     border-color: #4a5568;
   }
 
-  .ad-detail-page__seller-compact {
+  .listing-detail-page__seller-compact {
     background: #2d3748;
     border-color: #4a5568;
 
@@ -1271,7 +1272,7 @@
     }
   }
 
-  .ad-detail-page__feature-tag {
+  .listing-detail-page__feature-tag {
     background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
     color: #e2e8f0;
     border-color: #4a5568;
@@ -1281,16 +1282,16 @@
     }
   }
 
-  .ad-detail-page__description-content p {
+  .listing-detail-page__description-content p {
     color: #cbd5e0;
   }
 
-  .ad-detail-page__date-added,
-  .ad-detail-page__views {
+  .listing-detail-page__date-added,
+  .listing-detail-page__views {
     color: #a0aec0;
   }
   
-  .ad-detail-page__views {
+  .listing-detail-page__views {
     color: #cbd5e0;
   }
 }
@@ -1399,7 +1400,7 @@
   }
 }
 
-.ad-detail-page__disclaimer {
+.listing-detail-page__disclaimer {
   margin: 48px auto 0 auto;
   max-width: 900px;
   padding: 18px 24px;
@@ -1426,7 +1427,7 @@
   }
 }
 
-[data-theme="dark"] .ad-detail-page__disclaimer {
+[data-theme="dark"] .listing-detail-page__disclaimer {
   background: #2d2a1a;
   color: #fde68a;
   border-color: #b45309;
