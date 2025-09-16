@@ -49,7 +49,7 @@ interface User {
   };
 }
 
-// ✅ Dynamic import pro AdminMap (kvůli Leaflet)
+// Dynamic import pro AdminMap (kvůli Leaflet)
 const DynamicAdminMap = dynamic(() => import('../components/AdminMap'), {
   ssr: false,
   loading: () => <div className="admin-loading">Načítání mapy...</div>
@@ -59,7 +59,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [ads, setAds] = useState<Ad[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [activeTab, setActiveTab] = useState<'stats' | 'ads' | 'users' | 'map'>('stats');
+  const [activeTab, setActiveTab] = useState<'stats' | 'listings' | 'users' | 'map'>('stats');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -122,7 +122,7 @@ export default function AdminPage() {
   }, [apiCall]);
 
   // Smazání inzerátu
-  const deleteAd = async (adId: string) => {
+  const deleteListing = async (adId: string) => {
     if (!confirm('Opravdu chcete smazat tento inzerát?')) return;
 
     try {
@@ -155,8 +155,8 @@ export default function AdminPage() {
             📊 Statistiky
           </button>
           <button 
-            className={activeTab === 'ads' ? 'active' : ''}
-            onClick={() => setActiveTab('ads')}
+            className={activeTab === 'listings' ? 'active' : ''}
+            onClick={() => setActiveTab('listings')}
           >
             🚗 Inzeráty ({ads.length})
           </button>
@@ -197,13 +197,13 @@ export default function AdminPage() {
           </div>
         )}
 
-        {activeTab === 'ads' && (
-          <div className="admin-ads">
+        {activeTab === 'listings' && (
+          <div className="admin-listings">
             <h2>Všechny inzeráty</h2>
-            <div className="ads-table">
+            <div className="listings-table">
               {ads.map(ad => (
-                <div key={ad.id} className="ad-row">
-                  <div className="ad-image">
+                <div key={ad.id} className="listing-row">
+                  <div className="listing-image">
                     <Image 
                       src={ad.images[0]?.url || '/default-car.png'} 
                       alt={ad.title}
@@ -212,7 +212,7 @@ export default function AdminPage() {
                       style={{ objectFit: 'cover', borderRadius: 8 }}
                     />
                   </div>
-                  <div className="ad-info">
+                  <div className="listing-info">
                     <h4>{ad.title}</h4>
                     <p>{ad.brand} {ad.model}</p>
                     <p>Cena: {ad.price.toLocaleString()} Kč</p>
@@ -220,13 +220,13 @@ export default function AdminPage() {
                     <p>Vytvořeno: {new Date(ad.createdAt).toLocaleDateString('cs-CZ')}</p>
                     <p>Uloženo: {ad._count.savedBy}×</p>
                   </div>
-                  <div className="ad-actions">
+                  <div className="listing-actions">
                     <span className={`status ${ad.isVisible ? 'visible' : 'hidden'}`}>
                       {ad.isVisible ? '👁️ Viditelný' : '🙈 Skrytý'}
                     </span>
                     <button 
                       className="delete-btn"
-                      onClick={() => deleteAd(ad.id)}
+                      onClick={() => deleteListing(ad.id)}
                     >
                       🗑️ Smazat
                     </button>
