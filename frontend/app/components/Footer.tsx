@@ -1,11 +1,11 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import '../styles/components/Footer.scss'
 
 declare global {
   interface Window {
-    gtag?: (...args: unknown[]) => void; // opraveno z any na unknown
+    gtag?: (...args: unknown[]) => void;
   }
 }
 
@@ -17,26 +17,26 @@ function CookiesModal({
   isOpen: boolean
   onClose: () => void 
 }) {
-  const [analytics, setAnalytics] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('cookies-analytics') === 'true'
-    }
-    return false
-  })
-  
-  const [marketing, setMarketing] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('cookies-marketing') === 'true'
-    }
-    return false
-  })
+  // ✅ Fix: Initialize with false and update after hydration
+  const [analytics, setAnalytics] = useState(false)
+  const [marketing, setMarketing] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  // ✅ Fix: Load from localStorage after component mounts
+  useEffect(() => {
+    setIsClient(true)
+    setAnalytics(localStorage.getItem('cookies-analytics') === 'true')
+    setMarketing(localStorage.getItem('cookies-marketing') === 'true')
+  }, [])
 
   const handleSave = () => {
+    if (!isClient) return
+    
     localStorage.setItem('cookies-analytics', analytics.toString())
     localStorage.setItem('cookies-marketing', marketing.toString())
     
     // Update consent if analytics available
-    if (typeof window !== 'undefined' && window.gtag) {
+    if (window.gtag) {
       window.gtag('consent', 'update', {
         analytics_storage: analytics ? 'granted' : 'denied',
         ad_storage: marketing ? 'granted' : 'denied'
@@ -77,6 +77,7 @@ function CookiesModal({
                   type="checkbox" 
                   checked={analytics}
                   onChange={(e) => setAnalytics(e.target.checked)}
+                  disabled={!isClient} // ✅ Disable until hydrated
                 />
                 <span className="footer__toggle-slider"></span>
               </label>
@@ -92,6 +93,7 @@ function CookiesModal({
                   type="checkbox" 
                   checked={marketing}
                   onChange={(e) => setMarketing(e.target.checked)}
+                  disabled={!isClient} // ✅ Disable until hydrated
                 />
                 <span className="footer__toggle-slider"></span>
               </label>
@@ -101,6 +103,7 @@ function CookiesModal({
           <button 
             onClick={handleSave}
             className="footer__modal-save"
+            disabled={!isClient} // ✅ Disable until hydrated
           >
             Uložit nastavení
           </button>
@@ -154,7 +157,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* ✅ PŘIDÁNO - Právní sekce s cookies */}
+        {/* Právní sekce s cookies */}
         <div className="footer__section">
           <h4 className="footer__title">Soukromí</h4>
           <ul className="footer__links">
@@ -202,7 +205,7 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ✅ PŘIDÁNO - Cookies modal */}
+      {/* Cookies modal */}
       <CookiesModal 
         isOpen={showCookiesModal}
         onClose={() => setShowCookiesModal(false)}

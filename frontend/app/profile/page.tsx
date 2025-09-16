@@ -43,23 +43,24 @@ interface UserProfile {
   isDealer?: boolean;
   createdAt?: string;
   ads?: Ad[];
-  [key: string]: unknown; // <-- Add this line!
+  [key: string]: unknown;
 }
 
 
 export default function ProfilePage() {
-  const { user, loading, getToken } = useAuth();
+  const { user, loading, getToken, logout } = useAuth(); // ✅ Add logout from useAuth
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [ads, setAds] = useState<Ad[]>([])
   const [savedAds, setSavedAds] = useState<SavedAd[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
   const [avgRating, setAvgRating] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [loadingState, setLoading] = useState(true)
+  const [loadingState, setLoadingState] = useState(true)
   const [showAllReviews, setShowAllReviews] = useState(false)
   const [deletingAdId, setDeletingAdId] = useState<string | null>(null)
   const [removingSavedId, setRemovingSavedId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // Modals
   const [showChangePassword, setShowChangePassword] = useState(false)
@@ -71,20 +72,21 @@ export default function ProfilePage() {
   // useCallback to fix react-hooks/exhaustive-deps warning
   const fetchProfileData = useCallback(async () => {
     try {
-      setLoading(true)
+      setLoadingState(true)
       setError(null)
       const token = getToken();
       if (!token || !user) {
         setError('unauthorized')
         return
       }
+      
       // Fetch profile
       const profileRes = await fetch(`${API_URL}/user/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!profileRes.ok) {
         setError('network-error');
-        setLoading(false);
+        setLoadingState(false);
         return;
       }
       const profileData = await profileRes.json();
@@ -100,6 +102,7 @@ export default function ProfilePage() {
         fetch(`${API_URL}/user/${user.id}/reviews`),
         fetch(`${API_URL}/user/${user.id}/average-rating`)
       ])
+      
       if (adsResponse.status === 'fulfilled' && adsResponse.value.ok) {
         const adsData = await adsResponse.value.json()
         setAds(adsData)
@@ -121,25 +124,32 @@ export default function ProfilePage() {
       setError('network-error')
       showError('Chyba při načítání profilu', 'Nepodařilo se načíst data profilu')
     } finally {
-      setLoading(false)
+      setLoadingState(false)
     }
   }, [getToken, showError, user])
 
   useEffect(() => {
+    // Reset states when user changes
+    if (!user && !loading) {
+      setLoadingState(false)
+      setProfile(null)
+      setAds([])
+      setSavedAds([])
+      setReviews([])
+      setAvgRating(null)
+      setError(null)
+      return
+    }
+
     if (!user || loading) return;
+    
     fetchProfileData();
   }, [user, loading, fetchProfileData])
-
-  useEffect(() => {
-    if (!loading && !user) {
-      setLoading(false); // was setLoadingState(false)
-    }
-  }, [loading, user]);
 
   const handleDeleteAd = async (adId: string) => {
     setDeletingAdId(adId)
     try {
-      const token = localStorage.getItem('token')
+      const token = getToken()
       const res = await fetch(`${API_URL}/ad/${adId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
@@ -164,7 +174,7 @@ export default function ProfilePage() {
 
     setRemovingSavedId(savedAdId)
     try {
-      const token = localStorage.getItem('token')
+      const token = getToken()
       const res = await fetch(`${API_URL}/saved-ads/${adId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
@@ -183,16 +193,48 @@ export default function ProfilePage() {
     }
   }
 
+  // ✅ Fix the handleLogout function
+  const handleLogout = () => {
+    setIsLoggingOut(true)
+    
+    // ✅ Use the AuthProvider's logout function instead of manual localStorage removal
+    logout()
+    
+    // Dispatch auth change event for other components
+    window.dispatchEvent(new Event('authChange'))
+    
+    showSuccess('Odhlášení', 'Byli jste úspěšně odhlášeni')
+    
+    // Reset all local states
+    setProfile(null)
+    setAds([])
+    setSavedAds([])
+    setReviews([])
+    setAvgRating(null)
+    setError(null)
+    setLoadingState(false)
+    
+    setTimeout(() => {
+      setIsLoggingOut(false)
+    }, 1000)
+  }
+
   const handleRetry = () => {
     setError(null)
     fetchProfileData()
   }
 
-  if (loadingState || !profile) return <PageLoading message="Načítám váš profil..." />
+  // Show loading only if auth is loading OR we're fetching profile data
+  if ((loading || loadingState) && !isLoggingOut) {
+    return <PageLoading message="Načítám váš profil..." />
+  }
+
+  // Show error states
   if (error === 'unauthorized') return <UnauthorizedPage />
   if (error === 'network-error') return <NetworkErrorPage onRetry={handleRetry} />
 
-  if (!user) {
+  // Show login prompt if no user and not loading
+  if (!user && !loading) {
     return (
       <main className="profile-page">
         <div className="profile-page__logged-out">
@@ -201,6 +243,16 @@ export default function ProfilePage() {
         </div>
       </main>
     )
+  }
+
+  // Show logging out state
+  if (isLoggingOut) {
+    return <PageLoading message="Odhlašuji..." />
+  }
+
+  // Don't render profile if no profile data yet
+  if (!profile) {
+    return <PageLoading message="Načítám váš profil..." />
   }
 
   // Počty hvězdiček
@@ -431,13 +483,10 @@ export default function ProfilePage() {
           </button>
           <button 
             className="profile-page__logout-btn"
-            onClick={() => {
-              localStorage.removeItem('token')
-              showSuccess('Odhlášení', 'Byli jste úspěšně odhlášeni')
-              setTimeout(() => window.location.reload(), 1000)
-            }}
+            onClick={handleLogout}
+            disabled={isLoggingOut}
           >
-            Odhlásit se
+            {isLoggingOut ? 'Odhlašuji...' : 'Odhlásit se'}
           </button>
         </div>
       </section>
@@ -445,16 +494,14 @@ export default function ProfilePage() {
       <ChangePasswordModal
         isOpen={showChangePassword}
         onClose={() => setShowChangePassword(false)}
-        onSuccess={() => {}} // Toast už je v komponentě
+        onSuccess={() => {}}
       />
 
       <EditProfileModal
         isOpen={showEditProfile}
         onClose={() => setShowEditProfile(false)}
         user={profile}
-        onSuccess={() => {
-          // Optionally update profile in parent if needed
-        }}
+        onSuccess={() => {}}
       />
 
       <DeleteAccountModal
