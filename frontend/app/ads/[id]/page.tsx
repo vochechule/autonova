@@ -11,6 +11,7 @@ import { conditionMap, fuelMap, transmissionMap, colorMap, colorFinishMap } from
 import { PageLoading } from '../../components/LoadingStates'
 import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
 import { useToast } from '../../contexts/ToastContext'
+import { useAuth } from '../../hooks/AuthProvider' // ✅ Add auth
 import AdMap from '../../components/AdMap'
 import Image from 'next/image'
 
@@ -84,6 +85,7 @@ export default function AdDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [imgIndex, setImgIndex] = useState(0)
   const { showError } = useToast()
+  const { user, isAuthenticated } = useAuth() // ✅ Get auth state
 
   useEffect(() => {
     const fetchAd = async () => {
@@ -291,7 +293,7 @@ export default function AdDetailPage() {
               )}
             </div>
 
-            {/* Prodejce info s integrovanými kontakty */}
+            {/* ✅ UPDATED - Prodejce info s kontakty podle přihlášení */}
             <div className="listing-detail-page__seller-compact">
               <div className="listing-detail-page__seller-avatar">
                 {ad.user?.avatar
@@ -308,32 +310,60 @@ export default function AdDetailPage() {
                 </div>
                 <div className="listing-detail-page__seller-location">{ad.user?.location ?? 'Neuvedeno'}</div>
                 
-                {/* Kontaktní údaje přímo zde */}
+                {/* ✅ Kontaktní údaje - pouze pro přihlášené */}
                 <div className="listing-detail-page__contact-info">
-                  {ad.contactPhone && (
-                    <a href={`tel:${ad.contactPhone}`} className="listing-detail-page__contact-link">
+                  {isAuthenticated ? (
+                    <>
+                      {ad.contactPhone && (
+                        <a href={`tel:${ad.contactPhone}`} className="listing-detail-page__contact-link">
+                          <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                          </svg>
+                          {ad.contactPhone}
+                        </a>
+                      )}
+                      
+                      {ad.contactEmail && (
+                        <a href={`mailto:${ad.contactEmail}`} className="listing-detail-page__contact-link">
+                          <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                          </svg>
+                          {ad.contactEmail}
+                        </a>
+                      )}
+                    </>
+                  ) : (
+                    <div className="listing-detail-page__contact-locked">
                       <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <circle cx="12" cy="16" r="1"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                       </svg>
-                      {ad.contactPhone}
-                    </a>
-                  )}
-                  
-                  {ad.contactEmail && (
-                    <a href={`mailto:${ad.contactEmail}`} className="listing-detail-page__contact-link">
-                      <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
-                      </svg>
-                      {ad.contactEmail}
-                    </a>
+                      <span>Pro zobrazení kontaktu se musíte registrovat nebo přihlásit</span>
+                      <div className="listing-detail-page__auth-buttons">
+                        <Link href="/login" className="listing-detail-page__auth-btn primary">
+                          Přihlásit se
+                        </Link>
+                        <Link href="/register" className="listing-detail-page__auth-btn secondary">
+                          Registrovat
+                        </Link>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
               
-              <Link href={`/profile/${ad.user?.id}`} className="listing-detail-page__contact-btn">
-                Profil prodejce
-              </Link>
+              {/* ✅ Profil prodejce - pouze pro přihlášené nebo změnit text */}
+              {isAuthenticated ? (
+                <Link href={`/profile/${ad.user?.id}`} className="listing-detail-page__contact-btn">
+                  Profil prodejce
+                </Link>
+              ) : (
+                <Link href="/login" className="listing-detail-page__contact-btn">
+                  Přihlásit se
+                </Link>
+              )}
             </div>
           </div>
         </div>

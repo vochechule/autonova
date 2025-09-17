@@ -185,6 +185,10 @@
     margin-bottom: 24px;
   }
 
+  @media (max-width: 460px) {
+    display: block;
+  }
+
   // ✅ EXTRA MALÉ TELEFONY
   @media (max-width: 400px) {
     gap: 12px;
@@ -1431,4 +1435,238 @@
   background: #2d2a1a;
   color: #fde68a;
   border-color: #b45309;
+}
+
+// ✅ Improved styly pro zamčené kontakty - more compact and better looking
+.listing-detail-page__contact-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  color: #495057;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  position: relative;
+  overflow: hidden;
+
+  // ✅ Subtle background pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .contact-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 0.75rem;
+    color: #6c757d;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 6px;
+    border-radius: 50%;
+    z-index: 1;
+    position: relative;
+  }
+
+  span {
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-weight: 500;
+    z-index: 1;
+    position: relative;
+    max-width: 280px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem 0.75rem;
+    font-size: 0.85rem;
+    
+    .contact-icon {
+      width: 28px;
+      height: 28px;
+      margin-bottom: 0.5rem;
+    }
+
+    span {
+      margin-bottom: 0.75rem;
+      max-width: 240px;
+    }
+  }
+
+  @media (max-width: 400px) {
+    padding: 0.875rem 0.5rem;
+    font-size: 0.8rem;
+    
+    .contact-icon {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 0.375rem;
+    }
+
+    span {
+      margin-bottom: 0.5rem;
+      max-width: 200px;
+    }
+  }
+}
+
+.listing-detail-page__auth-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  z-index: 1;
+  position: relative;
+
+  @media (max-width: 350px) {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.375rem;
+  }
+}
+
+.listing-detail-page__auth-btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-width: 90px;
+  border: 2px solid transparent;
+
+  &.primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+      color: white;
+      text-decoration: none;
+    }
+  }
+
+  &.secondary {
+    background: rgba(255, 255, 255, 0.9);
+    color: #007bff;
+    border-color: #007bff;
+    backdrop-filter: blur(4px);
+
+    &:hover {
+      background: #007bff;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      text-decoration: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    min-width: 80px;
+  }
+
+  @media (max-width: 400px) {
+    padding: 0.475rem 0.875rem;
+    font-size: 0.775rem;
+    min-width: 70px;
+  }
+
+  @media (max-width: 350px) {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+// Dark mode improvements
+[data-theme="dark"] {
+  .listing-detail-page__contact-locked {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    border-color: #4a5568;
+    color: #e2e8f0;
+
+    &::before {
+      background: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .contact-icon {
+      color: #a0aec0;
+      background: rgba(26, 32, 44, 0.8);
+    }
+  }
+
+  .listing-detail-page__auth-btn {
+    &.primary {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+
+      &:hover {
+        background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+      }
+    }
+
+    &.secondary {
+      background: rgba(45, 55, 72, 0.9);
+      border-color: #4299e1;
+      color: #4299e1;
+
+      &:hover {
+        background: #4299e1;
+        color: #1a202c;
+        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+      }
+    }
+  }
+}
+
+// ✅ Better hover effects and micro-interactions
+.listing-detail-page__contact-locked {
+  &:hover {
+    .contact-icon {
+      transform: scale(1.05);
+      transition: transform 0.2s ease;
+    }
+  }
+}
+
+// ✅ Accessibility improvements
+.listing-detail-page__auth-btn {
+  &:focus {
+    outline: 2px solid #4299e1;
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ✅ Animation for better UX
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.listing-detail-page__contact-locked {
+  animation: fadeInUp 0.3s ease-out;
 }
