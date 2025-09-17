@@ -10,6 +10,13 @@ import { useAuth } from '../hooks/AuthProvider'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
+// ✅ Define proper error types
+interface ApiError {
+  code?: string
+  message?: string
+  statusCode?: number
+}
+
 // ✅ Registration-specific error messages
 const REGISTER_ERROR_MESSAGES = {
   'EMAIL_ALREADY_EXISTS': 'Email se již používá',
@@ -24,9 +31,9 @@ const REGISTER_ERROR_MESSAGES = {
   'NETWORK_ERROR': 'Problém se sítí, zkuste to znovu',
   'SERVER_ERROR': 'Problém se serverem, zkuste to později',
   'RATE_LIMIT': 'Příliš mnoho pokusů, zkuste to později'
-}
+} as const
 
-function getRegisterErrorMessage(error: any): { title: string; message: string } {
+function getRegisterErrorMessage(error: unknown): { title: string; message: string } {
   // Handle network errors
   if (!navigator.onLine) {
     return {
@@ -35,21 +42,21 @@ function getRegisterErrorMessage(error: any): { title: string; message: string }
     }
   }
 
-  let errorCode: string
-  let errorMessage: string
+  let errorCode: string = 'UNKNOWN_ERROR'
+  let errorMessage: string = 'Neznámá chyba'
 
   if (typeof error === 'string') {
     errorCode = error
     errorMessage = error
-  } else if (error?.code) {
-    errorCode = error.code
-    errorMessage = error.message || error.code
-  } else if (error?.message) {
-    errorCode = error.message
-    errorMessage = error.message
-  } else {
-    errorCode = 'UNKNOWN_ERROR'
-    errorMessage = 'Neznámá chyba'
+  } else if (error && typeof error === 'object') {
+    const apiError = error as ApiError
+    if (apiError.code) {
+      errorCode = apiError.code
+      errorMessage = apiError.message || apiError.code
+    } else if (apiError.message) {
+      errorCode = apiError.message
+      errorMessage = apiError.message
+    }
   }
 
   // ✅ Check for specific phrases in error message
@@ -64,7 +71,7 @@ function getRegisterErrorMessage(error: any): { title: string; message: string }
   }
 
   // Map specific error codes
-  if (REGISTER_ERROR_MESSAGES[errorCode as keyof typeof REGISTER_ERROR_MESSAGES]) {
+  if (errorCode in REGISTER_ERROR_MESSAGES) {
     return {
       title: 'Chyba registrace',
       message: REGISTER_ERROR_MESSAGES[errorCode as keyof typeof REGISTER_ERROR_MESSAGES]
@@ -148,8 +155,9 @@ export default function RegisterForm() {
     
     setLoading(true)
     const form = e.currentTarget as HTMLFormElement
-    const email = (form.elements.namedItem('email') as HTMLInputElement).value
-    const name = (form.elements.namedItem('name') as HTMLInputElement).value
+    const formData = new FormData(form)
+    const email = formData.get('email') as string
+    const name = formData.get('name') as string
 
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
@@ -160,9 +168,9 @@ export default function RegisterForm() {
 
       // ✅ Better error handling
       if (!res.ok) {
-        let errorData
+        let errorData: ApiError
         try {
-          errorData = await res.json()
+          errorData = await res.json() as ApiError
         } catch {
           // If response is not JSON, create error based on status
           errorData = {
@@ -174,9 +182,10 @@ export default function RegisterForm() {
         throw errorData
       }
 
-      const data = await res.json()
+      const data: { token?: string; user?: { name: string } } = await res.json()
       
       if (data.token) {
+        localStorage.setItem('token', data.token)
         login(data.token)
         window.dispatchEvent(new CustomEvent('authChange', {
           detail: { isLoggedIn: true }

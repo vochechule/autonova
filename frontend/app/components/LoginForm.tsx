@@ -9,6 +9,13 @@ import { useAuth } from '../hooks/AuthProvider'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
+// ✅ Define proper error types
+interface ApiError {
+  code?: string
+  message?: string
+  statusCode?: number
+}
+
 // ✅ Error code to message mapping
 const ERROR_MESSAGES = {
   'INVALID_CREDENTIALS': 'Neplatný email nebo heslo',
@@ -20,9 +27,9 @@ const ERROR_MESSAGES = {
   'SERVER_ERROR': 'Problém se serverem, zkuste to později',
   'VALIDATION_ERROR': 'Neplatné údaje',
   'RATE_LIMIT': 'Příliš mnoho pokusů, zkuste to později'
-}
+} as const
 
-function getErrorMessage(error: any): { title: string; message: string } {
+function getErrorMessage(error: unknown): { title: string; message: string } {
   // Handle network errors
   if (!navigator.onLine) {
     return {
@@ -32,25 +39,25 @@ function getErrorMessage(error: any): { title: string; message: string } {
   }
 
   // Handle different error formats
-  let errorCode: string
-  let errorMessage: string
+  let errorCode: string = 'UNKNOWN_ERROR'
+  let errorMessage: string = 'Neznámá chyba'
 
   if (typeof error === 'string') {
     errorCode = error
     errorMessage = error
-  } else if (error?.code) {
-    errorCode = error.code
-    errorMessage = error.message || error.code
-  } else if (error?.message) {
-    errorCode = error.message
-    errorMessage = error.message
-  } else {
-    errorCode = 'UNKNOWN_ERROR'
-    errorMessage = 'Neznámá chyba'
+  } else if (error && typeof error === 'object') {
+    const apiError = error as ApiError
+    if (apiError.code) {
+      errorCode = apiError.code
+      errorMessage = apiError.message || apiError.code
+    } else if (apiError.message) {
+      errorCode = apiError.message
+      errorMessage = apiError.message
+    }
   }
 
   // Map specific error codes to user-friendly messages
-  if (ERROR_MESSAGES[errorCode as keyof typeof ERROR_MESSAGES]) {
+  if (errorCode in ERROR_MESSAGES) {
     return {
       title: 'Chyba přihlášení',
       message: ERROR_MESSAGES[errorCode as keyof typeof ERROR_MESSAGES]
@@ -106,8 +113,9 @@ export default function LoginForm() {
     setLoading(true)
     setError(null)
     const form = e.currentTarget
-    const email = form.email.value
-    const password = form.password.value
+    const formData = new FormData(form)
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
 
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
@@ -118,9 +126,9 @@ export default function LoginForm() {
 
       // ✅ Better error handling
       if (!res.ok) {
-        let errorData
+        let errorData: ApiError
         try {
-          errorData = await res.json()
+          errorData = await res.json() as ApiError
         } catch {
           // If response is not JSON, create error based on status
           errorData = {
@@ -141,7 +149,7 @@ export default function LoginForm() {
       setLoading(false)
       showSuccess('Přihlášení úspěšné', 'Vítejte zpět! Přesměrovávám na hlavní stránku...')
       setTimeout(() => router.push('/'), 1000)
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Login error:', err) // ✅ Debug logging
       
       const { title, message } = getErrorMessage(err)
