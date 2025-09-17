@@ -1,45 +1,129 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(private userService: UserService, private jwt: JwtService) {}
 
   async register(email: string, password: string, name: string) {
-    const hashed = await bcrypt.hash(password, 10);
-    const user = await this.userService.create(email, hashed, name);
+    // ✅ Input validation
+    if (!email || !email.includes('@')) {
+      throw new BadRequestException({
+        code: 'INVALID_EMAIL',
+        message: 'Neplatný formát emailu'
+      });
+    }
 
-    // Vygenerovat token po registraci (automatické přihlášení)
-    const payload = { sub: user.id, email: user.email };
-    const token = this.jwt.sign(payload);
+    if (!name || name.trim().length < 2) {
+      throw new BadRequestException({
+        code: 'INVALID_NAME',
+        message: 'Jméno musí mít alespoň 2 znaky'
+      });
+    }
 
-    return {
-      user: { id: user.id, email: user.email, name: user.name },
-      token,
-    };
+    if (!password || password.length < 8) {
+      throw new BadRequestException({
+        code: 'PASSWORD_TOO_SHORT',
+        message: 'Heslo musí mít alespoň 8 znaků'
+      });
+    }
+
+    // ✅ Check if email already exists
+    const existingUser = await this.userService.findByEmail(email);
+    if (existingUser) {
+      throw new ConflictException({
+        code: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email se již používá'
+      });
+    }
+
+    try {
+      const hashed = await bcrypt.hash(password, 10);
+      const user = await this.userService.create(email, hashed, name.trim());
+
+      // Vygenerovat token po registraci (automatické přihlášení)
+      const payload = { sub: user.id, email: user.email };
+      const token = this.jwt.sign(payload);
+
+      return {
+        user: { id: user.id, email: user.email, name: user.name },
+        token,
+      };
+    } catch (error) {
+      // ✅ Handle Prisma unique constraint errors
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException({
+            code: 'EMAIL_ALREADY_EXISTS',
+            message: 'Email se již používá'
+          });
+        }
+      }
+      
+      console.error('Registration error:', error);
+      throw new BadRequestException({
+        code: 'REGISTRATION_FAILED',
+        message: 'Registrace se nezdařila'
+      });
+    }
   }
 
   async login(email: string, password: string) {
-
+    // ✅ Input validation
     if (!email) {
-      throw new Error('Email is undefined or empty');
+      throw new BadRequestException({
+        code: 'INVALID_EMAIL',
+        message: 'Email je povinný'
+      });
     }
 
-    const user = await this.userService.findByEmail(email);
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid credentials');
+    if (!password) {
+      throw new BadRequestException({
+        code: 'INVALID_PASSWORD',
+        message: 'Heslo je povinné'
+      });
     }
 
-    const payload = { sub: user.id, email: user.email };
-    const token = this.jwt.sign(payload);
+    try {
+      const user = await this.userService.findByEmail(email);
+      
+      if (!user) {
+        throw new UnauthorizedException({
+          code: 'INVALID_CREDENTIALS',
+          message: 'Neplatný email nebo heslo'
+        });
+      }
 
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException({
+          code: 'INVALID_CREDENTIALS',
+          message: 'Neplatný email nebo heslo'
+        });
+      }
 
-    return {
-      token,
-      user: { id: user.id, email: user.email, name: user.name },
-    };
+      const payload = { sub: user.id, email: user.email };
+      const token = this.jwt.sign(payload);
+
+      return {
+        token,
+        user: { id: user.id, email: user.email, name: user.name },
+      };
+    } catch (error) {
+      // ✅ Re-throw known errors
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      console.error('Login error:', error);
+      throw new UnauthorizedException({
+        code: 'LOGIN_FAILED',
+        message: 'Přihlášení se nezdařilo'
+      });
+    }
   }
 
   async findUserById(id: string) {
@@ -47,23 +131,57 @@ export class AuthService {
   }
 
   async changePassword(userId: string, currentPassword: string, newPassword: string) {
-    const user = await this.userService.findOne(userId);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
+    // ✅ Input validation
+    if (!currentPassword) {
+      throw new BadRequestException({
+        code: 'CURRENT_PASSWORD_REQUIRED',
+        message: 'Současné heslo je povinné'
+      });
     }
 
-    // Verify current password
-    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isCurrentPasswordValid) {
-      throw new UnauthorizedException('Current password is incorrect');
+    if (!newPassword || newPassword.length < 8) {
+      throw new BadRequestException({
+        code: 'PASSWORD_TOO_SHORT',
+        message: 'Nové heslo musí mít alespoň 8 znaků'
+      });
     }
 
-    // Hash new password
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    
-    // Update password in database
-    await this.userService.updatePassword(userId, hashedNewPassword);
-    
-    return { message: 'Password changed successfully' };
+    try {
+      const user = await this.userService.findOne(userId);
+      if (!user) {
+        throw new UnauthorizedException({
+          code: 'USER_NOT_FOUND',
+          message: 'Uživatel nebyl nalezen'
+        });
+      }
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        throw new UnauthorizedException({
+          code: 'INVALID_CURRENT_PASSWORD',
+          message: 'Současné heslo není správné'
+        });
+      }
+
+      // Hash new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update password in database
+      await this.userService.updatePassword(userId, hashedNewPassword);
+      
+      return { message: 'Heslo bylo úspěšně změněno' };
+    } catch (error) {
+      // ✅ Re-throw known errors
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+        throw error;
+      }
+      
+      console.error('Change password error:', error);
+      throw new BadRequestException({
+        code: 'PASSWORD_CHANGE_FAILED',
+        message: 'Změna hesla se nezdařila'
+      });
+    }
   }
 }

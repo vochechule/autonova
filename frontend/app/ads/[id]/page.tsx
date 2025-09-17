@@ -187,6 +187,8 @@ export default function AdDetailPage() {
                   height={600}
                   style={{ objectFit: 'cover' }}
                   priority={imgIndex === 0}
+                  
+
                 />
                 {ad.images.length > 1 && (
                   <>
