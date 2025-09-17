@@ -9,11 +9,27 @@
   max-width: 420px;
   width: 100%;
 
-  @media (max-width: 480px) {
-    left: 20px;
-    right: 20px;
-    top: 20px;
+  // ✅ Better mobile responsiveness
+  @media (max-width: 768px) {
+    left: 16px;
+    right: 16px;
+    top: 16px;
     max-width: none;
+    width: auto; // Let it fit the available space
+  }
+
+  @media (max-width: 480px) {
+    left: 12px;
+    right: 12px;
+    top: 12px;
+    gap: 8px; // Smaller gap on mobile
+  }
+
+  // ✅ Very small screens (iPhone SE, etc.)
+  @media (max-width: 375px) {
+    left: 8px;
+    right: 8px;
+    top: 8px;
   }
 }
 
@@ -30,6 +46,8 @@
   position: relative;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0; // ✅ Prevent overflow
+  word-wrap: break-word; // ✅ Break long words
 
   &:hover {
     transform: translateY(-2px);
@@ -41,6 +59,35 @@
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
   }
 
+  // ✅ Mobile-specific adjustments
+  @media (max-width: 768px) {
+    padding: 14px 12px;
+    gap: 10px;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    &--paused {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px 10px;
+    gap: 8px;
+    border-radius: 8px;
+    
+    &:hover, &--paused {
+      transform: none; // ✅ Disable hover transform on small screens
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    }
+  }
+
   &::before {
     content: '';
     position: absolute;
@@ -48,6 +95,10 @@
     top: 0;
     bottom: 0;
     width: 4px;
+
+    @media (max-width: 480px) {
+      width: 3px; // ✅ Thinner accent bar on mobile
+    }
   }
 
   &--success {
@@ -108,6 +159,10 @@
   height: 3px;
   background: rgba(0, 0, 0, 0.1);
   overflow: hidden;
+
+  @media (max-width: 480px) {
+    height: 2px; // ✅ Thinner progress bar on mobile
+  }
 }
 
 .toast__progress-fill {
@@ -116,8 +171,14 @@
   transition: width 0.05s linear;
   border-radius: 0 2px 2px 0;
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+
+  @media (max-width: 480px) {
+    border-radius: 0 1px 1px 0;
+    box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
+  }
 }
 
+// ✅ Updated animation for mobile
 @keyframes toastSlideIn {
   from {
     transform: translateX(100%);
@@ -129,14 +190,46 @@
   }
 }
 
+// ✅ Mobile-specific slide animation
+@media (max-width: 480px) {
+  @keyframes toastSlideIn {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+      scale: 0.95;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+      scale: 1;
+    }
+  }
+}
+
 .toast__icon {
   flex-shrink: 0;
   margin-top: 2px;
+
+  // ✅ Smaller icon on mobile
+  @media (max-width: 480px) {
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  @media (max-width: 375px) {
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
 }
 
 .toast__content {
   flex: 1;
-  min-width: 0;
+  min-width: 0; // ✅ Prevent overflow
+  overflow: hidden; // ✅ Prevent content overflow
 }
 
 .toast__title {
@@ -144,6 +237,17 @@
   color: #1a202c;
   font-size: 0.95rem;
   line-height: 1.4;
+  word-wrap: break-word; // ✅ Break long words
+  overflow-wrap: break-word; // ✅ Better word breaking
+
+  @media (max-width: 480px) {
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 375px) {
+    font-size: 0.85rem;
+  }
 }
 
 .toast__message {
@@ -151,6 +255,18 @@
   font-size: 0.85rem;
   line-height: 1.4;
   margin-top: 4px;
+  word-wrap: break-word; // ✅ Break long words
+  overflow-wrap: break-word; // ✅ Better word breaking
+
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    margin-top: 3px;
+  }
+
+  @media (max-width: 375px) {
+    font-size: 0.75rem;
+  }
 }
 
 .toast__close {
@@ -166,6 +282,24 @@
   &:hover {
     color: #4a5568;
     background: #f7fafc;
+  }
+
+  // ✅ Better mobile touch target
+  @media (max-width: 480px) {
+    padding: 4px;
+    margin: -2px -2px -2px 0; // ✅ Larger touch area
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  @media (max-width: 375px) {
+    svg {
+      width: 12px;
+      height: 12px;
+    }
   }
 }
 
@@ -194,6 +328,17 @@
     &:hover {
       color: #e2e8f0;
       background: #2d3748;
+    }
+  }
+}
+
+// ✅ Safe area insets for modern mobile devices
+@supports (padding: max(0px)) {
+  .toast-container {
+    @media (max-width: 480px) {
+      left: max(12px, env(safe-area-inset-left));
+      right: max(12px, env(safe-area-inset-right));
+      top: max(12px, env(safe-area-inset-top));
     }
   }
 }
