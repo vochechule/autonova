@@ -85,7 +85,7 @@ export default function AdDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [imgIndex, setImgIndex] = useState(0)
   const { showError } = useToast()
-  const { user, isAuthenticated } = useAuth() // ✅ Get auth state
+  const {isAuthenticated } = useAuth() // ✅ Get auth state
 
   useEffect(() => {
     const fetchAd = async () => {
