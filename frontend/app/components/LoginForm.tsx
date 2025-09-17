@@ -9,6 +9,90 @@ import { useAuth } from '../hooks/AuthProvider'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
+// ✅ Error code to message mapping
+const ERROR_MESSAGES = {
+  'INVALID_CREDENTIALS': 'Neplatný email nebo heslo',
+  'USER_NOT_FOUND': 'Uživatel s tímto emailem neexistuje',
+  'INVALID_PASSWORD': 'Nesprávné heslo',
+  'ACCOUNT_LOCKED': 'Účet je dočasně zablokován',
+  'EMAIL_NOT_VERIFIED': 'Email ještě nebyl ověřen',
+  'NETWORK_ERROR': 'Problém se sítí, zkuste to znovu',
+  'SERVER_ERROR': 'Problém se serverem, zkuste to později',
+  'VALIDATION_ERROR': 'Neplatné údaje',
+  'RATE_LIMIT': 'Příliš mnoho pokusů, zkuste to později'
+}
+
+function getErrorMessage(error: any): { title: string; message: string } {
+  // Handle network errors
+  if (!navigator.onLine) {
+    return {
+      title: 'Žádné připojení',
+      message: 'Zkontrolujte připojení k internetu'
+    }
+  }
+
+  // Handle different error formats
+  let errorCode: string
+  let errorMessage: string
+
+  if (typeof error === 'string') {
+    errorCode = error
+    errorMessage = error
+  } else if (error?.code) {
+    errorCode = error.code
+    errorMessage = error.message || error.code
+  } else if (error?.message) {
+    errorCode = error.message
+    errorMessage = error.message
+  } else {
+    errorCode = 'UNKNOWN_ERROR'
+    errorMessage = 'Neznámá chyba'
+  }
+
+  // Map specific error codes to user-friendly messages
+  if (ERROR_MESSAGES[errorCode as keyof typeof ERROR_MESSAGES]) {
+    return {
+      title: 'Chyba přihlášení',
+      message: ERROR_MESSAGES[errorCode as keyof typeof ERROR_MESSAGES]
+    }
+  }
+
+  // Handle HTTP status codes
+  if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+    return {
+      title: 'Neplatné údaje',
+      message: 'Email nebo heslo není správné'
+    }
+  }
+
+  if (errorMessage.includes('429')) {
+    return {
+      title: 'Příliš mnoho pokusů',
+      message: 'Zkuste to za chvíli znovu'
+    }
+  }
+
+  if (errorMessage.includes('500') || errorMessage.includes('Internal Server Error')) {
+    return {
+      title: 'Problém se serverem',
+      message: 'Zkuste to prosím později'
+    }
+  }
+
+  if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+    return {
+      title: 'Problém se sítí',
+      message: 'Zkontrolujte připojení k internetu'
+    }
+  }
+
+  // Default error
+  return {
+    title: 'Chyba přihlášení',
+    message: errorMessage || 'Něco se pokazilo, zkuste to znovu'
+  }
+}
+
 export default function LoginForm() {
   const router = useRouter()
   const { login } = useAuth()
@@ -32,10 +116,20 @@ export default function LoginForm() {
         body: JSON.stringify({ email, password }),
       })
 
+      // ✅ Better error handling
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}))
-        const errorMessage = errorData.message || 'Přihlášení se nezdařilo'
-        throw new Error(errorMessage)
+        let errorData
+        try {
+          errorData = await res.json()
+        } catch {
+          // If response is not JSON, create error based on status
+          errorData = {
+            code: res.status === 401 ? 'INVALID_CREDENTIALS' : 'SERVER_ERROR',
+            message: res.status === 401 ? 'Neplatné přihlašovací údaje' : 'Chyba serveru'
+          }
+        }
+
+        throw errorData
       }
 
       const data: { token: string } = await res.json()
@@ -48,15 +142,12 @@ export default function LoginForm() {
       showSuccess('Přihlášení úspěšné', 'Vítejte zpět! Přesměrovávám na hlavní stránku...')
       setTimeout(() => router.push('/'), 1000)
     } catch (err) {
-      const errorObj = err as Error
-      setError(errorObj.message)
+      console.error('Login error:', err) // ✅ Debug logging
+      
+      const { title, message } = getErrorMessage(err)
+      setError(message)
       setLoading(false)
-
-      if (errorObj.message.includes('Unauthorized') || errorObj.message.includes('Invalid credentials')) {
-        showError('Neplatné údaje', 'Email nebo heslo není správné')
-      } else {
-        showError('Chyba přihlášení', errorObj.message)
-      }
+      showError(title, message)
     }
   }
 
