@@ -1670,3 +1670,82 @@
 .listing-detail-page__contact-locked {
   animation: fadeInUp 0.3s ease-out;
 }
+
+// ✅ Reveal button styles
+.listing-detail-page__contact-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+
+  @media (max-width: 768px) {
+    gap: 3px;
+    margin-bottom: 6px;
+  }
+
+  @media (max-width: 400px) {
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+}
+
+.listing-detail-page__reveal-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #667eea;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  text-wrap: nowrap;
+
+  &:hover {
+    color: #5a67d8;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 4px;
+    padding: 4px 6px;
+  }
+
+  .contact-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 13px;
+    gap: 6px;
+
+    .contact-icon {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  @media (max-width: 400px) {
+    font-size: 12px;
+    gap: 5px;
+
+    .contact-icon {
+      width: 12px;
+      height: 12px;
+    }
+  }
+}
+
+// Dark mode for reveal buttons
+[data-theme="dark"] {
+  .listing-detail-page__reveal-btn {
+    color: #90cdf4;
+
+    &:hover {
+      color: #63b3ed;
+      background: rgba(144, 205, 244, 0.1);
+    }
+  }
+}
