@@ -1,444 +1,172 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as fs from 'fs';
 import * as path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import { UpdateAdDto } from './dto/update-ad.dto';
 
 @Injectable()
 export class AdService {
   private supabase;
+  private readonly maxImages = 15;
+  private readonly maxImageSize = 10 * 1024 * 1024; // 10MB
+  private readonly allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
   constructor(private prisma: PrismaService) {
-    // Inicializace Supabase klienta
     const supabaseUrl = process.env.SUPABASE_URL || '';
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
-  async create(dto: any, userId: string, files?: Express.Multer.File[]) {
-    // 1. Kontrola limitu inzerátů
-    const userAdsCount = await this.prisma.ad.count({ where: { userId } });
-    if (userAdsCount >= 10) {
-      throw new BadRequestException('Můžete mít maximálně 10 aktivních inzerátů.');
+  // ✅ HELPER METHODS
+  private parseBoolean(value: any): boolean {
+    console.log('🔍 parseBoolean input:', { value, type: typeof value });
+    
+    // Handle undefined/null/empty values
+    if (value === undefined || value === null || value === '') {
+      console.log('🔍 parseBoolean: returning false (undefined/null/empty)');
+      return false;
     }
+    
+    // Handle string values
+    if (typeof value === 'string') {
+      const result = value.toLowerCase().trim() === 'true';
+      console.log('🔍 parseBoolean: string result', { value, result });
+      return result;
+    }
+    
+    // Handle boolean values - but be careful with NestJS auto-conversion
+    if (typeof value === 'boolean') {
+      console.log('🔍 parseBoolean: boolean result', { value });
+      return value;
+    }
+    
+    // Handle numbers (1 = true, 0 = false)
+    if (typeof value === 'number') {
+      const result = value === 1;
+      console.log('🔍 parseBoolean: number result', { value, result });
+      return result;
+    }
+    
+    // Default to false for any other type
+    console.log('🔍 parseBoolean: default false for', { value, type: typeof value });
+    return false;
+  }
 
-    // Kontrola userId
-    if (!userId) {
-      throw new Error('User ID is required');
+  private validateImages(files: Express.Multer.File[], minImages = 2) {
+    if (!files || files.length < minImages) {
+      throw new BadRequestException(`Je nutné nahrát alespoň ${minImages} obrázky`);
     }
-
-    // 2. Validace obrázků (počet, velikost, typ) PŘED vytvořením inzerátu
-    const maxImages = 15;
-    const maxSize = 10 * 1024 * 1024;
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-
-    if (!files || files.length < 2) {
-      throw new BadRequestException('Je nutné nahrát alespoň 2 obrázky');
+    
+    if (files.length > this.maxImages) {
+      throw new BadRequestException(`Maximální počet obrázků na inzerát je ${this.maxImages}.`);
     }
-    if (files.length > maxImages) {
-      throw new BadRequestException(`Maximální počet obrázků na inzerát je ${maxImages}.`);
-    }
+    
     for (const file of files) {
-      if (file.size > maxSize) {
+      if (file.size > this.maxImageSize) {
         throw new BadRequestException(`Soubor ${file.originalname} je příliš velký. Maximální velikost je 10MB.`);
       }
-      if (!allowedTypes.includes(file.mimetype)) {
+      if (!this.allowedImageTypes.includes(file.mimetype)) {
         throw new BadRequestException(`Nepodporovaný formát souboru ${file.originalname}. Povolené formáty: JPEG, PNG, WebP.`);
       }
     }
-
-    // 3. Vytvoř inzerát
-    const ad = await this.prisma.ad.create({
-      data: {
-        ...dto,
-        // Numerické hodnoty
-        price: dto.price ? Number(dto.price) : undefined,
-        mileage: dto.mileage ? Number(dto.mileage) : undefined, 
-        year: dto.year ? Number(dto.year) : undefined,
-        firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
-        doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
-        seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
-        airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined,
-        engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
-        power: dto.power ? Number(dto.power) : undefined,
-        avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
-        gearCount: dto.gearCount ? Number(dto.gearCount) : undefined,
-        
-        // Boolean hodnoty
-        ecoTaxPaid: dto.ecoTaxPaid === 'on' || dto.ecoTaxPaid === 'true' || dto.ecoTaxPaid === true,
-        isFirstOwner: dto.isFirstOwner === 'on' || dto.isFirstOwner === 'true' || dto.isFirstOwner === true,
-        isDisabledAdapted: dto.isDisabledAdapted === 'on' || dto.isDisabledAdapted === 'true' || dto.isDisabledAdapted === true,
-        wasCrashed: dto.wasCrashed === 'on' || dto.wasCrashed === 'true' || dto.wasCrashed === true,
-        hasServiceBook: dto.hasServiceBook === 'on' || dto.hasServiceBook === 'true' || dto.hasServiceBook === true,
-        
-        // Datumy
-        technicalCheckUntil: dto.technicalCheckUntil ? new Date(dto.technicalCheckUntil).toISOString() : undefined,
-        warrantyUntil: dto.warrantyUntil ? new Date(dto.warrantyUntil).toISOString() : undefined,
-        
-        // ✅ OPRAVENO - Nepovinné string hodnoty
-        airConditioning: dto.airConditioning || undefined,
-        euroStandard: dto.euroStandard || undefined,
-        description: dto.description || undefined,
-        
-        // ✅ PŘIDÁNO - Kontaktní údaje
-        contactPhone: dto.contactPhone,
-        contactEmail: dto.contactEmail,
-        contactName: dto.contactName || undefined,
-        
-        // ✅ PŘIDÁNO - Lokační údaje
-        latitude: dto.latitude ? Number(dto.latitude) : undefined,
-        longitude: dto.longitude ? Number(dto.longitude) : undefined,
-        address: dto.address || undefined,
-        
-        // Místo userId použij user.connect
-        user: {
-          connect: { id: userId }
-        }
-      },
-      include: { images: true, user: true, features: true },
-    });
-    
-    // 4. Uploaduj obrázky a vytvoř záznamy v DB
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        // ✅ ZMĚNĚNO - Jednoduchý a bezpečný název
-        const fileExtension = path.extname(file.originalname || '.jpg');
-        const filename = `ad_${Date.now()}_${i + 1}${fileExtension}`;
-        
-        const { data, error } = await this.supabase
-          .storage
-          .from('photos')
-          .upload(filename, file.buffer, {
-            contentType: file.mimetype,
-            upsert: true
-          });
-
-        if (error) {
-          throw new BadRequestException(`Upload failed: ${error.message}`);
-        }
-
-        const { data: urlData } = this.supabase
-          .storage
-          .from('photos')
-          .getPublicUrl(filename);
-
-        await this.prisma.image.create({
-          data: {
-            url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
-            adId: ad.id,
-          },
-        });
-      }
-    } catch (err) {
-      // Pokud dojde k chybě při uploadu, smaž právě vytvořený inzerát (rollback)
-      await this.prisma.ad.delete({ where: { id: ad.id } });
-      throw err;
-    }
-
-    // 5. Vrať inzerát s obrázky
-    return this.prisma.ad.findUnique({
-      where: { id: ad.id },
-      include: { images: true, user: true, features: true },
-    });
   }
 
-  async findWithFilters(query: any) {
-  const sortBy = query.sortBy || 'newest';
-  const sortOrder = query.sortOrder || 'desc';
-
-  // ✅ PŘIDÁNO - Více detailní debug
-  const nearLatitude = query.nearLatitude;
-  const nearLongitude = query.nearLongitude;
-  const nearDistance = query.nearDistance;
-
-  // ✅ PŘIDÁNO PAGINATION PARAMETRY
-  const page = parseInt(query.page) || 1;
-  const limit = parseInt(query.limit) || 10;
-  const skip = (page - 1) * limit;
-
-  const {
-    search,
-    title,
-    brand,
-    model,
-    priceFrom,
-    priceTo,
-    mileage,
-    mileageFrom,
-    mileageTo,
-    yearFrom,
-    yearTo,
-    fuel,
-    bodyType,
-    color,
-    colorFinish,
-    powerFrom,
-    powerTo,
-    transmission,
-    drivetrain,
-    doorCount,
-    seatCount,
-    condition,
-  } = query;
-
-  // ✅ DISTANCE FILTERING LOGIKA
-  let distanceFilteredAds: string[] | null = null;
-  
-  if (nearLatitude && nearLongitude && nearDistance) {
-    const lat = parseFloat(nearLatitude);
-    const lng = parseFloat(nearLongitude);
-    const distance = parseFloat(nearDistance);
-
-    // Nejdřív zkontrolujte kolik inzerátů má lokaci
-    const adsWithLocation = await this.prisma.ad.count({
-      where: {
-        latitude: { not: null },
-        longitude: { not: null }
-      }
-    });
-
-    if (adsWithLocation === 0) {
-      return {
-        ads: [],
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          totalPages: 0,
-          hasNext: false,
-          hasPrev: false
-        }
-      };
-    }
-
-    // ✅ OPRAVENÉ SQL - bez HAVING, s WHERE
-    const distanceQuery = `
-      SELECT id, 
-             (6371 * acos(
-               cos(radians($1)) * cos(radians(latitude)) * 
-               cos(radians(longitude) - radians($2)) + 
-               sin(radians($1)) * sin(radians(latitude))
-             )) AS distance
-      FROM "Ad" 
-      WHERE latitude IS NOT NULL 
-        AND longitude IS NOT NULL
-        AND (6371 * acos(
-              cos(radians($1)) * cos(radians(latitude)) * 
-              cos(radians(longitude) - radians($2)) + 
-              sin(radians($1)) * sin(radians(latitude))
-            )) <= $3
-      ORDER BY distance ASC
-    `;
-
-    try {
-      const nearbyAds = await this.prisma.$queryRawUnsafe(
-        distanceQuery,
-        lat,
-        lng,
-        distance
-      ) as { id: string; distance: number }[];
-
-      distanceFilteredAds = nearbyAds.map(ad => ad.id);
+  private transformAdData(dto: any) {
+    return {
+      ...dto,
+      // Numerické hodnoty
+      price: dto.price ? Number(dto.price) : undefined,
+      mileage: dto.mileage ? Number(dto.mileage) : undefined,
+      year: dto.year ? Number(dto.year) : undefined,
+      firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
+      doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
+      seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
+      airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined,
+      engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
+      power: dto.power ? Number(dto.power) : undefined,
+      avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
+      gearCount: dto.gearCount ? Number(dto.gearCount) : undefined,
       
-    } catch (error) {
-      // Pokud distance filtering selže, pokračujeme bez něj
-      distanceFilteredAds = null;
-    }
+      // Boolean hodnoty - FIXED with proper logic
+      ecoTaxPaid: this.parseBoolean(dto.ecoTaxPaid),
+      isFirstOwner: this.parseBoolean(dto.isFirstOwner),
+      isDisabledAdapted: this.parseBoolean(dto.isDisabledAdapted),
+      wasCrashed: this.parseBoolean(dto.wasCrashed),
+      hasServiceBook: this.parseBoolean(dto.hasServiceBook),
+      
+      // Datumy
+      technicalCheckUntil: dto.technicalCheckUntil ? new Date(dto.technicalCheckUntil).toISOString() : undefined,
+      warrantyUntil: dto.warrantyUntil ? new Date(dto.warrantyUntil).toISOString() : undefined,
+      
+      // String hodnoty
+      airConditioning: dto.airConditioning || undefined,
+      euroStandard: dto.euroStandard || undefined,
+      description: dto.description || undefined,
+      
+      // Kontaktní údaje
+      contactPhone: dto.contactPhone,
+      contactEmail: dto.contactEmail,
+      contactName: dto.contactName || undefined,
+      
+      // Lokační údaje
+      latitude: dto.latitude ? Number(dto.latitude) : undefined,
+      longitude: dto.longitude ? Number(dto.longitude) : undefined,
+      address: dto.address || undefined,
+    };
   }
 
-  const where: any = {
-    title: title ? { contains: title, mode: 'insensitive' } : undefined,
-    brand: brand ? { contains: brand, mode: 'insensitive' } : undefined,
-    model: model ? { contains: model, mode: 'insensitive' } : undefined,
-    price: {
-      gte: priceFrom ? Number(priceFrom) : undefined,
-      lte: priceTo ? Number(priceTo) : undefined,
-    },
-    mileage: {
-      gte: mileageFrom ? Number(mileageFrom) : (mileage ? undefined : undefined),
-      lte: mileageTo ? Number(mileageTo) : (mileage ? Number(mileage) : undefined),
-    },
-    year: {
-      gte: yearFrom ? Number(yearFrom) : undefined,
-      lte: yearTo ? Number(yearTo) : undefined,
-    },
-    power: {
-      gte: powerFrom ? Number(powerFrom) : undefined,
-      lte: powerTo ? Number(powerTo) : undefined,
-    },
-    doorCount: doorCount ? Number(doorCount) : undefined,
-    seatCount: seatCount ? Number(seatCount) : undefined,
-    
-    // ✅ DISTANCE FILTER DO WHERE
-    ...(distanceFilteredAds !== null && { id: { in: distanceFilteredAds } }),
-  };
+  private async uploadImages(files: Express.Multer.File[], adId: string) {
+    // ✅ IMPROVED: Better error handling and validation
+    if (!files || !Array.isArray(files) || files.length === 0) {
+      throw new BadRequestException('Žádné soubory k uploadu');
+    }
 
-  // Helper funkce pro zpracování multi-select filtrů
-  const addMultiSelectFilter = (field: string, values: string | string[]) => {
-    if (!values) return;
-    
-    let valuesArray: string[];
-    
-    if (Array.isArray(values)) {
-      valuesArray = values.filter(v => v && v.trim());
-    } else if (typeof values === 'string') {
-      try {
-        const parsed = JSON.parse(values);
-        valuesArray = Array.isArray(parsed) ? parsed : [values];
-      } catch {
-        valuesArray = values.split(',').map(v => v.trim()).filter(v => v);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      if (!file || !file.buffer) {
+        throw new BadRequestException(`Soubor ${i + 1} je poškozený`);
       }
-    } else {
-      return;
-    }
-    
-    if (valuesArray.length > 0) {
-      where[field] = { in: valuesArray };
-    }
-  };
 
-  // Aplikuj multi-select filtry
-  addMultiSelectFilter('fuel', fuel);
-  addMultiSelectFilter('bodyType', bodyType);
-  addMultiSelectFilter('transmission', transmission);
-  addMultiSelectFilter('drivetrain', drivetrain);
-  addMultiSelectFilter('condition', condition);
+      const fileExtension = path.extname(file.originalname || '.jpg');
+      const filename = `ad_${Date.now()}_${i + 1}${fileExtension}`;
+      
+      const { data, error } = await this.supabase
+        .storage
+        .from('photos')
+        .upload(filename, file.buffer, {
+          contentType: file.mimetype,
+          upsert: true
+        });
 
-  // Jednoduchý filtr pro barvu
-  if (color) {
-    where.color = color;
-  }
-
-  if (colorFinish) {
-    where.colorFinish = colorFinish;
-  }
-
-  // Přidej fulltextové vyhledávání
-  if (search) {
-    where.OR = [
-      { title: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
-      { brand: { contains: search, mode: 'insensitive' } },
-      { model: { contains: search, mode: 'insensitive' } },
-    ];
-  }
-
-  // Odstraň undefined hodnoty
-  Object.keys(where).forEach(key => {
-    if (where[key] === undefined) {
-      delete where[key];
-    }
-  });
-
-  // ✅ PŘIDÁNO - Dynamické řazení
-  const getOrderBy = () => {
-    switch (sortBy) {
-      case 'price':
-        return { price: sortOrder as 'asc' | 'desc' }; // ✅ Type assertion
-      case 'mileage':
-        return { mileage: sortOrder as 'asc' | 'desc' };
-      case 'year':
-        return { year: sortOrder as 'asc' | 'desc' };
-      case 'views':
-        return { views: sortOrder as 'asc' | 'desc' };
-      case 'title':
-        return { title: sortOrder as 'asc' | 'desc' };
-      case 'oldest':
-        return { createdAt: 'asc' as const };
-      case 'newest':
-      default:
-        return { createdAt: 'desc' as const };
-    }
-  };
-
-  const orderBy = getOrderBy();
-
-  const [ads, total] = await Promise.all([
-    this.prisma.ad.findMany({
-      where,
-      orderBy: orderBy, // ✅ Používáme orderBy
-      include: { images: true, user: true, features: true },
-      skip,
-      take: limit
-    }),
-    this.prisma.ad.count({ where })
-  ]);
-
-  // ✅ SPECIÁLNÍ HANDLING pro distance sorting
-  if (distanceFilteredAds && nearLatitude && nearLongitude) {
-    const lat = parseFloat(nearLatitude);
-    const lng = parseFloat(nearLongitude);
-
-    // Přidej vzdálenost k výsledkům
-    for (const ad of ads) {
-      if (ad.latitude && ad.longitude) {
-        const R = 6371; // Poloměr Země v km
-        const dLat = (ad.latitude - lat) * Math.PI / 180;
-        const dLon = (ad.longitude - lng) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat * Math.PI / 180) * Math.cos(ad.latitude * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        const distance = R * c;
-
-        (ad as any).distance = Math.round(distance * 10) / 10;
+      if (error) {
+        throw new BadRequestException(`Upload failed: ${error.message}`);
       }
-    }
 
-    // ✅ POKUD je řazení podle vzdálenosti, seřaď podle distance
-    if (sortBy === 'distance' || (sortBy === 'newest' && distanceFilteredAds)) {
-      ads.sort((a: any, b: any) => {
-        const distA = a.distance || 999;
-        const distB = b.distance || 999;
-        return sortOrder === 'asc' ? distA - distB : distB - distA;
+      const { data: urlData } = this.supabase
+        .storage
+        .from('photos')
+        .getPublicUrl(filename);
+
+      await this.prisma.image.create({
+        data: {
+          url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
+          adId: adId,
+        },
       });
     }
   }
 
-  // Attach average rating to each ad's user
-  for (const ad of ads) {
-    const avg = await this.prisma.review.aggregate({
-      where: { targetId: ad.userId },
-      _avg: { rating: true },
-    });
-    (ad.user as any).averageRating = avg._avg.rating;
+  private async attachUserRatings(ads: any[]) {
+    for (const ad of ads) {
+      const avg = await this.prisma.review.aggregate({
+        where: { targetId: ad.userId },
+        _avg: { rating: true },
+      });
+      (ad.user as any).averageRating = avg._avg.rating;
+    }
   }
 
-  return {
-    ads,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-      hasNext: page < Math.ceil(total / limit),
-      hasPrev: page > 1
-    },
-    // ✅ PŘIDÁNO - Sort info
-    sortInfo: {
-      sortBy,
-      sortOrder
-    },
-    // Info o distance filtru
-    ...(distanceFilteredAds && {
-      distanceInfo: {
-        centerLatitude: parseFloat(nearLatitude),
-        centerLongitude: parseFloat(nearLongitude),
-        radiusKm: parseFloat(nearDistance),
-        foundAds: distanceFilteredAds.length
-      }
-    })
-  };
-  }
-
-  findAll = async (query?: any) => {
-  // ✅ PŘIDÁNO - Sort parametry i pro findAll
-  const sortBy = query?.sortBy || 'newest';
-  const sortOrder = query?.sortOrder || 'desc';
-  
-  const getOrderBy = () => {
+  private getOrderBy(sortBy: string, sortOrder: string) {
     switch (sortBy) {
       case 'price':
         return { price: sortOrder as 'asc' | 'desc' };
@@ -456,54 +184,306 @@ export class AdService {
       default:
         return { createdAt: 'desc' as const };
     }
-  };
-
-  const ads = await this.prisma.ad.findMany({
-    orderBy: getOrderBy(), // ✅ ZMĚNĚNO
-    include: { user: true, images: true, features: true },
-  });
-  
-  for (const ad of ads) {
-    const avg = await this.prisma.review.aggregate({
-      where: { targetId: ad.userId },
-      _avg: { rating: true },
-    });
-    (ad.user as any).averageRating = avg._avg.rating;
   }
-  
-  return ads;
-}
 
-  async incrementViews(id: string): Promise<void> {
-    try {
-      await this.prisma.ad.update({
-        where: { id },
-        data: {
-          views: {
-            increment: 1
-          }
-        }
-      });
-    } catch (error) {
-      // Pokud inzerát neexistuje, nebude se počítadlo zvyšovat
+  // ✅ MAIN METHODS
+  async create(dto: any, userId: string, files?: Express.Multer.File[]) {
+    // ✅ ADD DEBUGGING
+    console.log('🔍 Service received DTO boolean values:', {
+      ecoTaxPaid: dto.ecoTaxPaid,
+      isFirstOwner: dto.isFirstOwner,
+      wasCrashed: dto.wasCrashed,
+      hasServiceBook: dto.hasServiceBook,
+      isDisabledAdapted: dto.isDisabledAdapted
+    });
+
+    // Kontrola limitu inzerátů
+    const userAdsCount = await this.prisma.ad.count({ where: { userId } });
+    if (userAdsCount >= 10) {
+      throw new BadRequestException('Můžete mít maximálně 10 aktivních inzerátů.');
     }
+
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    // ✅ Check if files exist before validation
+    if (!files || files.length === 0) {
+      throw new BadRequestException('Je nutné nahrát alespoň 2 obrázky');
+    }
+
+    // Validace obrázků
+    this.validateImages(files);
+
+    // Transformace dat
+    const transformedData = this.transformAdData(dto);
+    
+    // ✅ ADD DEBUGGING
+    console.log('🔍 Service transformed boolean values:', {
+      ecoTaxPaid: transformedData.ecoTaxPaid,
+      isFirstOwner: transformedData.isFirstOwner,
+      wasCrashed: transformedData.wasCrashed,
+      hasServiceBook: transformedData.hasServiceBook,
+      isDisabledAdapted: transformedData.isDisabledAdapted
+    });
+
+    // Vytvoř inzerát
+    const ad = await this.prisma.ad.create({
+      data: {
+        ...transformedData,
+        user: {
+          connect: { id: userId }
+        }
+      },
+      include: { images: true, user: true, features: true },
+    });
+    
+    // ✅ ADD DEBUGGING
+    console.log('🔍 Database saved boolean values:', {
+      ecoTaxPaid: ad.ecoTaxPaid,
+      isFirstOwner: ad.isFirstOwner,
+      wasCrashed: ad.wasCrashed,
+      hasServiceBook: ad.hasServiceBook,
+      isDisabledAdapted: ad.isDisabledAdapted
+    });
+
+    // Upload obrázků
+    try {
+      await this.uploadImages(files, ad.id);
+    } catch (err) {
+      // Rollback - smaž inzerát při chybě uploadu
+      await this.prisma.ad.delete({ where: { id: ad.id } });
+      throw err;
+    }
+
+    // Vrať kompletní inzerát
+    return this.prisma.ad.findUnique({
+      where: { id: ad.id },
+      include: { images: true, user: true, features: true },
+    });
+  }
+
+  async findWithFilters(query: any) {
+    const sortBy = query.sortBy || 'newest';
+    const sortOrder = query.sortOrder || 'desc';
+    const page = parseInt(query.page) || 1;
+    const limit = parseInt(query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const {
+      search, title, brand, model, priceFrom, priceTo, mileage, mileageFrom, mileageTo,
+      yearFrom, yearTo, fuel, bodyType, color, colorFinish, powerFrom, powerTo,
+      transmission, drivetrain, doorCount, seatCount, condition,
+      nearLatitude, nearLongitude, nearDistance
+    } = query;
+
+    // Distance filtering
+    let distanceFilteredAds: string[] | null = null;
+    
+    if (nearLatitude && nearLongitude && nearDistance) {
+      const lat = parseFloat(nearLatitude);
+      const lng = parseFloat(nearLongitude);
+      const distance = parseFloat(nearDistance);
+
+      const adsWithLocation = await this.prisma.ad.count({
+        where: { latitude: { not: null }, longitude: { not: null } }
+      });
+
+      if (adsWithLocation === 0) {
+        return {
+          ads: [],
+          pagination: { page, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
+        };
+      }
+
+      const distanceQuery = `
+        SELECT id, 
+               (6371 * acos(
+                 cos(radians($1)) * cos(radians(latitude)) * 
+                 cos(radians(longitude) - radians($2)) + 
+                 sin(radians($1)) * sin(radians(latitude))
+               )) AS distance
+        FROM "Ad" 
+        WHERE latitude IS NOT NULL 
+          AND longitude IS NOT NULL
+          AND (6371 * acos(
+                cos(radians($1)) * cos(radians(latitude)) * 
+                cos(radians(longitude) - radians($2)) + 
+                sin(radians($1)) * sin(radians(latitude))
+              )) <= $3
+        ORDER BY distance ASC
+      `;
+
+      try {
+        const nearbyAds = await this.prisma.$queryRawUnsafe(
+          distanceQuery, lat, lng, distance
+        ) as { id: string; distance: number }[];
+        distanceFilteredAds = nearbyAds.map(ad => ad.id);
+      } catch (error) {
+        distanceFilteredAds = null;
+      }
+    }
+
+    // Build where clause
+    const where: any = {
+      title: title ? { contains: title, mode: 'insensitive' } : undefined,
+      brand: brand ? { contains: brand, mode: 'insensitive' } : undefined,
+      model: model ? { contains: model, mode: 'insensitive' } : undefined,
+      price: {
+        gte: priceFrom ? Number(priceFrom) : undefined,
+        lte: priceTo ? Number(priceTo) : undefined,
+      },
+      mileage: {
+        gte: mileageFrom ? Number(mileageFrom) : undefined,
+        lte: mileageTo ? Number(mileageTo) : undefined,
+      },
+      year: {
+        gte: yearFrom ? Number(yearFrom) : undefined,
+        lte: yearTo ? Number(yearTo) : undefined,
+      },
+      power: {
+        gte: powerFrom ? Number(powerFrom) : undefined,
+        lte: powerTo ? Number(powerTo) : undefined,
+      },
+      doorCount: doorCount ? Number(doorCount) : undefined,
+      seatCount: seatCount ? Number(seatCount) : undefined,
+      color: color || undefined,
+      colorFinish: colorFinish || undefined,
+      ...(distanceFilteredAds !== null && { id: { in: distanceFilteredAds } }),
+    };
+
+    // Multi-select filters
+    const addMultiSelectFilter = (field: string, values: string | string[]) => {
+      if (!values) return;
+      
+      let valuesArray: string[];
+      if (Array.isArray(values)) {
+        valuesArray = values.filter(v => v && v.trim());
+      } else if (typeof values === 'string') {
+        try {
+          const parsed = JSON.parse(values);
+          valuesArray = Array.isArray(parsed) ? parsed : [values];
+        } catch {
+          valuesArray = values.split(',').map(v => v.trim()).filter(v => v);
+        }
+      } else {
+        return;
+      }
+      
+      if (valuesArray.length > 0) {
+        where[field] = { in: valuesArray };
+      }
+    };
+
+    addMultiSelectFilter('fuel', fuel);
+    addMultiSelectFilter('bodyType', bodyType);
+    addMultiSelectFilter('transmission', transmission);
+    addMultiSelectFilter('drivetrain', drivetrain);
+    addMultiSelectFilter('condition', condition);
+
+    // Search
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { brand: { contains: search, mode: 'insensitive' } },
+        { model: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    // Remove undefined values
+    Object.keys(where).forEach(key => {
+      if (where[key] === undefined) delete where[key];
+    });
+
+    const orderBy = this.getOrderBy(sortBy, sortOrder);
+
+    const [ads, total] = await Promise.all([
+      this.prisma.ad.findMany({
+        where,
+        orderBy,
+        include: { images: true, user: true, features: true },
+        skip,
+        take: limit
+      }),
+      this.prisma.ad.count({ where })
+    ]);
+
+    // Add distance to results if distance filtering
+    if (distanceFilteredAds && nearLatitude && nearLongitude) {
+      const lat = parseFloat(nearLatitude);
+      const lng = parseFloat(nearLongitude);
+
+      for (const ad of ads) {
+        if (ad.latitude && ad.longitude) {
+          const R = 6371;
+          const dLat = (ad.latitude - lat) * Math.PI / 180;
+          const dLon = (ad.longitude - lng) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat * Math.PI / 180) * Math.cos(ad.latitude * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          const distance = R * c;
+          (ad as any).distance = Math.round(distance * 10) / 10;
+        }
+      }
+
+      if (sortBy === 'distance') {
+        ads.sort((a: any, b: any) => {
+          const distA = a.distance || 999;
+          const distB = b.distance || 999;
+          return sortOrder === 'asc' ? distA - distB : distB - distA;
+        });
+      }
+    }
+
+    await this.attachUserRatings(ads);
+
+    return {
+      ads,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      },
+      sortInfo: { sortBy, sortOrder },
+      ...(distanceFilteredAds && {
+        distanceInfo: {
+          centerLatitude: parseFloat(nearLatitude),
+          centerLongitude: parseFloat(nearLongitude),
+          radiusKm: parseFloat(nearDistance),
+          foundAds: distanceFilteredAds.length
+        }
+      })
+    };
+  }
+
+  async findAll(query?: any) {
+    const sortBy = query?.sortBy || 'newest';
+    const sortOrder = query?.sortOrder || 'desc';
+    
+    const ads = await this.prisma.ad.findMany({
+      orderBy: this.getOrderBy(sortBy, sortOrder),
+      include: { user: true, images: true, features: true },
+    });
+    
+    await this.attachUserRatings(ads);
+    return ads;
   }
 
   async findOne(id: string) {
     const ad = await this.prisma.ad.findUnique({
       where: { id },
-      include: { 
-        images: true, 
-        user: true, 
-        features: true 
-      },
+      include: { images: true, user: true, features: true },
     });
     
     if (!ad) {
       throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
     }
     
-    // Pokud inzerát nemá žádné obrázky, přidej defaultní
     if (!ad.images || ad.images.length === 0) {
       const defaultImage = await this.prisma.image.create({
         data: {
@@ -511,21 +491,19 @@ export class AdService {
           adId: ad.id,
         },
       });
-      
       ad.images = [defaultImage];
     }
     
-    // Attach average rating to user
     const avg = await this.prisma.review.aggregate({
       where: { targetId: ad.userId },
       _avg: { rating: true },
     });
     (ad.user as any).averageRating = avg._avg.rating;
+    
     return ad;
   }
 
   async update(id: string, dto: any, userId: string, files?: Express.Multer.File[]) {
-    // Kontrola vlastnictví
     const existingAd = await this.prisma.ad.findUnique({
       where: { id },
       include: { images: true }
@@ -539,184 +517,62 @@ export class AdService {
       throw new BadRequestException('Můžete editovat pouze své inzeráty');
     }
 
-    // Validace povinných polí (stejná jako při vytváření)
-    const requiredFields = ['title', 'brand', 'model', 'price', 'mileage', 'year', 'firstRegistration', 
-                         'bodyType', 'color', 'colorFinish', 'doorCount', 'seatCount', 
-                         'fuel', 'engineVolume', 'power', 'avgConsumption', 'transmission', 
-                         'drivetrain', 'condition', 'countryOfOrigin',
-                         'contactPhone', 'contactEmail']; // ✅ PŘIDÁNO
-
-    const missingFields = requiredFields.filter(field => !dto[field] || dto[field] === '');
-    if (missingFields.length > 0) {
-      throw new Error(`Chybí povinná pole: ${missingFields.join(', ')}`);
-    }
-
-    // ✅ VYLEPŠENÉ - Zpracování mazání obrázků
+    // Handle image deletion
     if (dto.imagesToDelete) {
       let imagesToDelete: string[] = [];
       try {
         if (typeof dto.imagesToDelete === 'string') {
           try {
             imagesToDelete = JSON.parse(dto.imagesToDelete);
-          } catch (parseError) {
+          } catch {
             imagesToDelete = [dto.imagesToDelete];
           }
         } else if (Array.isArray(dto.imagesToDelete)) {
           imagesToDelete = dto.imagesToDelete;
-        } else {
-          imagesToDelete = [String(dto.imagesToDelete)];
         }
 
-        if (Array.isArray(imagesToDelete) && imagesToDelete.length > 0) {
-          for (const imageId of imagesToDelete) {
-            // Najdi obrázek v databázi
-            const imageToDelete = await this.prisma.image.findUnique({
-              where: { id: imageId }
-            });
+        for (const imageId of imagesToDelete) {
+          const imageToDelete = await this.prisma.image.findUnique({
+            where: { id: imageId }
+          });
 
-            if (imageToDelete && imageToDelete.adId === id) {
-              // Extrahuj název souboru z URL
-              const fileName = imageToDelete.url.split('/').pop();
-              if (fileName) {
-                // Smaž ze Supabase storage
-                const { error: deleteError } = await this.supabase
-                  .storage
-                  .from('photos')
-                  .remove([fileName]);
-              }
-
-              // Smaž z databáze
-              await this.prisma.image.delete({
-                where: { id: imageId }
-              });
+          if (imageToDelete && imageToDelete.adId === id) {
+            const fileName = imageToDelete.url.split('/').pop();
+            if (fileName) {
+              await this.supabase.storage.from('photos').remove([fileName]);
             }
+            await this.prisma.image.delete({ where: { id: imageId } });
           }
         }
       } catch (error) {
+        // Ignore deletion errors
       }
     }
 
-    // Odstraň features a imagesToDelete ze základních dat
+    // Transform and update data
     const { features, imagesToDelete, ...adBaseData } = dto;
-    
-    // Převeď stringy na správné typy (stejná logika jako v create)
-    const data = {
-      ...adBaseData,
-      // Numerické hodnoty
-      price: dto.price ? Number(dto.price) : undefined,
-      mileage: dto.mileage ? Number(dto.mileage) : undefined,
-      year: dto.year ? Number(dto.year) : undefined,
-      firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
-      doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
-      seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
-      airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined,
-      engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
-      power: dto.power ? Number(dto.power) : undefined,
-      avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
-      gearCount: dto.gearCount ? Number(dto.gearCount) : undefined,
-      
-      // Boolean hodnoty
-      ecoTaxPaid: dto.ecoTaxPaid === 'on' || dto.ecoTaxPaid === 'true' || dto.ecoTaxPaid === true,
-      isFirstOwner: dto.isFirstOwner === 'on' || dto.isFirstOwner === 'true' || dto.isFirstOwner === true,
-      isDisabledAdapted: dto.isDisabledAdapted === 'on' || dto.isDisabledAdapted === 'true' || dto.isDisabledAdapted === true,
-      wasCrashed: dto.wasCrashed === 'on' || dto.wasCrashed === 'true' || dto.wasCrashed === true,
-      hasServiceBook: dto.hasServiceBook === 'on' || dto.hasServiceBook === 'true' || dto.hasServiceBook === true,
-      
-      // Datumy
-      technicalCheckUntil: dto.technicalCheckUntil ? new Date(dto.technicalCheckUntil).toISOString() : undefined,
-      warrantyUntil: dto.warrantyUntil ? new Date(dto.warrantyUntil).toISOString() : undefined,
-      
-      // Nepovinné string hodnoty
-      airConditioning: dto.airConditioning || undefined,
-      euroStandard: dto.euroStandard || undefined,
-      description: dto.description || undefined,
-      
-      // Kontaktní údaje
-      contactPhone: dto.contactPhone,
-      contactEmail: dto.contactEmail,
-      contactName: dto.contactName || undefined,
-      
-      // ✅ PŘIDÁNO - Lokační údaje  
-      latitude: dto.latitude ? Number(dto.latitude) : undefined,
-      longitude: dto.longitude ? Number(dto.longitude) : undefined,
-      address: dto.address || undefined,
-    };
+    const transformedData = this.transformAdData(adBaseData);
 
-    // Odstraň undefined hodnoty
-    Object.keys(data).forEach(key => {
-      if (data[key] === undefined || data[key] === '') {
-        delete data[key];
+    // Remove undefined values
+    Object.keys(transformedData).forEach(key => {
+      if (transformedData[key] === undefined || transformedData[key] === '') {
+        delete transformedData[key];
       }
     });
 
-    // Aktualizuj základní data inzerátu
     const updatedAd = await this.prisma.ad.update({
       where: { id },
-      data,
+      data: transformedData,
       include: { images: true, user: true, features: true },
     });
 
-    // Zpracuj nové obrázky pokud jsou přiloženy
+    // Upload new images
     if (files && files.length > 0) {
-      const maxImages = 15; // ← přidej na začátek metody
-
-      // ...před nahráváním obrázků...
-      if (files && files.length > maxImages) {
-        throw new BadRequestException(`Maximální počet obrázků na inzerát je ${maxImages}.`);
-      }
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        try {
-          // Validace velikosti a typu (stejná jako v create)
-          const maxSize = 10 * 1024 * 1024;
-          if (file.size > maxSize) {
-            throw new BadRequestException(`Soubor ${file.originalname} je příliš velký. Maximální velikost je 10MB.`);
-          }
-
-          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-          if (!allowedTypes.includes(file.mimetype)) {
-            throw new BadRequestException(`Nepodporovaný formát souboru ${file.originalname}.`);
-          }
-
-          // Upload do Supabase
-          const fileExtension = path.extname(file.originalname || '.jpg');
-          const filename = `ad_${Date.now()}_edit_${i + 1}${fileExtension}`;
-          
-          const { data: uploadData, error } = await this.supabase
-            .storage
-            .from('photos')
-            .upload(filename, file.buffer, {
-              contentType: file.mimetype,
-              upsert: true
-            });
-
-          if (error) {
-            throw new BadRequestException(`Upload failed: ${error.message}`);
-          }
-
-          const { data: urlData } = this.supabase
-            .storage
-            .from('photos')
-            .getPublicUrl(filename);
-
-          // Přidej obrázek do databáze
-          await this.prisma.image.create({
-            data: {
-              url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
-              adId: updatedAd.id,
-            },
-          });
-        } catch (err) {
-          if (err instanceof BadRequestException) {
-            throw err;
-          }
-          throw new BadRequestException(`Chyba při nahrávání souboru ${file.originalname}: ${err.message}`);
-        }
-      }
+      this.validateImages(files, 0); // No minimum for updates
+      await this.uploadImages(files, updatedAd.id);
     }
 
-    // Načti aktuální počet obrázků
+    // Check minimum image count
     const currentImageCount = await this.prisma.image.count({
       where: { adId: id }
     });
@@ -725,30 +581,38 @@ export class AdService {
       throw new BadRequestException('Inzerát musí mít alespoň 2 obrázky. Přidejte další obrázky.');
     }
 
-    // Vrať kompletní data
     return this.prisma.ad.findUnique({
       where: { id },
       include: { images: true, user: true, features: true },
     });
   }
 
-  async remove(id: string) {
-    // Nejprve smaž obrázky patřící k inzerátu
-    await this.prisma.image.deleteMany({ where: { adId: id } });
-    // Pak smaž samotný inzerát
-    return this.prisma.ad.delete({ where: { id } });
+  async incrementViews(id: string): Promise<void> {
+    try {
+      await this.prisma.ad.update({
+        where: { id },
+        data: { views: { increment: 1 } }
+      });
+    } catch (error) {
+      // Ignore if ad doesn't exist
+    }
   }
 
-  async createPhoto(data: { url: string; adId: string }) {
-    return this.prisma.image.create({ data });
+  async remove(id: string) {
+    await this.prisma.image.deleteMany({ where: { adId: id } });
+    return this.prisma.ad.delete({ where: { id } });
   }
 
   async findByUser(userId: string) {
     return this.prisma.ad.findMany({
-      where: { userId }, // OPRAVA: použij přímo userId
+      where: { userId },
       include: { images: true },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async createPhoto(data: { url: string; adId: string }) {
+    return this.prisma.image.create({ data });
   }
 
   async deletePhoto(photoId: string) {

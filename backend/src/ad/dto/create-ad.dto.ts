@@ -117,51 +117,21 @@ export class CreateAdDto {
   @IsString({ each: true })
   features?: string[];
 
-  // Boolean hodnoty s transformací
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value === 'true';
-    }
-    return Boolean(value);
-  })
-  @IsBoolean()
-  ecoTaxPaid: boolean;
+  // Boolean hodnoty - REMOVE @Transform decorators completely
+  @IsOptional() // ✅ Make them optional so NestJS doesn't auto-convert
+  ecoTaxPaid?: any; // ✅ Use 'any' to prevent auto-conversion
 
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value === 'true';
-    }
-    return Boolean(value);
-  })
-  @IsBoolean()
-  isFirstOwner: boolean;
+  @IsOptional()
+  isFirstOwner?: any;
 
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value === 'true';
-    }
-    return Boolean(value);
-  })
-  @IsBoolean()
-  isDisabledAdapted: boolean;
+  @IsOptional()
+  isDisabledAdapted?: any;
 
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value === 'true';
-    }
-    return Boolean(value);
-  })
-  @IsBoolean()
-  wasCrashed: boolean;
+  @IsOptional()
+  wasCrashed?: any;
 
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      return value === 'true';
-    }
-    return Boolean(value);
-  })
-  @IsBoolean()
-  hasServiceBook: boolean;
+  @IsOptional()
+  hasServiceBook?: any;
 
   // ✅ PŘIDEJTE DATUM FIELDY
   @IsOptional()
