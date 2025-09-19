@@ -126,7 +126,7 @@ export default function AdsPageContent() {
           const newAds = data?.ads || []
           // ✅ Prevent duplicates by checking IDs
           const existingIds = new Set(prevAds.map(ad => ad.id))
-          const uniqueNewAds = newAds.filter(ad => !existingIds.has(ad.id))
+          const uniqueNewAds = newAds.filter((ad: Ad) => !existingIds.has(ad.id))
           console.log(`📄 Adding ${uniqueNewAds.length} unique ads (${newAds.length} total received)`);
           return [...prevAds, ...uniqueNewAds]
         })
@@ -213,7 +213,7 @@ export default function AdsPageContent() {
             ) : (
               <>
                 <div className="listings-page__grid">
-                  {ads.map(ad => (
+                  {ads.map((ad: Ad) => (
                     <AdCard key={ad.id} ad={ad} />
                   ))}
                 </div>
