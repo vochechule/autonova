@@ -61,10 +61,7 @@ export default function AdsPageContent() {
   // ✅ Add debug logging
   const renderCount = useRef(0);
   renderCount.current++;
-  console.log(`🎨 AdsPageContent render #${renderCount.current}`, {
-    changedProps: Object.keys(Object.fromEntries(searchParams.entries())),
-    searchParams: searchParams.toString()
-  });
+  
 
   const handleLocationChange = (location: {
     latitude: number
@@ -106,7 +103,6 @@ export default function AdsPageContent() {
       params.set('page', pageToFetch.toString())
       params.set('limit', '12')
 
-      console.log(`📄 Fetching page ${pageToFetch}, isInitialLoad: ${isInitialLoad}`);
 
       const response = await fetch(`${API_URL}/ad?${params}`)
       
@@ -116,7 +112,6 @@ export default function AdsPageContent() {
       
       const data = await response.json()
       
-      console.log(`📄 Received ${data?.ads?.length || 0} ads for page ${pageToFetch}`);
       
       if (isInitialLoad) {
         setAds(data?.ads || [])
@@ -127,7 +122,6 @@ export default function AdsPageContent() {
           // ✅ Prevent duplicates by checking IDs
           const existingIds = new Set(prevAds.map(ad => ad.id))
           const uniqueNewAds = newAds.filter((ad: Ad) => !existingIds.has(ad.id))
-          console.log(`📄 Adding ${uniqueNewAds.length} unique ads (${newAds.length} total received)`);
           return [...prevAds, ...uniqueNewAds]
         })
         setCurrentPage(pageToFetch) // ✅ Update current page
@@ -153,7 +147,6 @@ export default function AdsPageContent() {
   // ✅ SIMPLIFIED: Load more function
   const loadMore = async () => {
     if (!pagination?.hasNext || loadingMore) return
-    console.log(`📄 Loading more: current page ${currentPage}, next page ${currentPage + 1}`);
     await fetchAds(false)
   }
 

@@ -19,7 +19,6 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
   const token = getToken();
 
   useEffect(() => {
-    console.log('FavoriteButton useEffect', adId);
 
     if (!isAuthenticated || !user || !token) return;
 
@@ -103,7 +102,6 @@ export default function FavoriteButton({ adId, className = '', onToggle }: Favor
     }
   };
 
-  console.log('FavoriteButton render', adId);
 
   return (
     <button
