@@ -61,9 +61,7 @@ export default function AdsPageContent() {
   // ✅ Add debug logging
   const renderCount = useRef(0);
   renderCount.current++;
-    changedProps: Object.keys(Object.fromEntries(searchParams.entries())),
-    searchParams: searchParams.toString()
-  });
+  
 
   const handleLocationChange = (location: {
     latitude: number
