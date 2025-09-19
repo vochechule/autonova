@@ -18,36 +18,30 @@ export class AdService {
 
   // ✅ HELPER METHODS
   private parseBoolean(value: any): boolean {
-    console.log('🔍 parseBoolean input:', { value, type: typeof value });
     
     // Handle undefined/null/empty values
     if (value === undefined || value === null || value === '') {
-      console.log('🔍 parseBoolean: returning false (undefined/null/empty)');
       return false;
     }
     
     // Handle string values
     if (typeof value === 'string') {
       const result = value.toLowerCase().trim() === 'true';
-      console.log('🔍 parseBoolean: string result', { value, result });
       return result;
     }
     
     // Handle boolean values - but be careful with NestJS auto-conversion
     if (typeof value === 'boolean') {
-      console.log('🔍 parseBoolean: boolean result', { value });
       return value;
     }
     
     // Handle numbers (1 = true, 0 = false)
     if (typeof value === 'number') {
       const result = value === 1;
-      console.log('🔍 parseBoolean: number result', { value, result });
       return result;
     }
     
     // Default to false for any other type
-    console.log('🔍 parseBoolean: default false for', { value, type: typeof value });
     return false;
   }
 
@@ -189,7 +183,6 @@ export class AdService {
   // ✅ MAIN METHODS
   async create(dto: any, userId: string, files?: Express.Multer.File[]) {
     // ✅ ADD DEBUGGING
-    console.log('🔍 Service received DTO boolean values:', {
       ecoTaxPaid: dto.ecoTaxPaid,
       isFirstOwner: dto.isFirstOwner,
       wasCrashed: dto.wasCrashed,
@@ -219,7 +212,6 @@ export class AdService {
     const transformedData = this.transformAdData(dto);
     
     // ✅ ADD DEBUGGING
-    console.log('🔍 Service transformed boolean values:', {
       ecoTaxPaid: transformedData.ecoTaxPaid,
       isFirstOwner: transformedData.isFirstOwner,
       wasCrashed: transformedData.wasCrashed,
@@ -239,7 +231,6 @@ export class AdService {
     });
     
     // ✅ ADD DEBUGGING
-    console.log('🔍 Database saved boolean values:', {
       ecoTaxPaid: ad.ecoTaxPaid,
       isFirstOwner: ad.isFirstOwner,
       wasCrashed: ad.wasCrashed,

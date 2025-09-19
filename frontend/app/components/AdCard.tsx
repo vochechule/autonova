@@ -37,7 +37,6 @@ interface AdCardProps {
 }
 
 export default function AdCard({ ad }: AdCardProps) {
-  console.log('AdCard render', ad.id);
 
   return (
     <div className="listing-card">
