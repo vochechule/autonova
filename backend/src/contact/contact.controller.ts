@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Patch, Param, Req, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Body, Controller, Post, Get, Patch, Delete, Param, Req, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ContactDto } from './contact.dto';
 import { ContactWebhookService } from './contact-webhook.service';
 import { Request } from 'express';
@@ -76,6 +76,18 @@ export class ContactController {
       return await this.contactWebhookService.markAsRead(id);
     } catch (error) {
       throw new HttpException('Nepodařilo se aktualizovat stav zprávy', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // ✅ Delete message endpoint - FIXED
+  @Delete('admin/submissions/:id')
+  async deleteSubmission(@Param('id') id: string) {
+    try {
+      await this.contactWebhookService.deleteSubmission(id); // ✅ Use the service instead
+      return { ok: true, message: 'Zpráva byla smazána.' };
+    } catch (error) {
+      this.logger.error(`Failed to delete submission: ${error.message}`);
+      throw new HttpException('Failed to delete submission', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

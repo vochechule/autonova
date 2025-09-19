@@ -8,11 +8,22 @@ import '../styles/Admin.scss';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: 'pending' | 'read' | 'replied';
+  createdAt: string;
+}
+
 interface Stats {
   totalUsers: number;
   totalAds: number;
   totalReviews: number;
   visibleAds: number;
+  totalMessages: number;
+  unreadMessages: number;
 }
 
 interface Ad {
@@ -49,7 +60,6 @@ interface User {
   };
 }
 
-// Dynamic import pro AdminMap (kvůli Leaflet)
 const DynamicAdminMap = dynamic(() => import('../components/AdminMap'), {
   ssr: false,
   loading: () => <div className="admin-loading">Načítání mapy...</div>
@@ -59,12 +69,12 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [ads, setAds] = useState<Ad[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [activeTab, setActiveTab] = useState<'stats' | 'listings' | 'users' | 'map'>('stats');
+  const [messages, setMessages] = useState<ContactSubmission[]>([]);
+  const [activeTab, setActiveTab] = useState<'stats' | 'listings' | 'users' | 'messages' | 'map'>('stats');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // useCallback kvůli eslint/react-hooks/exhaustive-deps
   const apiCall = useCallback(
     async (endpoint: string, options: RequestInit = {}) => {
       const token = localStorage.getItem('token');
@@ -96,21 +106,22 @@ export default function AdminPage() {
     [router]
   );
 
-  // Načtení dat při načtení stránky
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
         
-        const [statsData, adsData, usersData] = await Promise.all([
+        const [statsData, adsData, usersData, messagesData] = await Promise.all([
           apiCall('/admin/stats'),
           apiCall('/admin/ads'),
           apiCall('/admin/users'),
+          apiCall('/contact/admin/submissions'),
         ]);
 
         if (statsData) setStats(statsData);
         if (adsData) setAds(adsData);
         if (usersData) setUsers(usersData);
+        if (messagesData) setMessages(messagesData);
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Chyba při načítání dat');
       } finally {
@@ -121,14 +132,51 @@ export default function AdminPage() {
     loadData();
   }, [apiCall]);
 
-  // Smazání inzerátu
+  const markMessageAsRead = async (messageId: string) => {
+    try {
+      await apiCall(`/contact/admin/submissions/${messageId}/read`, { method: 'PATCH' });
+      setMessages(messages.map(msg => 
+        msg.id === messageId ? { ...msg, status: 'read' } : msg
+      ));
+      if (stats) {
+        setStats({
+          ...stats,
+          unreadMessages: Math.max(0, stats.unreadMessages - 1)
+        });
+      }
+    } catch {
+      alert('Chyba při označování zprávy jako přečtené');
+    }
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    if (!confirm('Opravdu chcete smazat tuto zprávu?')) return;
+
+    try {
+      await apiCall(`/contact/admin/submissions/${messageId}`, { method: 'DELETE' });
+      setMessages(messages.filter(msg => msg.id !== messageId));
+      if (stats) {
+        setStats({
+          ...stats,
+          totalMessages: stats.totalMessages - 1,
+          unreadMessages: messages.find(m => m.id === messageId)?.status === 'pending' 
+            ? stats.unreadMessages - 1 
+            : stats.unreadMessages
+        });
+      }
+    } catch {
+      alert('Chyba při mazání zprávy');
+    }
+  };
+
+  const unreadCount = messages.filter(msg => msg.status === 'pending').length;
+
   const deleteListing = async (adId: string) => {
     if (!confirm('Opravdu chcete smazat tento inzerát?')) return;
 
     try {
       await apiCall(`/admin/ads/${adId}`, { method: 'DELETE' });
       setAds(ads.filter(ad => ad.id !== adId));
-      // Aktualizuj statistiky
       if (stats) {
         setStats({
           ...stats,
@@ -167,6 +215,13 @@ export default function AdminPage() {
             👥 Uživatelé ({users.length})
           </button>
           <button 
+            className={activeTab === 'messages' ? 'active' : ''}
+            onClick={() => setActiveTab('messages')}
+          >
+            📧 Zprávy ({messages.length})
+            {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
+          </button>
+          <button 
             className={activeTab === 'map' ? 'active' : ''}
             onClick={() => setActiveTab('map')}
           >
@@ -193,6 +248,14 @@ export default function AdminPage() {
             <div className="stat-card">
               <h3>Celkem hodnocení</h3>
               <p className="stat-number">{stats.totalReviews}</p>
+            </div>
+            <div className="stat-card">
+              <h3>Celkem zpráv</h3>
+              <p className="stat-number">{stats.totalMessages || messages.length}</p>
+            </div>
+            <div className="stat-card">
+              <h3>Nepřečtené zprávy</h3>
+              <p className="stat-number">{stats.unreadMessages || unreadCount}</p>
             </div>
           </div>
         )}
@@ -257,6 +320,66 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'messages' && (
+          <div className="admin-messages">
+            <h2>Kontaktní zprávy</h2>
+            <div className="messages-table">
+              {messages.length === 0 ? (
+                <div className="no-messages">
+                  <p>Žádné zprávy nejsou k dispozici.</p>
+                </div>
+              ) : (
+                messages.map(message => (
+                  <div key={message.id} className={`message-row ${message.status}`}>
+                    <div className="message-header">
+                      <div className="message-info">
+                        <h4>
+                          {message.name}
+                          <span className={`message-status ${message.status}`}>
+                            {message.status === 'pending' && '🔵 Nová'}
+                            {message.status === 'read' && '👁️ Přečtená'}
+                            {message.status === 'replied' && '✅ Odpovězeno'}
+                          </span>
+                        </h4>
+                        <p className="message-email">📧 {message.email}</p>
+                        <p className="message-date">
+                          📅 {new Date(message.createdAt).toLocaleString('cs-CZ')}
+                        </p>
+                      </div>
+                      <div className="message-actions">
+                        {message.status === 'pending' && (
+                          <button 
+                            className="mark-read-btn"
+                            onClick={() => markMessageAsRead(message.id)}
+                          >
+                            ✓ Označit jako přečtené
+                          </button>
+                        )}
+                        <a 
+                          href={`mailto:${message.email}?subject=Re: Vaše zpráva z Carta.cz&body=Dobrý den ${message.name},%0D%0A%0D%0AOdpovídám na Vaši zprávu:%0D%0A"${message.message}"%0D%0A%0D%0A`}
+                          className="reply-btn"
+                        >
+                          📧 Odpovědět
+                        </a>
+                        <button 
+                          className="delete-btn"
+                          onClick={() => deleteMessage(message.id)}
+                        >
+                          🗑️ Smazat
+                        </button>
+                      </div>
+                    </div>
+                    <div className="message-content">
+                      <h5>Zpráva:</h5>
+                      <p>{message.message}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
