@@ -353,20 +353,6 @@ export default function AdCreateForm() {
         body: formData,
         credentials: 'include'
       })
-      
-      // ✅ Add this debug code right before the fetch request
-      console.log('🔍 Debug FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      // Also log the checkbox states specifically
-      const debugCheckboxes = ['ecoTaxPaid', 'isFirstOwner', 'isDisabledAdapted', 'wasCrashed', 'hasServiceBook'];
-      console.log('🔍 Checkbox states:');
-      debugCheckboxes.forEach(field => {
-        const checkbox = form.querySelector(`[name="${field}"]`) as HTMLInputElement;
-        console.log(`${field}: checked=${checkbox?.checked}, sending=${checkbox?.checked ? 'true' : 'false'}`);
-      });
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
