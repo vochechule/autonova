@@ -1300,6 +1300,92 @@
   }
 }
 
+// ✅ Image loading spinner
+.listing-detail-page__image-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  backdrop-filter: blur(2px);
+}
+
+.listing-detail-page__image-spinner {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+  svg {
+    color: #667eea;
+    animation: spin 1s linear infinite;
+  }
+
+  @media (max-width: 768px) {
+    padding: 8px;
+
+    svg {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  @media (max-width: 400px) {
+    padding: 6px;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+// ✅ Spinner animation
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ✅ Disabled button styles during loading
+.listing-detail-page__carousel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.listing-detail-page__carousel-dot:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+// ✅ Dark mode for loading spinner
+[data-theme="dark"] {
+  .listing-detail-page__image-loading {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .listing-detail-page__image-spinner {
+    background: rgba(26, 32, 44, 0.9);
+    
+    svg {
+      color: #90cdf4;
+    }
+  }
+}
+
 // Ostatní styly zůstávají stejné...
 .contact-section {
   margin-top: 2rem;
