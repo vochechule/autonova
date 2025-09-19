@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, HttpException, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, Req, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ContactDto } from './contact.dto';
 import { ContactService } from './contact.service';
 import { Request } from 'express';
@@ -9,6 +9,8 @@ const ipRequests = new Map<string, { count: number; last: number }>();
 
 @Controller('contact')
 export class ContactController {
+  private readonly logger = new Logger(ContactController.name);
+  
   constructor(private readonly contactService: ContactService) {}
 
   @Post()
@@ -32,18 +34,32 @@ export class ContactController {
       throw new HttpException('Spam detekován.', HttpStatus.BAD_REQUEST);
     }
 
-    // Validace
-    if (!body.name || !body.email || !body.message) {
-      throw new HttpException('Vyplňte všechna pole.', HttpStatus.BAD_REQUEST);
+    // ✅ Vylepšená validace s lepšími chybovými hláškami
+    if (!body.name || body.name.trim().length === 0) {
+      throw new HttpException('Vyplňte jméno.', HttpStatus.BAD_REQUEST);
     }
-    if (!/^[^@]+@[^@]+\.[^@]+$/.test(body.email)) {
+    if (!body.email || !/^[^@]+@[^@]+\.[^@]+$/.test(body.email)) {
       throw new HttpException('Neplatný e-mail.', HttpStatus.BAD_REQUEST);
     }
-    if (body.message.length < 5) {
-      throw new HttpException('Zpráva je příliš krátká.', HttpStatus.BAD_REQUEST);
+    if (!body.message || body.message.trim().length < 5) {
+      throw new HttpException('Zpráva musí mít alespoň 5 znaků.', HttpStatus.BAD_REQUEST);
     }
 
-    await this.contactService.sendContactMail(body.name, body.email, body.message);
-    return { ok: true };
+    try {
+      // ✅ Pokus o odeslání e-mailu, ale nezdařte požadavek, pokud se to nepodaří
+      await this.contactService.sendContactMail(body.name, body.email, body.message);
+      this.logger.log(`Kontaktní formulář úspěšně odeslán uživatelem ${body.email}`);
+      return { ok: true, message: 'Zpráva byla úspěšně odeslána.' };
+    } catch (error) {
+      // ✅ Zalogujte chybu, ale stále vraťte úspěch uživateli
+      this.logger.error(`Nepodařilo se odeslat kontaktní e-mail: ${error.message}`, error.stack);
+      
+      // ✅ Můžete si vybrat buďto:
+      // Možnost 1: Vrátit chybu uživateli
+      throw new HttpException('Zprávu se nepodařilo odeslat. Zkuste to prosím později.', HttpStatus.INTERNAL_SERVER_ERROR);
+      
+      // Možnost 2: Uložit do databáze místo toho a vrátit úspěch
+      // return { ok: true, message: 'Zpráva byla přijata a bude zpracována.' };
+    }
   }
 }
