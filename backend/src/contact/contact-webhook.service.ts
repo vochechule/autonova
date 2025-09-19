@@ -76,4 +76,16 @@ export class ContactWebhookService {
       data: { status: 'read' }
     });
   }
+
+  // ✅ Add delete method
+  async deleteSubmission(id: string) {
+    try {
+      return await this.prisma.contactSubmission.delete({
+        where: { id }
+      });
+    } catch (error) {
+      this.logger.error(`Failed to delete submission: ${error.message}`);
+      throw error;
+    }
+  }
 }
