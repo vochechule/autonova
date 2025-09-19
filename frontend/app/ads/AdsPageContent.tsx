@@ -1,6 +1,6 @@
 'use client'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import ActiveFilters from '../components/ActiveFilters'
 import FilterSidebar from '../components/FilterSidebar'
 import AdCard from '../components/AdCard'
@@ -55,7 +55,16 @@ export default function AdsPageContent() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1) // ✅ Add state to track current page
   const { showError: showToastError } = useToast()
+
+  // ✅ Add debug logging
+  const renderCount = useRef(0);
+  renderCount.current++;
+  console.log(`🎨 AdsPageContent render #${renderCount.current}`, {
+    changedProps: Object.keys(Object.fromEntries(searchParams.entries())),
+    searchParams: searchParams.toString()
+  });
 
   const handleLocationChange = (location: {
     latitude: number
@@ -78,17 +87,26 @@ export default function AdsPageContent() {
     window.history.pushState(null, '', `?${newSearchParams.toString()}`)
   }
 
+  // ✅ FIXED: Proper pagination logic
   const fetchAds = useCallback(async (isInitialLoad = false) => {
     try {
       if (isInitialLoad) {
         setLoading(true)
         setAds([])
         setError(null)
+        setCurrentPage(1) // ✅ Reset current page on initial load
+      } else {
+        setLoadingMore(true)
       }
       
       const params = new URLSearchParams(searchParams.toString())
-      params.set('page', isInitialLoad ? '1' : (pagination?.page ? (pagination.page + 1).toString() : '1'))
+      
+      // ✅ FIXED: Use proper page calculation
+      const pageToFetch = isInitialLoad ? 1 : currentPage + 1
+      params.set('page', pageToFetch.toString())
       params.set('limit', '12')
+
+      console.log(`📄 Fetching page ${pageToFetch}, isInitialLoad: ${isInitialLoad}`);
 
       const response = await fetch(`${API_URL}/ad?${params}`)
       
@@ -98,10 +116,21 @@ export default function AdsPageContent() {
       
       const data = await response.json()
       
+      console.log(`📄 Received ${data?.ads?.length || 0} ads for page ${pageToFetch}`);
+      
       if (isInitialLoad) {
         setAds(data?.ads || [])
+        setCurrentPage(1) // ✅ Set current page to 1
       } else {
-        setAds(prevAds => [...prevAds, ...(data?.ads || [])])
+        setAds(prevAds => {
+          const newAds = data?.ads || []
+          // ✅ Prevent duplicates by checking IDs
+          const existingIds = new Set(prevAds.map(ad => ad.id))
+          const uniqueNewAds = newAds.filter(ad => !existingIds.has(ad.id))
+          console.log(`📄 Adding ${uniqueNewAds.length} unique ads (${newAds.length} total received)`);
+          return [...prevAds, ...uniqueNewAds]
+        })
+        setCurrentPage(pageToFetch) // ✅ Update current page
       }
       
       setPagination(data?.pagination || null)
@@ -113,20 +142,24 @@ export default function AdsPageContent() {
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [searchParams, showToastError])
+  }, [searchParams, currentPage, showToastError]) // ✅ Add currentPage to dependencies
 
+  // ✅ FIXED: Reset current page when search params change
   useEffect(() => {
+    setCurrentPage(1) // ✅ Reset page when filters change
     fetchAds(true)
-  }, [searchParams, fetchAds])
+  }, [searchParams]) // ✅ Remove fetchAds from dependencies to prevent infinite loop
 
+  // ✅ SIMPLIFIED: Load more function
   const loadMore = async () => {
     if (!pagination?.hasNext || loadingMore) return
-    setLoadingMore(true)
+    console.log(`📄 Loading more: current page ${currentPage}, next page ${currentPage + 1}`);
     await fetchAds(false)
   }
 
   const handleRetry = () => {
     setError(null)
+    setCurrentPage(1)
     fetchAds(true)
   }
 
@@ -184,6 +217,9 @@ export default function AdsPageContent() {
                     <AdCard key={ad.id} ad={ad} />
                   ))}
                 </div>
+
+                {/* ✅ Add debug info */}
+               
 
                 {pagination?.hasNext && (
                   <div className="listings-page__load-more">
