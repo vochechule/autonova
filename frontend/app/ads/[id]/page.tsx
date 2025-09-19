@@ -84,6 +84,7 @@ export default function AdDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [imgIndex, setImgIndex] = useState(0)
+  const [imageLoading, setImageLoading] = useState(false)
   const { showError } = useToast()
   const { isAuthenticated } = useAuth()
   
@@ -128,14 +129,24 @@ export default function AdDetailPage() {
     window.location.reload()
   }
 
+  // Update the navigation handlers to show loading:
   const handlePrev = () => {
-    if (!ad?.images) return
+    if (!ad?.images || imageLoading) return
+    setImageLoading(true) // ✅ Show spinner immediately
     setImgIndex((prev) => prev === 0 ? ad.images.length - 1 : prev - 1)
   }
-  
+
   const handleNext = () => {
-    if (!ad?.images) return
+    if (!ad?.images || imageLoading) return
+    setImageLoading(true) // ✅ Show spinner immediately
     setImgIndex((prev) => prev === ad.images.length - 1 ? 0 : prev + 1)
+  }
+
+  // Update dot click handler:
+  const handleDotClick = (index: number) => {
+    if (imageLoading || index === imgIndex) return
+    setImageLoading(true) // ✅ Show spinner immediately
+    setImgIndex(index)
   }
 
   const swipeHandlers = useSwipeable({
@@ -183,6 +194,17 @@ export default function AdDetailPage() {
           <div className="listing-detail-page__carousel" {...swipeHandlers}>
             {ad.images && ad.images.length > 0 ? (
               <>
+                {/* ✅ Loading overlay */}
+                {imageLoading && (
+                  <div className="listing-detail-page__image-loading">
+                    <div className="listing-detail-page__image-spinner">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                      </svg>
+                    </div>
+                  </div>
+                )}
+                
                 <Image
                   src={ad.images[imgIndex].url}
                   alt={ad.title}
@@ -191,15 +213,29 @@ export default function AdDetailPage() {
                   height={600}
                   style={{ objectFit: 'cover' }}
                   priority={imgIndex === 0}
+                  onLoadingComplete={() => setImageLoading(false)} // ✅ Hide spinner when loaded
+                  onLoad={() => setImageLoading(false)} // ✅ Fallback for older Next.js versions
+                  onError={() => setImageLoading(false)} // ✅ Hide spinner on error
                 />
+                
                 {ad.images.length > 1 && (
                   <>
-                    <button className="listing-detail-page__carousel-btn left" onClick={handlePrev} aria-label="Předchozí obrázek">
+                    <button 
+                      className="listing-detail-page__carousel-btn left" 
+                      onClick={handlePrev} 
+                      aria-label="Předchozí obrázek"
+                      disabled={imageLoading} // ✅ Disable during loading
+                    >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
-                    <button className="listing-detail-page__carousel-btn right" onClick={handleNext} aria-label="Další obrázek">
+                    <button 
+                      className="listing-detail-page__carousel-btn right" 
+                      onClick={handleNext} 
+                      aria-label="Další obrázek"
+                      disabled={imageLoading} // ✅ Disable during loading
+                    >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                         <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
@@ -209,6 +245,7 @@ export default function AdDetailPage() {
                     </div>
                   </>
                 )}
+                
                 {ad.images.length > 1 && (
                   <div className="listing-detail-page__carousel-dots">
                     {ad.images.map((img, i) => {
@@ -217,8 +254,9 @@ export default function AdDetailPage() {
                         <button
                           key={img.id || i}
                           className={`listing-detail-page__carousel-dot${i === imgIndex ? ' active' : ''}`}
-                          onClick={() => setImgIndex(i)}
+                          onClick={() => handleDotClick(i)} // ✅ Use new handler
                           aria-label={`Obrázek ${i + 1}`}
+                          disabled={imageLoading} // ✅ Disable during loading
                         />
                       )
                     })}
