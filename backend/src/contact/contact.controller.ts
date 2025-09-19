@@ -1,6 +1,6 @@
-import { Body, Controller, Post, Req, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Body, Controller, Post, Get, Patch, Param, Req, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ContactDto } from './contact.dto';
-import { ContactService } from './contact.service';
+import { ContactWebhookService } from './contact-webhook.service';
 import { Request } from 'express';
 
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minuta
@@ -11,7 +11,7 @@ const ipRequests = new Map<string, { count: number; last: number }>();
 export class ContactController {
   private readonly logger = new Logger(ContactController.name);
   
-  constructor(private readonly contactService: ContactService) {}
+  constructor(private readonly contactWebhookService: ContactWebhookService) {}
 
   @Post()
   async sendContact(@Body() body: ContactDto, @Req() req: Request) {
@@ -46,20 +46,36 @@ export class ContactController {
     }
 
     try {
-      // ✅ Pokus o odeslání e-mailu, ale nezdařte požadavek, pokud se to nepodaří
-      await this.contactService.sendContactMail(body.name, body.email, body.message);
+      // ✅ Uložení do databáze + odeslání notifikace na Discord
+      await this.contactWebhookService.saveAndNotify(body.name, body.email, body.message);
       this.logger.log(`Kontaktní formulář úspěšně odeslán uživatelem ${body.email}`);
       return { ok: true, message: 'Zpráva byla úspěšně odeslána.' };
     } catch (error) {
-      // ✅ Zalogujte chybu, ale stále vraťte úspěch uživateli
-      this.logger.error(`Nepodařilo se odeslat kontaktní e-mail: ${error.message}`, error.stack);
-      
-      // ✅ Můžete si vybrat buďto:
-      // Možnost 1: Vrátit chybu uživateli
-      throw new HttpException('Zprávu se nepodařilo odeslat. Zkuste to prosím později.', HttpStatus.INTERNAL_SERVER_ERROR);
-      
-      // Možnost 2: Uložit do databáze místo toho a vrátit úspěch
-      // return { ok: true, message: 'Zpráva byla přijata a bude zpracována.' };
+      this.logger.error(`Nepodařilo se zpracovat kontaktní formulář: ${error.message}`);
+      throw new HttpException(
+        'Nepodařilo se odeslat zprávu. Zkuste to prosím později.',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  // ✅ Admin endpoint pro zobrazení zpráv (přidat autentizaci později)
+  @Get('admin/submissions')
+  async getSubmissions() {
+    try {
+      return await this.contactWebhookService.getAllSubmissions();
+    } catch (error) {
+      throw new HttpException('Nepodařilo se načíst odeslané zprávy', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // ✅ Označit zprávu jako přečtenou
+  @Patch('admin/submissions/:id/read')
+  async markAsRead(@Param('id') id: string) {
+    try {
+      return await this.contactWebhookService.markAsRead(id);
+    } catch (error) {
+      throw new HttpException('Nepodařilo se aktualizovat stav zprávy', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
