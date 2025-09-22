@@ -5,20 +5,17 @@ const nextConfig: NextConfig = {
     domains: [
       "lfmfxfazzkpvojhhmnhv.supabase.co",
     ],
-    formats: ['image/webp', 'image/avif'], // Modern formats for better performance
+    formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  // Ensure SCSS compilation works correctly
   sassOptions: {
     includePaths: ['./app/styles'],
   },
-  // Better SEO and performance
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
   
-  // Add security headers
   async headers() {
     return [
       {
@@ -45,9 +42,10 @@ const nextConfig: NextConfig = {
     ]
   },
   
-  // Experimental features for better performance
+  // ✅ Remove problematic experimental features
   experimental: {
-    optimizeCss: true,
+    // ❌ Remove this - it's causing the critters error
+    // optimizeCss: true,
     scrollRestoration: true,
   },
 };
