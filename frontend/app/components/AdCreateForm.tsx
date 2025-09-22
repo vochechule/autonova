@@ -33,7 +33,8 @@ interface FieldErrors {
   [key: string]: string;
 }
 
-type FormFieldValue = string | number | boolean | null | undefined;
+// ✅ Updated type to include File and FormDataEntryValue
+type FormFieldValue = string | number | boolean | null | undefined | File;
 
 export default function AdCreateForm() {
   const router = useRouter()
@@ -158,10 +159,15 @@ export default function AdCreateForm() {
     }
   };
 
-  // ✅ Client-side validation function with proper typing
+  // ✅ Client-side validation function with proper typing - handle File objects
   const validateField = (name: string, value: FormFieldValue): string | null => {
     const rule = validationRules[name];
     if (!rule) return null;
+
+    // ✅ Skip validation for File objects (these are handled separately)
+    if (value instanceof File) {
+      return null;
+    }
 
     // Required check
     if (rule.required && (!value || value.toString().trim() === '')) {
@@ -197,14 +203,14 @@ export default function AdCreateForm() {
     return null;
   };
 
-  // ✅ Validate all fields with proper typing
+  // ✅ Validate all fields with proper typing - handle FormDataEntryValue
   const validateForm = (formData: FormData): FieldErrors => {
     const errors: FieldErrors = {};
 
     // Validate basic fields
     Object.keys(validationRules).forEach(fieldName => {
-      const value = formData.get(fieldName);
-      const error = validateField(fieldName, value);
+      const value = formData.get(fieldName); // This is FormDataEntryValue | null
+      const error = validateField(fieldName, value); // ✅ Now properly typed
       if (error) {
         errors[fieldName] = error;
       }
@@ -273,12 +279,12 @@ export default function AdCreateForm() {
   const handleBrandChange = (brandValue: string) => {
     setSelectedBrand(brandValue)
     setSelectedModel('')
-    handleFieldChange('brand', brandValue)
+    handleFieldChange('brand')
   }
 
   const handleModelChange = (modelValue: string) => {
     setSelectedModel(modelValue)
-    handleFieldChange('model', modelValue)
+    handleFieldChange('model')
   }
 
   const handleImageRemove = (index: number) => {
@@ -321,7 +327,7 @@ export default function AdCreateForm() {
     address: string
   }) => {
     setLocation(selectedLocation)
-    handleFieldChange('location', selectedLocation)
+    handleFieldChange('location')
   }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -599,7 +605,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="Např. Škoda Octavia 2.0 TDI Combi"
                   className={fieldErrors.title ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('title', e.target.value)}
+                  onChange={() => handleFieldChange('title')}
                 />
                 {fieldErrors.title && <div className="field-error">{fieldErrors.title}</div>}
               </div>
@@ -611,7 +617,6 @@ export default function AdCreateForm() {
                   onChange={handleBrandChange}
                   required
                   className={fieldErrors.brand ? 'error' : ''}
-
                 />
                 {fieldErrors.brand && <div className="field-error">{fieldErrors.brand}</div>}
               </div>
@@ -625,7 +630,6 @@ export default function AdCreateForm() {
                   disabled={!selectedBrand}
                   required
                   className={fieldErrors.model ? 'error' : ''}
-
                 />
                 {fieldErrors.model && <div className="field-error">{fieldErrors.model}</div>}
               </div>
@@ -637,7 +641,7 @@ export default function AdCreateForm() {
                   id="description" 
                   placeholder="Popište stav vozidla, výbavu, historii..." 
                   className={fieldErrors.description ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('description', e.target.value)}
+                  onChange={() => handleFieldChange('description')}
                 />
                 {fieldErrors.description && <div className="field-error">{fieldErrors.description}</div>}
               </div>
@@ -657,7 +661,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="450000"
                   className={fieldErrors.price ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('price', e.target.value)}
+                  onChange={() => handleFieldChange('price')}
                 />
                 {fieldErrors.price && <div className="field-error">{fieldErrors.price}</div>}
               </div>
@@ -671,7 +675,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="150000"
                   className={fieldErrors.mileage ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('mileage', e.target.value)}
+                  onChange={() => handleFieldChange('mileage')}
                 />
                 {fieldErrors.mileage && <div className="field-error">{fieldErrors.mileage}</div>}
               </div>
@@ -685,7 +689,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="2018"
                   className={fieldErrors.year ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('year', e.target.value)}
+                  onChange={() => handleFieldChange('year')}
                 />
                 {fieldErrors.year && <div className="field-error">{fieldErrors.year}</div>}
               </div>
@@ -699,7 +703,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="2018"
                   className={fieldErrors.firstRegistration ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('firstRegistration', e.target.value)}
+                  onChange={() => handleFieldChange('firstRegistration')}
                 />
                 {fieldErrors.firstRegistration && <div className="field-error">{fieldErrors.firstRegistration}</div>}
               </div>
@@ -717,7 +721,7 @@ export default function AdCreateForm() {
                   id="bodyType" 
                   required
                   className={fieldErrors.bodyType ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('bodyType', e.target.value)}
+                  onChange={() => handleFieldChange('bodyType')}
                 >
                   <option value="">Vyberte karoserii</option>
                   <option value="hatchback">Hatchback</option>
@@ -740,11 +744,10 @@ export default function AdCreateForm() {
                   value={selectedColor}
                   onChange={(value) => {
                     setSelectedColor(value)
-                    handleFieldChange('color', value)
+                    handleFieldChange('color')
                   }}
                   required
                   className={fieldErrors.color ? 'error' : ''}
-
                 />
                 {fieldErrors.color && <div className="field-error">{fieldErrors.color}</div>}
               </div>
@@ -767,7 +770,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="5"
                   className={fieldErrors.doorCount ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('doorCount', e.target.value)}
+                  onChange={() => handleFieldChange('doorCount')}
                 />
                 {fieldErrors.doorCount && <div className="field-error">{fieldErrors.doorCount}</div>}
               </div>
@@ -781,7 +784,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="5"
                   className={fieldErrors.seatCount ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('seatCount', e.target.value)}
+                  onChange={() => handleFieldChange('seatCount')}
                 />
                 {fieldErrors.seatCount && <div className="field-error">{fieldErrors.seatCount}</div>}
               </div>
@@ -799,7 +802,7 @@ export default function AdCreateForm() {
                   max="20"
                   defaultValue="0" // ✅ Ensure default value
                   className={fieldErrors.airbagCount ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('airbagCount', e.target.value)}
+                  onChange={() => handleFieldChange('airbagCount')}
                 />
                 {fieldErrors.airbagCount && <div className="field-error">{fieldErrors.airbagCount}</div>}
               </div>
@@ -832,7 +835,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="1968"
                   className={fieldErrors.engineVolume ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('engineVolume', e.target.value)}
+                  onChange={() => handleFieldChange('engineVolume')}
                 />
                 {fieldErrors.engineVolume && <div className="field-error">{fieldErrors.engineVolume}</div>}
               </div>
@@ -846,7 +849,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="110"
                   className={fieldErrors.power ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('power', e.target.value)}
+                  onChange={() => handleFieldChange('power')}
                 />
                 {fieldErrors.power && <div className="field-error">{fieldErrors.power}</div>}
               </div>
@@ -861,7 +864,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="5.2"
                   className={fieldErrors.avgConsumption ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('avgConsumption', e.target.value)}
+                  onChange={() => handleFieldChange('avgConsumption')}
                 />
                 {fieldErrors.avgConsumption && <div className="field-error">{fieldErrors.avgConsumption}</div>}
               </div>
@@ -888,7 +891,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="6"
                   className={fieldErrors.gearCount ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('gearCount', e.target.value)}
+                  onChange={() => handleFieldChange('gearCount')}
                 />
                 {fieldErrors.gearCount && <div className="field-error">{fieldErrors.gearCount}</div>}
               </div>
@@ -1008,7 +1011,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="+420 123 456 789"
                   className={fieldErrors.contactPhone ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('contactPhone', e.target.value)}
+                  onChange={() => handleFieldChange('contactPhone')}
                 />
                 {fieldErrors.contactPhone && <div className="field-error">{fieldErrors.contactPhone}</div>}
               </div>
@@ -1022,7 +1025,7 @@ export default function AdCreateForm() {
                   required 
                   placeholder="vase@email.cz"
                   className={fieldErrors.contactEmail ? 'error' : ''}
-                  onChange={(e) => handleFieldChange('contactEmail', e.target.value)}
+                  onChange={() => handleFieldChange('contactEmail')}
                 />
                 {fieldErrors.contactEmail && <div className="field-error">{fieldErrors.contactEmail}</div>}
               </div>
