@@ -9,7 +9,7 @@ export const metadata = generateMetadata(
   'https://carta.cz/ads/create'
 )
 
-// Dynamicky načti celý formulář
+// ✅ Simple loading without animation
 const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
   ssr: false,
   loading: () => (
@@ -25,8 +25,8 @@ const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
         height: '40px',
         border: '3px solid #e2e8f0',
         borderTop: '3px solid #0070f3',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite'
+        borderRadius: '50%'
+        // ✅ Removed the problematic animation property
       }}></div>
       <p style={{ marginTop: '16px', color: '#4a5568' }}>Načítám formulář...</p>
     </div>
