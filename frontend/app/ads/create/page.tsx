@@ -1,9 +1,16 @@
-'use client'
 import dynamic from 'next/dynamic'
+import { generateMetadata } from '../../lib/seo'
 
-// Dynamicky načti celý formulář
+export const metadata = generateMetadata(
+  'Přidat inzerát zdarma - Prodejte své auto',
+  'Vytvořte inzerát vašeho vozidla zdarma na Carta.cz. Jednoduché přidání, kvalitní fotografie, rychlý prodej.',
+  ['přidat inzerát zdarma', 'prodej auta', 'inzerce vozidla', 'carta prodej'],
+  undefined,
+  'https://carta.cz/ads/create'
+)
+
+// ✅ Remove ssr: false to work in server component
 const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
-  ssr: false,
   loading: () => (
     <div style={{ 
       display: 'flex', 
@@ -17,8 +24,7 @@ const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
         height: '40px',
         border: '3px solid #e2e8f0',
         borderTop: '3px solid #0070f3',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite'
+        borderRadius: '50%'
       }}></div>
       <p style={{ marginTop: '16px', color: '#4a5568' }}>Načítám formulář...</p>
     </div>
@@ -28,6 +34,9 @@ const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
 export default function CreateAdPage() {
   return (
     <main>
+      <h1 style={{ position: 'absolute', left: '-9999px' }}>
+        Přidat inzerát auta zdarma na Carta.cz
+      </h1>
       <AdCreateForm />
     </main>
   )

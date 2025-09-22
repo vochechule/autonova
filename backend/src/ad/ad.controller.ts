@@ -48,22 +48,7 @@ export class AdController {
       throw new UnauthorizedException('User not authenticated properly');
     }
     
-    // ✅ ADD DEBUGGING
-    console.log('🔍 Controller received raw body boolean values:', {
-      ecoTaxPaid: req.body.ecoTaxPaid,
-      isFirstOwner: req.body.isFirstOwner,
-      wasCrashed: req.body.wasCrashed,
-      hasServiceBook: req.body.hasServiceBook,
-      isDisabledAdapted: req.body.isDisabledAdapted
-    });
-
-    console.log('🔍 Controller DTO after transformation:', {
-      ecoTaxPaid: dto.ecoTaxPaid,
-      isFirstOwner: dto.isFirstOwner,
-      wasCrashed: dto.wasCrashed,
-      hasServiceBook: dto.hasServiceBook,
-      isDisabledAdapted: dto.isDisabledAdapted
-    });
+  
 
     return this.adService.create(dto, req.user.id, files);
   }

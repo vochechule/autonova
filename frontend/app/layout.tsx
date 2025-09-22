@@ -9,7 +9,7 @@ import Footer from "./components/Footer";
 import CookiesPopup from "./components/CookiesPopup";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import Script from "next/script";
-import { AuthProvider } from "./hooks/AuthProvider"; // <-- přidej import
+import { AuthProvider } from "./hooks/AuthProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,37 +22,77 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Carta.cz - Inzerce aut zdarma",
-  description: "Prodej a koupě aut jednoduše, bez reklam, zdarma",
+  title: {
+    default: "Carta.cz - Největší autobazar zdarma",
+    template: "%s | Carta.cz",
+  },
+  description:
+    "Prodej a koupě aut jednoduše, bez reklam a zdarma. Tisíce ověřených inzerátů, transparentní ceny, bezpečné transakce. Najděte své vysněné auto na Carta.cz.",
   keywords: [
-    "auta", "inzerce aut", "prodej aut", "koupě auta", "carta", "autobazar", "zdarma", "bez reklam"
+    "autobazar",
+    "inzerce aut",
+    "prodej aut",
+    "ojetá auta",
+    "koupě auta",
+    "auto na prodej",
+    "bazar vozidel",
+    "carta",
+    "auta zdarma",
+    "nejlevnější auta",
+    "škoda na prodej",
+    "volkswagen bazar",
+    "bmw prodej",
+    "audi inzerce",
   ],
   authors: [{ name: "Carta.cz tým", url: "https://carta.cz" }],
+  creator: "Carta.cz",
+  publisher: "Carta.cz",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
-    title: "Carta.cz - Inzerce aut zdarma",
-    description: "Prodej a koupě aut jednoduše, bez reklam, zdarma",
+    type: "website",
+    title: "Carta.cz - Největší autobazar zdarma",
+    description: "Prodej a koupě aut jednoduše, bez reklam a zdarma",
     url: "https://carta.cz",
     siteName: "Carta.cz",
     images: [
       {
-        url: "/og-image.png",
+        url: "https://carta.cz/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Carta.cz - Inzerce aut zdarma",
+        alt: "Carta.cz - Největší autobazar zdarma",
       },
     ],
     locale: "cs_CZ",
-    type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Carta.cz - Inzerce aut zdarma",
-    description: "Prodej a koupě aut jednoduše, bez reklam, zdarma",
-    images: ["/og-image.png"],
+    title: "Carta.cz - Největší autobazar zdarma",
+    description: "Prodej a koupě aut jednoduše, bez reklam a zdarma",
+    images: ["https://carta.cz/og-image.png"],
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  manifest: "/site.webmanifest",
+  alternates: {
+    canonical: "https://carta.cz",
   },
 };
 
@@ -79,6 +119,10 @@ export default function RootLayout({
         />
         <meta name="apple-mobile-web-app-title" content="Carta.cz" />
         <link rel="manifest" href="/site.webmanifest" />
+
+        {/* Preconnect to important domains */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://lfmfxfazzkpvojhhmnhv.supabase.co" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AuthProvider>
@@ -93,6 +137,7 @@ export default function RootLayout({
             <ScrollToTopButton />
           </ToastProvider>
         </AuthProvider>
+
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-T59588T6DV"
@@ -103,7 +148,10 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-T59588T6DV');
+            gtag('config', 'G-T59588T6DV', {
+              page_title: document.title,
+              page_location: window.location.href
+            });
           `}
         </Script>
       </body>
