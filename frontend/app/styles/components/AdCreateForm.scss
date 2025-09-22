@@ -890,4 +890,191 @@
   [data-theme="dark"] .modal p {
     color: #bfc9db;
   }
+
+  // Add to: frontend/app/styles/components/AdCreateForm.scss
+
+  // ✅ Field error styles
+  .field-error {
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0.25rem;
+    padding-left: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    &::before {
+      content: "⚠";
+      font-size: 0.75rem;
+    }
+  }
+
+  // ✅ Error state for inputs
+  input.error,
+  select.error,
+  textarea.error {
+    border-color: #dc2626;
+    background-color: #fef2f2;
+    
+    &:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+  }
+
+  // ✅ Map error state
+  .map-error {
+    border: 2px solid #dc2626;
+    border-radius: 8px;
+    padding: 2px;
+  }
+
+  // ✅ Enhanced form error message
+  .form-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    animation: slideIn 0.3s ease-out;
+
+    &__icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    &__content {
+      flex: 1;
+      line-height: 1.4;
+
+      strong {
+        color: #dc2626;
+        font-weight: 600;
+      }
+    }
+
+    &__count {
+      font-size: 0.875rem;
+      color: #7f1d1d;
+      margin-top: 0.25rem;
+      font-style: italic;
+    }
+  }
+
+  // ✅ Error list for multiple errors
+  .error-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+
+    li {
+      padding: 0.25rem 0;
+      font-size: 0.875rem;
+      color: #dc2626;
+
+      &::before {
+        content: "• ";
+        font-weight: bold;
+      }
+    }
+  }
+
+  // ✅ Field wrapper for better error positioning
+  .form-group {
+    position: relative;
+
+    .field-error {
+      position: relative;
+      z-index: 1;
+    }
+  }
+
+  // ✅ Success state for validated fields
+  input.valid,
+  select.valid,
+  textarea.valid {
+    border-color: #22c55e;
+    
+    &:focus {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    }
+  }
+
+  // ✅ Loading state for submit button
+  button[type='submit']:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    
+    &.has-errors {
+      background: #fca5a5;
+      color: #7f1d1d;
+    }
+  }
+
+  // ✅ Dark mode error styles
+  [data-theme="dark"] &,
+  &[data-theme="dark"] {
+    .field-error {
+      color: #f87171;
+    }
+
+    input.error,
+    select.error,
+    textarea.error {
+      border-color: #ef4444;
+      background-color: #2d1b1b;
+      
+      &:focus {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+    }
+
+    .form-error {
+      background: #2d1b1b;
+      border-color: #f87171;
+      
+      &__content strong {
+        color: #f87171;
+      }
+      
+      &__count {
+        color: #fca5a5;
+      }
+    }
+
+    .map-error {
+      border-color: #ef4444;
+    }
+
+    input.valid,
+    select.valid,
+    textarea.valid {
+      border-color: #34d399;
+      
+      &:focus {
+        border-color: #34d399;
+        box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.1);
+      }
+    }
+  }
+
+  // ✅ Responsive error styles
+  @media (max-width: 768px) {
+    .form-error {
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+
+    .field-error {
+      font-size: 0.8rem;
+    }
+  }
 }

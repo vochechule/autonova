@@ -36,7 +36,7 @@ model Ad {
   seatCount           Int
   color               String
   colorFinish         String?
-  airbagCount         Int
+  airbagCount     Int         @default(0) // ✅ Required with default value
   airConditioning     AirConditioning?
   fuel                FuelType
   engineVolume        Int

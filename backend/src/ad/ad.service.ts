@@ -71,16 +71,18 @@ export class AdService {
   }
 
   private transformAdData(dto: any) {
-    return {
+    console.log('🔍 transformAdData input:', dto);
+    
+    const transformed = {
       ...dto,
-      // Numerické hodnoty
+      // Numerické hodnoty - ensure airbagCount is included
       price: dto.price ? Number(dto.price) : undefined,
       mileage: dto.mileage ? Number(dto.mileage) : undefined,
       year: dto.year ? Number(dto.year) : undefined,
       firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
       doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
       seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
-      airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined,
+      airbagCount: dto.airbagCount !== undefined ? Number(dto.airbagCount) : 0, // ✅ Default to 0 if not provided
       engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
       power: dto.power ? Number(dto.power) : undefined,
       avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
@@ -112,6 +114,9 @@ export class AdService {
       longitude: dto.longitude ? Number(dto.longitude) : undefined,
       address: dto.address || undefined,
     };
+
+    console.log('🔍 transformAdData output:', transformed);
+    return transformed;
   }
 
   private async uploadImages(files: Express.Multer.File[], adId: string) {
@@ -189,12 +194,14 @@ export class AdService {
   // ✅ MAIN METHODS
   async create(dto: any, userId: string, files?: Express.Multer.File[]) {
     // ✅ ADD DEBUGGING
+    console.log('🔍 Service received DTO:', dto);
     console.log('🔍 Service received DTO boolean values:', {
       ecoTaxPaid: dto.ecoTaxPaid,
       isFirstOwner: dto.isFirstOwner,
       wasCrashed: dto.wasCrashed,
       hasServiceBook: dto.hasServiceBook,
-      isDisabledAdapted: dto.isDisabledAdapted
+      isDisabledAdapted: dto.isDisabledAdapted,
+      airbagCount: dto.airbagCount // ✅ Add airbagCount to debug
     });
 
     // Kontrola limitu inzerátů
@@ -215,22 +222,53 @@ export class AdService {
     // Validace obrázků
     this.validateImages(files);
 
+    // ✅ Validate required fields before transformation
+    const requiredFields = [
+      'title', 'brand', 'model', 'price', 'mileage', 'year', 
+      'firstRegistration', 'bodyType', 'fuel', 'transmission',
+      'contactPhone', 'contactEmail'
+    ];
+
+    const missingFields = requiredFields.filter(field => !dto[field] || dto[field].toString().trim() === '');
+    if (missingFields.length > 0) {
+      throw new BadRequestException(`Následující pole jsou povinná: ${missingFields.join(', ')}`);
+    }
+
     // Transformace dat
     const transformedData = this.transformAdData(dto);
     
+    // ✅ Ensure required numeric fields have defaults
+    const dataToSave = {
+      ...transformedData,
+      airbagCount: transformedData.airbagCount ?? 0, // ✅ Ensure airbagCount is never undefined
+      doorCount: transformedData.doorCount ?? 4, // ✅ Default door count
+      seatCount: transformedData.seatCount ?? 5, // ✅ Default seat count
+      gearCount: transformedData.gearCount ?? 5, // ✅ Default gear count
+    };
+    
     // ✅ ADD DEBUGGING
     console.log('🔍 Service transformed boolean values:', {
-      ecoTaxPaid: transformedData.ecoTaxPaid,
-      isFirstOwner: transformedData.isFirstOwner,
-      wasCrashed: transformedData.wasCrashed,
-      hasServiceBook: transformedData.hasServiceBook,
-      isDisabledAdapted: transformedData.isDisabledAdapted
+      ecoTaxPaid: dataToSave.ecoTaxPaid,
+      isFirstOwner: dataToSave.isFirstOwner,
+      wasCrashed: dataToSave.wasCrashed,
+      hasServiceBook: dataToSave.hasServiceBook,
+      isDisabledAdapted: dataToSave.isDisabledAdapted,
+      airbagCount: dataToSave.airbagCount
     });
+
+    // ✅ Remove undefined values but keep 0 values
+    Object.keys(dataToSave).forEach(key => {
+      if (dataToSave[key] === undefined) {
+        delete dataToSave[key];
+      }
+    });
+
+    console.log('🔍 Final data to save:', dataToSave);
 
     // Vytvoř inzerát
     const ad = await this.prisma.ad.create({
       data: {
-        ...transformedData,
+        ...dataToSave,
         user: {
           connect: { id: userId }
         }
@@ -239,12 +277,13 @@ export class AdService {
     });
     
     // ✅ ADD DEBUGGING
-    console.log('🔍 Database saved boolean values:', {
+    console.log('🔍 Database saved values:', {
       ecoTaxPaid: ad.ecoTaxPaid,
       isFirstOwner: ad.isFirstOwner,
       wasCrashed: ad.wasCrashed,
       hasServiceBook: ad.hasServiceBook,
-      isDisabledAdapted: ad.isDisabledAdapted
+      isDisabledAdapted: ad.isDisabledAdapted,
+      airbagCount: ad.airbagCount
     });
 
     // Upload obrázků

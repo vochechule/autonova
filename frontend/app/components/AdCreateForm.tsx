@@ -14,10 +14,33 @@ import MapSelector from './MapSelector'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// ✅ Define proper types instead of any
+interface ValidationRule {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: RegExp;
+  message: string;
+}
+
+interface ValidationRules {
+  [key: string]: ValidationRule;
+}
+
+interface FieldErrors {
+  [key: string]: string;
+}
+
+// ✅ Updated type to include File and FormDataEntryValue
+type FormFieldValue = string | number | boolean | null | undefined | File;
+
 export default function AdCreateForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({}) // ✅ Proper type
   const [success, setSuccess] = useState(false)
   const [createdAdId, setCreatedAdId] = useState<string | null>(null)
   const [images, setImages] = useState<File[]>([])
@@ -44,6 +67,196 @@ export default function AdCreateForm() {
 
   const modelsList = getModelsList(selectedBrand)
 
+  // ✅ Form validation rules with proper typing
+  const validationRules: ValidationRules = {
+    title: {
+      required: true,
+      minLength: 5,
+      maxLength: 100,
+      message: 'Název musí mít 5-100 znaků'
+    },
+    description: {
+      required: true,
+      minLength: 20,
+      maxLength: 5000,
+      message: 'Popis musí mít 20-5000 znaků'
+    },
+    price: {
+      required: true,
+      min: 1000,
+      max: 50000000,
+      message: 'Cena musí být 1 000 - 50 000 000 Kč'
+    },
+    mileage: {
+      required: true,
+      min: 0,
+      max: 2000000,
+      message: 'Nájezd musí být 0 - 2 000 000 km'
+    },
+    year: {
+      required: true,
+      min: 1900,
+      max: new Date().getFullYear() + 1,
+      message: `Rok výroby musí být ${1900}-${new Date().getFullYear() + 1}`
+    },
+    firstRegistration: {
+      required: true,
+      min: 1900,
+      max: new Date().getFullYear() + 1,
+      message: `První registrace musí být ${1900}-${new Date().getFullYear() + 1}`
+    },
+    engineVolume: {
+      required: true,
+      min: 50,
+      max: 20000,
+      message: 'Objem motoru musí být 50-20000 ccm'
+    },
+    power: {
+      required: true,
+      min: 1,
+      max: 2000,
+      message: 'Výkon musí být 1-2000 kW'
+    },
+    avgConsumption: {
+      required: true,
+      min: 0.1,
+      max: 50,
+      message: 'Spotřeba musí být 0.1-50 l/100km'
+    },
+    doorCount: {
+      required: true,
+      min: 2,
+      max: 6,
+      message: 'Počet dveří musí být 2-6'
+    },
+    seatCount: {
+      required: true,
+      min: 1,
+      max: 12,
+      message: 'Počet míst musí být 1-12'
+    },
+    airbagCount: {
+      required: true,
+      min: 0,
+      max: 20,
+      message: 'Počet airbagů musí být 0-20'
+    },
+    gearCount: {
+      required: true,
+      min: 1,
+      max: 12,
+      message: 'Počet rychlostí musí být 1-12'
+    },
+    contactPhone: {
+      required: true,
+      pattern: /^(\+420\s?)?[0-9\s]{9,}$/,
+      message: 'Zadejte platné telefonní číslo'
+    },
+    contactEmail: {
+      required: true,
+      pattern: /^[^@]+@[^@]+\.[^@]+$/,
+      message: 'Zadejte platnou e-mailovou adresu'
+    }
+  };
+
+  // ✅ Client-side validation function with proper typing - handle File objects
+  const validateField = (name: string, value: FormFieldValue): string | null => {
+    const rule = validationRules[name];
+    if (!rule) return null;
+
+    // ✅ Skip validation for File objects (these are handled separately)
+    if (value instanceof File) {
+      return null;
+    }
+
+    // Required check
+    if (rule.required && (!value || value.toString().trim() === '')) {
+      return rule.message || `${name} je povinné`;
+    }
+
+    if (!value || value.toString().trim() === '') return null;
+
+    const stringValue = value.toString().trim();
+    const numberValue = Number(value);
+
+    // String length validation
+    if (rule.minLength && stringValue.length < rule.minLength) {
+      return rule.message || `Minimálně ${rule.minLength} znaků`;
+    }
+    if (rule.maxLength && stringValue.length > rule.maxLength) {
+      return rule.message || `Maximálně ${rule.maxLength} znaků`;
+    }
+
+    // Number range validation
+    if (rule.min !== undefined && numberValue < rule.min) {
+      return rule.message || `Minimální hodnota je ${rule.min}`;
+    }
+    if (rule.max !== undefined && numberValue > rule.max) {
+      return rule.message || `Maximální hodnota je ${rule.max}`;
+    }
+
+    // Pattern validation
+    if (rule.pattern && !rule.pattern.test(stringValue)) {
+      return rule.message || 'Neplatný formát';
+    }
+
+    return null;
+  };
+
+  // ✅ Validate all fields with proper typing - handle FormDataEntryValue
+  const validateForm = (formData: FormData): FieldErrors => {
+    const errors: FieldErrors = {};
+
+    // Validate basic fields
+    Object.keys(validationRules).forEach(fieldName => {
+      const value = formData.get(fieldName); // This is FormDataEntryValue | null
+      const error = validateField(fieldName, value); // ✅ Now properly typed
+      if (error) {
+        errors[fieldName] = error;
+      }
+    });
+
+    // Special validations
+    if (!selectedBrand) {
+      errors.brand = 'Vyberte značku vozidla';
+    }
+    if (!selectedModel) {
+      errors.model = 'Vyberte model vozidla';
+    }
+    if (!selectedColor) {
+      errors.color = 'Vyberte barvu vozidla';
+    }
+    if (!location) {
+      errors.location = 'Vyberte lokalitu vozidla na mapě';
+    }
+
+    // Cross-field validation
+    const year = Number(formData.get('year'));
+    const firstRegistration = Number(formData.get('firstRegistration'));
+    if (year && firstRegistration && firstRegistration < year) {
+      errors.firstRegistration = 'První registrace nemůže být před rokem výroby';
+    }
+
+    // Image validation
+    if (images.length < 2) {
+      errors.images = 'Přidejte alespoň 2 obrázky';
+    }
+
+    return errors;
+  };
+
+  // ✅ Clear field error when user starts typing with proper typing
+  const handleFieldChange = (fieldName: string) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+    if (error) setError(null);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -65,11 +278,13 @@ export default function AdCreateForm() {
 
   const handleBrandChange = (brandValue: string) => {
     setSelectedBrand(brandValue)
-    setSelectedModel('') // Reset model when brand changes
+    setSelectedModel('')
+    handleFieldChange('brand')
   }
 
   const handleModelChange = (modelValue: string) => {
     setSelectedModel(modelValue)
+    handleFieldChange('model')
   }
 
   const handleImageRemove = (index: number) => {
@@ -78,8 +293,14 @@ export default function AdCreateForm() {
     
     if (newImages.length < 2) {
       setImageError('Přidejte alespoň dva obrázky.')
+      setFieldErrors(prev => ({ ...prev, images: 'Přidejte alespoň 2 obrázky' }))
     } else {
       setImageError(null)
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.images;
+        return newErrors;
+      })
     }
     
     showSuccess('Obrázek odebrán', 'Obrázek byl odebrán ze seznamu')
@@ -106,6 +327,7 @@ export default function AdCreateForm() {
     address: string
   }) => {
     setLocation(selectedLocation)
+    handleFieldChange('location')
   }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -122,13 +344,11 @@ export default function AdCreateForm() {
     const validFiles: File[] = []
 
     newFiles.forEach(file => {
-      // Kontrola velikosti
       if (file.size > maxSize) {
         errors.push(`${file.name}: Příliš velký soubor (${(file.size / 1024 / 1024).toFixed(2)}MB). Maximum je 10MB.`)
         return
       }
 
-      // Kontrola typu
       if (!allowedTypes.includes(file.type)) {
         errors.push(`${file.name}: Nepodporovaný formát. Povolené: JPEG, PNG, WebP.`)
         return
@@ -137,30 +357,35 @@ export default function AdCreateForm() {
       validFiles.push(file)
     })
 
-    // Kontrola celkového počtu obrázků
     if (images.length + validFiles.length > 15) {
       errors.push(`Můžete nahrát maximálně 15 obrázků. Aktuálně máte ${images.length}, snažíte se přidat ${validFiles.length}.`)
     } else {
       setImages(prev => [...prev, ...validFiles])
-      // ✅ PŘIDÁNO - Toast po přidání obrázků
       if (validFiles.length > 0) {
         showSuccess('Obrázky přidány', `Přidáno ${validFiles.length} ${validFiles.length === 1 ? 'obrázek' : 'obrázků'}`)
+        // Clear image error if we now have enough images
+        if (images.length + validFiles.length >= 2) {
+          setImageError(null)
+          setFieldErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.images;
+            return newErrors;
+          })
+        }
       }
     }
 
-    // Zobraz chyby
     if (errors.length > 0) {
       setImageError(errors.join('\n'))
-      // ✅ PŘIDÁNO - Toast pro chyby obrázků
       showWarning('Problém s obrázky', errors[0])
-    } else {
+    } else if (validFiles.length > 0) {
       setImageError(null)
     }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // ✅ Kontrola limitu před validací
+    
     if (adCount !== null && adCount >= 10) {
       setShowLimitModal(true)
       return
@@ -169,180 +394,107 @@ export default function AdCreateForm() {
     try {
       setLoading(true)
       setError(null)
-
-      // validace počtu obrázků
-      if (images.length < 2) {
-        setImageError('Přidejte alespoň dva obrázky.')
-        setLoading(false)
-        showError('Nedostatek obrázků', 'Musíte přidat alespoň 2 obrázky')
-        return
-      } else {
-        setImageError(null)
-      }
-
-      if (!selectedBrand || !selectedModel) {
-        setError('Vyberte značku a model vozidla')
-        setLoading(false)
-        return
-      }
+      setFieldErrors({})
 
       const form = e.currentTarget
-      const formValues = new FormData(form)
+      const formData = new FormData(form)
 
-
-      // Map povinných polí: název pole -> uživatelská hláška
-      const requiredFields: { [key: string]: string } = {
-        title: 'Název inzerátu je povinný',
-        description: 'Popis vozidla je povinný',
-        price: 'Cena je povinná',
-        mileage: 'Nájezd je povinný',
-        year: 'Rok výroby je povinný',
-        firstRegistration: 'První registrace je povinná',
-        bodyType: 'Karoserie je povinná',
-        doorCount: 'Počet dveří je povinný',
-        seatCount: 'Počet míst je povinný',
-        airbagCount: 'Počet airbagů je povinný', // ✅ NOVĚ POVINNÉ
-        color: 'Barva je povinná',
-        fuel: 'Palivo je povinné',
-        engineVolume: 'Objem motoru je povinný',
-        power: 'Výkon je povinný',
-        avgConsumption: 'Průměrná spotřeba je povinná',
-        transmission: 'Převodovka je povinná',
-        gearCount: 'Počet rychlostních stupňů je povinný', // ✅ NOVĚ POVINNÉ
-        drivetrain: 'Pohon je povinný',
-        condition: 'Stav vozidla je povinný',
-        countryOfOrigin: 'Země původu je povinná',
-        contactPhone: 'Telefon je povinný',
-        contactEmail: 'Email je povinný',
-      }
-
-      // Zkontroluj povinná pole
-      for (const [field, message] of Object.entries(requiredFields)) {
-        let value = formValues.get(field)
-        // Barva a povrchová úprava jsou ve state
-        if (field === 'color') value = selectedColor
-        if (field === 'colorFinish') value = selectedColorFinish
-        if (!value || !value.toString().trim()) {
-          setError(message)
-          setLoading(false)
-          return
+      // ✅ Client-side validation first
+      const validationErrors = validateForm(formData);
+      if (Object.keys(validationErrors).length > 0) {
+        setFieldErrors(validationErrors);
+        setError('Zkontrolujte všechna pole formuláře');
+        setLoading(false);
+        
+        // Show first error in toast
+        const firstError = Object.values(validationErrors)[0];
+        showError('Chyba ve formuláři', firstError);
+        
+        // Scroll to first error
+        const firstErrorField = Object.keys(validationErrors)[0];
+        const element = document.querySelector(`[name="${firstErrorField}"], #${firstErrorField}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+        return;
       }
 
-      // Kontrola lokace
-      if (!location) {
-        setError('Vyberte lokalitu vozidla na mapě')
-        setLoading(false)
-        return
-      }
-
-      const formData = new FormData()
-      // Brand a model ze state
-      formData.append('brand', selectedBrand)
-      formData.append('model', selectedModel)
+      // Build FormData for submission
+      const submitFormData = new FormData()
       
-      // Color a colorFinish ze state
-      formData.append('color', selectedColor)
-      formData.append('colorFinish', selectedColorFinish || 'standard')
+      // Brand and model from state
+      submitFormData.append('brand', selectedBrand)
+      submitFormData.append('model', selectedModel)
+      submitFormData.append('color', selectedColor)
+      submitFormData.append('colorFinish', selectedColorFinish || 'standard')
 
-      // String hodnoty
+      // String fields
       const stringFields = ['title', 'description', 'bodyType', 
                            'fuel', 'transmission', 'drivetrain', 'airConditioning', 'condition', 
-                           'countryOfOrigin', 'euroStandard']
+                           'countryOfOrigin', 'euroStandard', 'contactPhone', 'contactEmail', 'contactName']
       
       stringFields.forEach(field => {
-        const value = formValues.get(field)
-        if (value) formData.append(field, value.toString())
-      })
-
-      // Integer hodnoty - ✅ PŘIDÁNO year, firstRegistration jako povinné
-      const requiredIntegerFields = ['price', 'mileage', 'year', 'firstRegistration', 'doorCount', 'seatCount', 'engineVolume', 'power']
-      const optionalIntegerFields = ['airbagCount', 'gearCount']
-
-      // Povinná integer pole
-      requiredIntegerFields.forEach(field => {
-        const value = formValues.get(field)
-        if (!value || !value.toString().trim()) {
-          throw new Error(`${field} je povinné pole`)
-        }
-        formData.append(field, value.toString())
-      })
-
-      // Nepovinná integer pole
-      optionalIntegerFields.forEach(field => {
-        const value = formValues.get(field)
+        const value = formData.get(field)
         if (value && value.toString().trim()) {
-          formData.append(field, value.toString())
+          submitFormData.append(field, value.toString().trim())
         }
       })
 
-      // ✅ ZMĚNĚNO - avgConsumption jako povinná, ale správně validovaná
-      const avgConsumptionValue = formValues.get('avgConsumption')
-      if (!avgConsumptionValue || !avgConsumptionValue.toString().trim()) {
-        throw new Error('Průměrná spotřeba je povinná')
-      }
-      formData.append('avgConsumption', avgConsumptionValue.toString())
+      // Integer fields
+      const integerFields = ['price', 'mileage', 'year', 'firstRegistration', 'doorCount', 
+                            'seatCount', 'engineVolume', 'power', 'airbagCount', 'gearCount']
+      
+      integerFields.forEach(field => {
+        const value = formData.get(field)
+        if (value && value.toString().trim()) {
+          submitFormData.append(field, value.toString())
+        }
+      })
 
-      // Boolean hodnoty
+      // Float field
+      const avgConsumptionValue = formData.get('avgConsumption')
+      if (avgConsumptionValue && avgConsumptionValue.toString().trim()) {
+        submitFormData.append('avgConsumption', avgConsumptionValue.toString())
+      }
+
+      // Boolean fields
       const booleanFields = ['ecoTaxPaid', 'isFirstOwner', 'isDisabledAdapted', 'wasCrashed', 'hasServiceBook']
       booleanFields.forEach(field => {
         const checkbox = form.querySelector(`[name="${field}"]`) as HTMLInputElement
-        formData.append(field, checkbox?.checked ? 'true' : 'false')
+        submitFormData.append(field, checkbox?.checked ? 'true' : 'false')
       })
 
-      // Datum hodnoty
-      const techCheckValue = formValues.get('technicalCheckUntil')
-      if (techCheckValue) {
-        formData.append('technicalCheckUntil', new Date(techCheckValue.toString()).toISOString())
+      // Date fields
+      const techCheckValue = formData.get('technicalCheckUntil')
+      if (techCheckValue && techCheckValue.toString().trim()) {
+        submitFormData.append('technicalCheckUntil', new Date(techCheckValue.toString()).toISOString())
       }
       
-      const warrantyValue = formValues.get('warrantyUntil')
-      if (warrantyValue) {
-        formData.append('warrantyUntil', new Date(warrantyValue.toString()).toISOString())
+      const warrantyValue = formData.get('warrantyUntil')
+      if (warrantyValue && warrantyValue.toString().trim()) {
+        submitFormData.append('warrantyUntil', new Date(warrantyValue.toString()).toISOString())
       }
 
-      // Obrázky
+      // Location
+      if (location) {
+        submitFormData.append('latitude', location.latitude.toString())
+        submitFormData.append('longitude', location.longitude.toString())
+        submitFormData.append('address', location.address)
+      }
+
+      // Images
+      setUploading(true)
+      setUploadStep('Nahrávám obrázky...')
       if (images.length > 0) {
         for (let i = 0; i < images.length; i++) {
           setUploadStep(`Nahrávám obrázek ${i + 1} z ${images.length}`)
           setUploadProgress(Math.round(((i + 1) / images.length) * 100))
-          formData.append('images', images[i])
-          // případně uploaduj na server po jednom, pokud backend podporuje chunk upload
+          submitFormData.append('images', images[i])
         }
       }
 
-      // V handleSubmit před odesláním:
-      const contactPhone = formValues.get('contactPhone')
-      const contactEmail = formValues.get('contactEmail')
-
-      if (!contactPhone || !contactPhone.toString().trim()) {
-        throw new Error('Telefon je povinný')
-      }
-
-      if (!contactEmail || !contactEmail.toString().trim()) {
-        throw new Error('Email je povinný')
-      }
-
-      // Přidej do formData
-      formData.append('contactPhone', contactPhone.toString())
-      formData.append('contactEmail', contactEmail.toString())
-            setUploading(true)
+      setUploadStep('Ukládám inzerát...')
       setUploadProgress(null)
-      setUploadStep('Připravuji data...')
-
-      const contactName = formValues.get('contactName')
-      if (contactName && contactName.toString().trim()) {
-        formData.append('contactName', contactName.toString())
-      }
-
-      // ✅ PŘIDÁNO - Přidání lokace
-      if (!location) {
-        throw new Error('Vyberte lokalitu vozidla na mapě')
-      }
-
-      formData.append('latitude', location.latitude.toString())
-      formData.append('longitude', location.longitude.toString())
-      formData.append('address', location.address)
 
       const token = localStorage.getItem('token')
       const res = await fetch(`${API_URL}/ad`, {
@@ -350,42 +502,65 @@ export default function AdCreateForm() {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: formData,
+        body: submitFormData,
         credentials: 'include'
       })
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
         console.error('❌ Backend error response:', errData);
-        // ✅ VYLEPŠENO - Lepší error parsing
+        
+        // ✅ Enhanced server error handling - use const instead of let
         let errorMessage = 'Chyba při ukládání inzerátu';
+        const serverFieldErrors: FieldErrors = {}; // ✅ Use const and proper typing
         
         if (errData.message) {
-          errorMessage = Array.isArray(errData.message) 
-            ? errData.message.join(', ') 
-            : errData.message;
+          if (Array.isArray(errData.message)) {
+            // Handle validation error array from class-validator
+            errData.message.forEach((msg: string) => {
+              // Try to extract field name from message
+              if (msg.includes('title')) serverFieldErrors.title = msg;
+              else if (msg.includes('price')) serverFieldErrors.price = msg;
+              else if (msg.includes('email')) serverFieldErrors.contactEmail = msg;
+              else if (msg.includes('phone')) serverFieldErrors.contactPhone = msg;
+              else errorMessage = msg;
+            });
+          } else {
+            errorMessage = errData.message;
+          }
         } else if (errData.error) {
           errorMessage = errData.error;
         } else if (res.status === 413) {
           errorMessage = 'Soubory jsou příliš velké. Zkuste nahrát menší obrázky.';
         } else if (res.status === 400) {
           errorMessage = 'Neplatná data ve formuláři. Zkontrolujte všechna pole.';
+        } else if (res.status === 401) {
+          errorMessage = 'Nejste přihlášeni. Přihlaste se prosím.';
+          setShowLoginModal(true);
+        } else if (res.status === 429) {
+          errorMessage = 'Příliš mnoho požadavků. Zkuste to prosím později.';
+        }
+        
+        if (Object.keys(serverFieldErrors).length > 0) {
+          setFieldErrors(serverFieldErrors);
         }
         
         throw new Error(errorMessage);
       }
 
-      // ✅ ZMĚNĚNO - Získáme ID vytvořeného inzerátu
       const result = await res.json()
       setCreatedAdId(result.id)
       setSuccess(true)
       form.reset()
       setImages([])
+      setSelectedBrand('')
+      setSelectedModel('')
+      setSelectedColor('')
+      setLocation(null)
+      setFieldErrors({})
 
-      // ✅ PŘIDÁNO - Toast po úspěšném vytvoření
       showSuccess('Inzerát vytvořen', 'Váš inzerát byl úspěšně publikován')
 
-      // ✅ PŘIDÁNO - Redirect po 2 sekundách
       setTimeout(() => {
         if (result.id) {
           router.push(`/ads/${result.id}`)
@@ -398,7 +573,6 @@ export default function AdCreateForm() {
       console.error('🔍 Submit error:', err)
       if (err instanceof Error) {
         setError(err.message)
-        // ✅ PŘIDÁNO - Toast pro chybu
         showError('Chyba při ukládání', err.message)
       } else {
         setError('Neznámá chyba')
@@ -411,8 +585,6 @@ export default function AdCreateForm() {
       setUploadStep('')
     }
   }
-
-  
 
   return (
     <div className="ad-create-form">
@@ -427,7 +599,15 @@ export default function AdCreateForm() {
             <div className="form-grid">
               <div className="form-group form-group--full-width">
                 <label htmlFor="title">Název inzerátu <span className="required">*</span></label>
-                <input name="title" id="title" required placeholder="Např. Škoda Octavia 2.0 TDI Combi" />
+                <input 
+                  name="title" 
+                  id="title" 
+                  required 
+                  placeholder="Např. Škoda Octavia 2.0 TDI Combi"
+                  className={fieldErrors.title ? 'error' : ''}
+                  onChange={() => handleFieldChange('title')}
+                />
+                {fieldErrors.title && <div className="field-error">{fieldErrors.title}</div>}
               </div>
               
               <div className="form-group">
@@ -436,7 +616,9 @@ export default function AdCreateForm() {
                   value={selectedBrand}
                   onChange={handleBrandChange}
                   required
+                  className={fieldErrors.brand ? 'error' : ''}
                 />
+                {fieldErrors.brand && <div className="field-error">{fieldErrors.brand}</div>}
               </div>
               
               <div className="form-group">
@@ -447,13 +629,21 @@ export default function AdCreateForm() {
                   models={modelsList}
                   disabled={!selectedBrand}
                   required
+                  className={fieldErrors.model ? 'error' : ''}
                 />
+                {fieldErrors.model && <div className="field-error">{fieldErrors.model}</div>}
               </div>
               
-              {/* Základní informace - POPIS NEPOVINNÝ */}
               <div className="form-group form-group--full-width">
-                <label htmlFor="description">Popis vozidla<span className="required">*</span></label> 
-                <textarea name="description" id="description" placeholder="Popište stav vozidla, výbavu, historii..." />
+                <label htmlFor="description">Popis vozidla <span className="required">*</span></label>
+                <textarea 
+                  name="description" 
+                  id="description" 
+                  placeholder="Popište stav vozidla, výbavu, historii..." 
+                  className={fieldErrors.description ? 'error' : ''}
+                  onChange={() => handleFieldChange('description')}
+                />
+                {fieldErrors.description && <div className="field-error">{fieldErrors.description}</div>}
               </div>
             </div>
           </div>
@@ -464,22 +654,58 @@ export default function AdCreateForm() {
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="price">Cena (Kč) <span className="required">*</span></label>
-                <input name="price" id="price" type="number" required placeholder="450000" />
+                <input 
+                  name="price" 
+                  id="price" 
+                  type="number" 
+                  required 
+                  placeholder="450000"
+                  className={fieldErrors.price ? 'error' : ''}
+                  onChange={() => handleFieldChange('price')}
+                />
+                {fieldErrors.price && <div className="field-error">{fieldErrors.price}</div>}
               </div>
               
               <div className="form-group">
                 <label htmlFor="mileage">Nájezd (km) <span className="required">*</span></label>
-                <input name="mileage" id="mileage" type="number" required placeholder="150000" />
+                <input 
+                  name="mileage" 
+                  id="mileage" 
+                  type="number" 
+                  required 
+                  placeholder="150000"
+                  className={fieldErrors.mileage ? 'error' : ''}
+                  onChange={() => handleFieldChange('mileage')}
+                />
+                {fieldErrors.mileage && <div className="field-error">{fieldErrors.mileage}</div>}
               </div>
               
               <div className="form-group">
-                <label htmlFor="year">Rok výroby <span className="required">*</span></label> {/* ✅ PŘIDÁNO * */}
-                <input name="year" id="year" type="number" required placeholder="2018" />
+                <label htmlFor="year">Rok výroby <span className="required">*</span></label>
+                <input 
+                  name="year" 
+                  id="year" 
+                  type="number" 
+                  required 
+                  placeholder="2018"
+                  className={fieldErrors.year ? 'error' : ''}
+                  onChange={() => handleFieldChange('year')}
+                />
+                {fieldErrors.year && <div className="field-error">{fieldErrors.year}</div>}
               </div>
               
               <div className="form-group">
-                <label htmlFor="firstRegistration">První registrace (rok) <span className="required">*</span></label> {/* ✅ PŘIDÁNO * */}
-                <input name="firstRegistration" id="firstRegistration" type="number" required placeholder="2018" />
+                <label htmlFor="firstRegistration">První registrace (rok) <span className="required">*</span></label>
+                <input 
+                  name="firstRegistration" 
+                  id="firstRegistration" 
+                  type="number" 
+                  required 
+                  placeholder="2018"
+                  className={fieldErrors.firstRegistration ? 'error' : ''}
+                  onChange={() => handleFieldChange('firstRegistration')}
+                />
+                {fieldErrors.firstRegistration && <div className="field-error">{fieldErrors.firstRegistration}</div>}
               </div>
             </div>
           </div>
@@ -490,7 +716,13 @@ export default function AdCreateForm() {
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="bodyType">Karoserie <span className="required">*</span></label>
-                <select name="bodyType" id="bodyType" required>
+                <select 
+                  name="bodyType" 
+                  id="bodyType" 
+                  required
+                  className={fieldErrors.bodyType ? 'error' : ''}
+                  onChange={() => handleFieldChange('bodyType')}
+                >
                   <option value="">Vyberte karoserii</option>
                   <option value="hatchback">Hatchback</option>
                   <option value="sedan">Sedan</option>
@@ -503,15 +735,21 @@ export default function AdCreateForm() {
                   <option value="van">Van</option>
                   <option value="jiné">Jiné</option>
                 </select>
+                {fieldErrors.bodyType && <div className="field-error">{fieldErrors.bodyType}</div>}
               </div>
 
               <div className="form-group">
                 <label>Barva <span className="required">*</span></label>
                 <ColorSelect
                   value={selectedColor}
-                  onChange={setSelectedColor}
+                  onChange={(value) => {
+                    setSelectedColor(value)
+                    handleFieldChange('color')
+                  }}
                   required
+                  className={fieldErrors.color ? 'error' : ''}
                 />
+                {fieldErrors.color && <div className="field-error">{fieldErrors.color}</div>}
               </div>
 
               <div className="form-group">
@@ -525,18 +763,48 @@ export default function AdCreateForm() {
 
               <div className="form-group">
                 <label htmlFor="doorCount">Počet dveří <span className="required">*</span></label>
-                <input name="doorCount" id="doorCount" type="number" required placeholder="5" />
+                <input 
+                  name="doorCount" 
+                  id="doorCount" 
+                  type="number" 
+                  required 
+                  placeholder="5"
+                  className={fieldErrors.doorCount ? 'error' : ''}
+                  onChange={() => handleFieldChange('doorCount')}
+                />
+                {fieldErrors.doorCount && <div className="field-error">{fieldErrors.doorCount}</div>}
               </div>
 
               <div className="form-group">
                 <label htmlFor="seatCount">Počet míst <span className="required">*</span></label>
-                <input name="seatCount" id="seatCount" type="number" required placeholder="5" />
+                <input 
+                  name="seatCount" 
+                  id="seatCount" 
+                  type="number" 
+                  required 
+                  placeholder="5"
+                  className={fieldErrors.seatCount ? 'error' : ''}
+                  onChange={() => handleFieldChange('seatCount')}
+                />
+                {fieldErrors.seatCount && <div className="field-error">{fieldErrors.seatCount}</div>}
               </div>
 
               {/* Vzhled a rozměry - AIRBAGY NEPOVINNÉ */}
               <div className="form-group">
                 <label htmlFor="airbagCount">Počet airbagů <span className="required">*</span></label>
-                <input name="airbagCount" id="airbagCount" type="number" required placeholder="6" />
+                <input 
+                  name="airbagCount" 
+                  id="airbagCount" 
+                  type="number" 
+                  required 
+                  placeholder="6"
+                  min="0"
+                  max="20"
+                  defaultValue="0" // ✅ Ensure default value
+                  className={fieldErrors.airbagCount ? 'error' : ''}
+                  onChange={() => handleFieldChange('airbagCount')}
+                />
+                {fieldErrors.airbagCount && <div className="field-error">{fieldErrors.airbagCount}</div>}
               </div>
             </div>
           </div>
@@ -560,17 +828,45 @@ export default function AdCreateForm() {
 
               <div className="form-group">
                 <label htmlFor="engineVolume">Objem motoru (ccm) <span className="required">*</span></label>
-                <input name="engineVolume" id="engineVolume" type="number" required placeholder="1968" />
+                <input 
+                  name="engineVolume" 
+                  id="engineVolume" 
+                  type="number" 
+                  required 
+                  placeholder="1968"
+                  className={fieldErrors.engineVolume ? 'error' : ''}
+                  onChange={() => handleFieldChange('engineVolume')}
+                />
+                {fieldErrors.engineVolume && <div className="field-error">{fieldErrors.engineVolume}</div>}
               </div>
 
               <div className="form-group">
                 <label htmlFor="power">Výkon (kW) <span className="required">*</span></label>
-                <input name="power" id="power" type="number" required placeholder="110" />
+                <input 
+                  name="power" 
+                  id="power" 
+                  type="number" 
+                  required 
+                  placeholder="110"
+                  className={fieldErrors.power ? 'error' : ''}
+                  onChange={() => handleFieldChange('power')}
+                />
+                {fieldErrors.power && <div className="field-error">{fieldErrors.power}</div>}
               </div>
 
               <div className="form-group">
                 <label htmlFor="avgConsumption">Průměrná spotřeba (l/100km) <span className="required">*</span></label>
-                <input name="avgConsumption" id="avgConsumption" type="number" step="0.1" required placeholder="5.2" />
+                <input 
+                  name="avgConsumption" 
+                  id="avgConsumption" 
+                  type="number" 
+                  step="0.1" 
+                  required 
+                  placeholder="5.2"
+                  className={fieldErrors.avgConsumption ? 'error' : ''}
+                  onChange={() => handleFieldChange('avgConsumption')}
+                />
+                {fieldErrors.avgConsumption && <div className="field-error">{fieldErrors.avgConsumption}</div>}
               </div>
 
               {/* ✅ PŘIDÁNO ZPĚT - Převodovka */}
@@ -588,7 +884,16 @@ export default function AdCreateForm() {
               {/* ✅ PŘIDÁNO ZPĚT - Počet rychlostí */}
               <div className="form-group">
                 <label htmlFor="gearCount">Počet rychlostí <span className="required">*</span></label>
-                <input name="gearCount" id="gearCount" type="number" required placeholder="6" />
+                <input 
+                  name="gearCount" 
+                  id="gearCount" 
+                  type="number" 
+                  required 
+                  placeholder="6"
+                  className={fieldErrors.gearCount ? 'error' : ''}
+                  onChange={() => handleFieldChange('gearCount')}
+                />
+                {fieldErrors.gearCount && <div className="field-error">{fieldErrors.gearCount}</div>}
               </div>
 
               <div className="form-group">
@@ -705,7 +1010,10 @@ export default function AdCreateForm() {
                   type="tel" 
                   required 
                   placeholder="+420 123 456 789"
+                  className={fieldErrors.contactPhone ? 'error' : ''}
+                  onChange={() => handleFieldChange('contactPhone')}
                 />
+                {fieldErrors.contactPhone && <div className="field-error">{fieldErrors.contactPhone}</div>}
               </div>
 
               <div className="form-group">
@@ -716,7 +1024,10 @@ export default function AdCreateForm() {
                   type="email" 
                   required 
                   placeholder="vase@email.cz"
+                  className={fieldErrors.contactEmail ? 'error' : ''}
+                  onChange={() => handleFieldChange('contactEmail')}
                 />
+                {fieldErrors.contactEmail && <div className="field-error">{fieldErrors.contactEmail}</div>}
               </div>
             </div>
             
@@ -837,40 +1148,35 @@ export default function AdCreateForm() {
           {/* Nová sekce pro mapu - Lokalita vozidla */}
           <section className="form-section">
             <h3>Lokalita vozidla <span className="required">*</span></h3>
-            <MapSelector 
-              onLocationSelect={handleLocationSelect}
-              height="300px"
-            />
-            {location && (
-              <input 
-                type="hidden" 
-                name="latitude" 
-                value={location.latitude} 
+            <div className={fieldErrors.location ? 'map-error' : ''}>
+              <MapSelector 
+                onLocationSelect={handleLocationSelect}
+                height="300px"
               />
-            )}
-            {location && (
-              <input 
-                type="hidden" 
-                name="longitude" 
-                value={location.longitude} 
-              />
-            )}
-            {location && (
-              <input 
-                type="hidden" 
-                name="address" 
-                value={location.address} 
-              />
-            )}
+            </div>
+            {fieldErrors.location && <div className="field-error">{fieldErrors.location}</div>}
           </section>
 
-          <button type="submit" disabled={loading || (adCount !== null && adCount >= 10)}>
+          <button type="submit" disabled={loading || (adCount !== null && adCount >= 10) || Object.keys(fieldErrors).length > 0}>
             {loading ? <ButtonLoading /> : 'Přidat inzerát'}
           </button>
           
-          {error && <div className="error">{error}</div>}
+          {/* Enhanced error display */}
+          {error && (
+            <div className="form-error">
+              <div className="form-error__icon">⚠️</div>
+              <div className="form-error__content">
+                <strong>Chyba:</strong> {error}
+                {Object.keys(fieldErrors).length > 0 && (
+                  <div className="form-error__count">
+                    Počet chyb: {Object.keys(fieldErrors).length}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           
-          {/* ✅ ZMĚNĚNO - Nová success zpráva */}
+          {/* Success message remains the same */}
           {success && (
             <div className="success-message">
               <div className="success-message__icon">

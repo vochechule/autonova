@@ -7,7 +7,8 @@ interface ModelSelectProps {
   onChange: (value: string) => void
   models: { value: string; label: string }[]
   disabled?: boolean
-  required?: boolean // eslint-disable-line @typescript-eslint/no-unused-vars
+  required?: boolean
+  className?: string // ✅ Add className prop
 }
 
 export default function ModelSelect({ 
@@ -15,7 +16,7 @@ export default function ModelSelect({
   onChange, 
   models, 
   disabled = false, 
-  required = false // eslint-disable-line @typescript-eslint/no-unused-vars
+  className = '' // ✅ Provide default value
 }: ModelSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -81,14 +82,14 @@ export default function ModelSelect({
     : "Vyberte model..."
 
   return (
-    <div className={`model-select ${disabled ? 'disabled' : ''}`} ref={dropdownRef}>
+    <div className={`model-select ${disabled ? 'disabled' : ''} ${className}`.trim()} ref={dropdownRef}>
       {/* Hidden input pro form submission */}
       <input type="hidden" name="model" value={value} />
       
       {/* Trigger button */}
       <button
         type="button"
-        className={`model-select__trigger ${isOpen ? 'open' : ''} ${disabled ? 'disabled' : ''}`}
+        className={`model-select__trigger ${isOpen ? 'open' : ''} ${disabled ? 'disabled' : ''}`.trim()}
         onClick={handleToggle}
         disabled={disabled}
         aria-expanded={isOpen}
