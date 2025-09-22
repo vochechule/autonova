@@ -1,5 +1,13 @@
-'use client'
 import dynamic from 'next/dynamic'
+import { generateMetadata } from '../../lib/seo'
+
+export const metadata = generateMetadata(
+  'Přidat inzerát zdarma - Prodejte své auto',
+  'Vytvořte inzerát vašeho vozidla zdarma na Carta.cz. Jednoduché přidání, kvalitní fotografie, rychlý prodej.',
+  ['přidat inzerát zdarma', 'prodej auta', 'inzerce vozidla', 'carta prodej'],
+  undefined,
+  'https://carta.cz/ads/create'
+)
 
 // Dynamicky načti celý formulář
 const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
@@ -28,6 +36,9 @@ const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
 export default function CreateAdPage() {
   return (
     <main>
+      <h1 style={{ position: 'absolute', left: '-9999px' }}>
+        Přidat inzerát auta zdarma na Carta.cz
+      </h1>
       <AdCreateForm />
     </main>
   )
