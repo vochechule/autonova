@@ -240,7 +240,7 @@ export default function AdCreateForm() {
   };
 
   // ✅ Clear field error when user starts typing with proper typing
-  const handleFieldChange = (fieldName: string, value: FormFieldValue) => {
+  const handleFieldChange = (fieldName: string) => {
     if (fieldErrors[fieldName]) {
       setFieldErrors(prev => {
         const newErrors = { ...prev };
