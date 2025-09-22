@@ -12,7 +12,7 @@ interface BrandSelectProps {
   className?: string // ✅ Add className prop
 }
 
-export default function BrandSelect({ value, onChange}: BrandSelectProps) {
+export default function BrandSelect({ value, onChange, className }: BrandSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -89,14 +89,14 @@ export default function BrandSelect({ value, onChange}: BrandSelectProps) {
   }
 
   return (
-    <div className="brand-select" ref={dropdownRef}>
+    <div className={`brand-select ${className || ''}`} ref={dropdownRef}>
       {/* Hidden input pro form submission */}
       <input type="hidden" name="brand" value={value} />
       
       {/* Trigger button */}
       <button
         type="button"
-        className={`brand-select__trigger ${isOpen ? 'open' : ''}`}
+        className={`brand-select__trigger ${isOpen ? 'open' : ''} ${className || ''}`}
         onClick={handleToggle}
         aria-expanded={isOpen}
         aria-haspopup="listbox"

@@ -53,6 +53,17 @@
       cursor: not-allowed;
       opacity: 0.6;
     }
+
+    // ✅ Error state for light mode
+    &.error {
+      border-color: #dc2626;
+      background-color: #fef2f2;
+
+      &:focus {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+      }
+    }
   }
 
   &__value {
@@ -180,7 +191,7 @@
   }
 }
 
-// ✅ DARK MODE
+// ✅ DARK MODE - Move to root level
 [data-theme="dark"] {
   .model-select {
     &__trigger {
@@ -204,6 +215,17 @@
         background: rgba(15, 23, 42, 0.8);
         color: #64748b;
         border-color: rgba(71, 85, 105, 0.3);
+      }
+
+      // ✅ Error state for dark mode
+      &.error {
+        border-color: #ef4444;
+        background-color: #2d1b1b;
+
+        &:focus {
+          border-color: #ef4444;
+          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
       }
     }
 
@@ -260,6 +282,31 @@
 
     &__no-results {
       color: #94a3b8;
+    }
+  }
+}
+
+// ✅ Add error state that works with the container class from AdCreateForm
+.model-select.error {
+  .model-select__trigger {
+    border-color: #dc2626;
+    background-color: #fef2f2;
+    
+    &:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+  }
+}
+
+[data-theme="dark"] .model-select.error {
+  .model-select__trigger {
+    border-color: #ef4444;
+    background-color: #2d1b1b;
+    
+    &:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
     }
   }
 }

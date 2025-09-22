@@ -216,6 +216,31 @@
     font-family: 'Inter', sans-serif;
     font-size: 0.9rem;
   }
+
+  &.error .brand-select__trigger,
+  .brand-select__trigger.error {
+    border-color: #dc2626;
+    background-color: #fef2f2;
+    
+    &:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+  }
+
+  // Dark mode error styles
+  [data-theme="dark"] & {
+    &.error .brand-select__trigger,
+    .brand-select__trigger.error {
+      border-color: #ef4444;
+      background-color: #2d1b1b;
+      
+      &:focus {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+    }
+  }
 }
 
 // ✅ DARK MODE
