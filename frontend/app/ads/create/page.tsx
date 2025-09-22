@@ -9,9 +9,8 @@ export const metadata = generateMetadata(
   'https://carta.cz/ads/create'
 )
 
-// ✅ Simple loading without animation
+// ✅ Remove ssr: false to work in server component
 const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
-  ssr: false,
   loading: () => (
     <div style={{ 
       display: 'flex', 
@@ -26,7 +25,6 @@ const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
         border: '3px solid #e2e8f0',
         borderTop: '3px solid #0070f3',
         borderRadius: '50%'
-        // ✅ Removed the problematic animation property
       }}></div>
       <p style={{ marginTop: '16px', color: '#4a5568' }}>Načítám formulář...</p>
     </div>
