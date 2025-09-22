@@ -14,6 +14,21 @@ import { useToast } from '../../contexts/ToastContext'
 import { useAuth } from '../../hooks/AuthProvider'
 import AdMap from '../../components/AdMap'
 import Image from 'next/image'
+import { 
+  Car, 
+  Settings, 
+  Zap, 
+  Wrench,
+  Calendar,
+  Eye,
+  Phone,
+  Mail,
+  Lock,
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  AlertTriangle
+} from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -170,9 +185,7 @@ export default function AdDetailPage() {
             onClick={() => window.history.back()}
             aria-label="Zpět"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5m7-7l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <ArrowLeft size={20} />
             Zpět
           </button>
           
@@ -224,21 +237,17 @@ export default function AdDetailPage() {
                       className="listing-detail-page__carousel-btn left" 
                       onClick={handlePrev} 
                       aria-label="Předchozí obrázek"
-                      disabled={imageLoading} // ✅ Disable during loading
+                      disabled={imageLoading}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                      <ChevronLeft size={16} />
                     </button>
                     <button 
                       className="listing-detail-page__carousel-btn right" 
                       onClick={handleNext} 
                       aria-label="Další obrázek"
-                      disabled={imageLoading} // ✅ Disable during loading
+                      disabled={imageLoading}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                      <ChevronRight size={16} />
                     </button>
                     <div className="listing-detail-page__carousel-counter">
                       {imgIndex + 1} / {ad.images.length}
@@ -288,22 +297,14 @@ export default function AdDetailPage() {
             <div className="listing-detail-page__meta-info">
               {ad.createdAt && (
                 <div className="listing-detail-page__date-added">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
-                    <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2"/>
-                    <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2"/>
-                    <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
+                  <Calendar size={16} />
                   Přidáno {new Date(ad.createdAt).toLocaleDateString('cs-CZ')}
                 </div>
               )}
               
               {ad.views !== undefined && (
                 <div className="listing-detail-page__views">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="2"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
+                  <Eye size={16} />
                   {ad.views.toLocaleString()} zobrazení
                 </div>
               )}
@@ -312,24 +313,24 @@ export default function AdDetailPage() {
             {/* Klíčové specs */}
             <div className="listing-detail-page__key-specs">
               <div className="listing-detail-page__key-spec">
-                <span className="listing-detail-page__key-spec-icon">🚗</span>
+                <Car className="listing-detail-page__key-spec-icon" size={18} />
                 <span>{ad.bodyType}</span>
               </div>
               <div className="listing-detail-page__key-spec">
-                <span className="listing-detail-page__key-spec-icon">⚙️</span>
-                  <span className="listing-detail-page__spec-value">
-                    {ad.transmission ? transmissionMap[ad.transmission as string] ?? ad.transmission : '-'}
-                  </span>              
-                </div>
+                <Settings className="listing-detail-page__key-spec-icon" size={18} />
+                <span className="listing-detail-page__spec-value">
+                  {ad.transmission ? transmissionMap[ad.transmission as string] ?? ad.transmission : '-'}
+                </span>              
+              </div>
               {ad.power && (
                 <div className="listing-detail-page__key-spec">
-                  <span className="listing-detail-page__key-spec-icon">⚡</span>
+                  <Zap className="listing-detail-page__key-spec-icon" size={18} />
                   <span>{ad.power} kW</span>
                 </div>
               )}
               {ad.engineVolume && (
                 <div className="listing-detail-page__key-spec">
-                  <span className="listing-detail-page__key-spec-icon">🔧</span>
+                  <Wrench className="listing-detail-page__key-spec-icon" size={18} />
                   <span>{(ad.engineVolume / 1000).toFixed(1)}L</span>
                 </div>
               )}
@@ -363,16 +364,12 @@ export default function AdDetailPage() {
                               onClick={() => setShowPhone(true)}
                               className="listing-detail-page__reveal-btn"
                             >
-                              <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                              </svg>
+                              <Phone className="contact-icon" size={16} />
                               Ukázat telefon
                             </button>
                           ) : (
                             <a href={`tel:${ad.contactPhone}`} className="listing-detail-page__contact-link">
-                              <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                              </svg>
+                              <Phone className="contact-icon" size={16} />
                               {ad.contactPhone}
                             </a>
                           )}
@@ -386,18 +383,12 @@ export default function AdDetailPage() {
                               onClick={() => setShowEmail(true)}
                               className="listing-detail-page__reveal-btn"
                             >
-                              <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                <polyline points="22,6 12,13 2,6"/>
-                              </svg>
+                              <Mail className="contact-icon" size={16} />
                               Ukázat email
                             </button>
                           ) : (
                             <a href={`mailto:${ad.contactEmail}`} className="listing-detail-page__contact-link">
-                              <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                <polyline points="22,6 12,13 2,6"/>
-                              </svg>
+                              <Mail className="contact-icon" size={16} />
                               {ad.contactEmail}
                             </a>
                           )}
@@ -406,11 +397,7 @@ export default function AdDetailPage() {
                     </>
                   ) : (
                     <div className="listing-detail-page__contact-locked">
-                      <svg className="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <circle cx="12" cy="16" r="1"/>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                      </svg>
+                      <Lock className="contact-icon" size={32} />
                       <span>Pro zobrazení kontaktu se musíte registrovat nebo přihlásit</span>
                       <div className="listing-detail-page__auth-buttons">
                         <Link href="/login" className="listing-detail-page__auth-btn primary">
@@ -621,15 +608,11 @@ export default function AdDetailPage() {
       </div>
       
       <footer className="listing-detail-page__disclaimer">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{marginRight: 8, verticalAlign: 'middle'}}>
-    <circle cx="12" cy="12" r="10" stroke="#f59e42" strokeWidth="2" fill="none"/>
-    <rect x="11" y="10" width="2" height="6" rx="1" fill="#f59e42"/>
-    <rect x="11" y="7" width="2" height="2" rx="1" fill="#f59e42"/>
-  </svg>
-  <span>
-    <b>Carta.cz</b> není prodejcem vozidel a neručí za pravdivost údajů v inzerátech ani za kvalitu prodávaných vozidel. Kupující i prodávající jednají na vlastní odpovědnost.
-  </span>
-</footer>
+        <AlertTriangle size={20} style={{marginRight: 8, verticalAlign: 'middle'}} />
+        <span>
+          <b>Carta.cz</b> není prodejcem vozidel a neručí za pravdivost údajů v inzerátech ani za kvalitu prodávaných vozidel. Kupující i prodávající jednají na vlastní odpovědnost.
+        </span>
+      </footer>
     </main>
   )
 }
