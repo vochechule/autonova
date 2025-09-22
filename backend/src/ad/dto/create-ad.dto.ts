@@ -10,7 +10,7 @@ import {
   ColorFinish,
 } from '../enums/ad.enums'
 import { Transform, Type } from 'class-transformer'
-import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray, IsNumber, IsEmail, IsPhoneNumber } from 'class-validator'
+import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray, IsNumber, IsEmail, IsPhoneNumber, Min, Max } from 'class-validator'
 
 export class CreateAdDto {
   @IsString()
@@ -62,9 +62,12 @@ export class CreateAdDto {
   @IsEnum(ColorFinish)
   colorFinish?: ColorFinish;
 
-  @Type(() => Number)
-  @IsInt()
-  airbagCount: number;
+  @IsOptional()
+  @IsInt({ message: 'Počet airbagů musí být celé číslo' })
+  @Min(0, { message: 'Počet airbagů nemůže být záporný' })
+  @Max(20, { message: 'Počet airbagů nemůže být více než 20' })
+  @Transform(({ value }) => value ? parseInt(value, 10) : 0)
+  airbagCount?: number;
 
   @IsOptional() // ✅ PŘIDÁNO - klimatizace nepovinná
   @IsEnum(AirConditioning)
