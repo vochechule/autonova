@@ -54,6 +54,11 @@ export const carBrands = {
       'T-Roc R',
       'Tiguan R',
       'Arteon R',
+      'Scirocco', // ✅ Added
+      'Beetle', // ✅ Added
+      'New Beetle', // ✅ Added
+      'Corrado', // ✅ Added
+      'Phaeton', // ✅ Added
       'Jiný model'
     ]
   },
@@ -61,10 +66,13 @@ export const carBrands = {
     name: 'Audi',
     models: [
       'A1',
+      'A2', // ✅ Added
       'A3',
       'A4',
+      'A4 Allroad', // ✅ Added
       'A5',
       'A6',
+      'A6 Allroad', // ✅ Added
       'A7',
       'A8',
       'Q2',
@@ -119,9 +127,11 @@ export const carBrands = {
       'X5',
       'X6',
       'X7',
+      'Z3', // ✅ Added
       'Z4',
       'i3',
       'i4',
+      'i8', // ✅ Added
       'iX',
       'iX3',
       'M2',
@@ -148,6 +158,7 @@ export const carBrands = {
       'Třída E',
       'Třída S',
       'CLA',
+      'CLK', // ✅ Added
       'CLS',
       'GLA',
       'GLB',
@@ -161,6 +172,8 @@ export const carBrands = {
       'EQB',
       'EQC',
       'EQS',
+      'Vito', // ✅ Added
+      'V-Class', // ✅ Added
       'A 35 AMG',
       'A 45 AMG',
       'C 43 AMG',
@@ -208,6 +221,10 @@ export const carBrands = {
       'Mustang GT',
       'Mustang Shelby',
       'Ranger Raptor',
+      'Galaxy', // ✅ Added
+      'S-Max', // ✅ Added
+      'Maverick', // ✅ Added
+      'Escort', // ✅ Added
       'Jiný model'
     ]
   },
@@ -226,6 +243,10 @@ export const carBrands = {
       'Zafira',
       'Frontera',
       'Grandland X',
+      'Meriva', // ✅ Added
+      'Adam', // ✅ Added
+      'Tigra', // ✅ Added
+      'Signum', // ✅ Added
       'Jiný model'
     ]
   },
@@ -235,7 +256,9 @@ export const carBrands = {
       '108',
       '208',
       '308',
+      '407', // ✅ Added
       '508',
+      '607', // ✅ Added
       '2008',
       '3008',
       '5008',
@@ -243,6 +266,7 @@ export const carBrands = {
       'Expert',
       'Boxer',
       'Rifter',
+      'RCZ', // ✅ Added
       '208 GTI',
       '308 GTI',
       '508 PSE',
@@ -255,6 +279,7 @@ export const carBrands = {
       'Twingo',
       'Clio',
       'Megane',
+      'Laguna', // ✅ Added
       'Talisman',
       'Captur',
       'Kadjar',
@@ -265,6 +290,9 @@ export const carBrands = {
       'Trafic',
       'Master',
       'ZOE',
+      'Fluence', // ✅ Added
+      'Vel Satis', // ✅ Added
+      'Avantime', // ✅ Added
       'Clio RS',
       'Megane RS',
       'Alpine A110',
@@ -275,9 +303,11 @@ export const carBrands = {
     name: 'Citroën',
     models: [
       'C1',
+      'C2', // ✅ Added
       'C3',
       'C4',
       'C5',
+      'C6', // ✅ Added
       'C3 Aircross',
       'C5 Aircross',
       'Berlingo',
@@ -331,6 +361,7 @@ export const carBrands = {
       'Aygo',
       'Yaris',
       'Corolla',
+      'Avensis', // ✅ Added
       'Camry',
       'C-HR',
       'RAV4',
@@ -342,6 +373,9 @@ export const carBrands = {
       'bZ4X',
       'Crown',
       'GR86',
+      'Supra', // ✅ Added
+      'MR2', // ✅ Added
+      'Verso', // ✅ Added
       'Jiný model'
     ]
   },
@@ -357,6 +391,12 @@ export const carBrands = {
       'Navara',
       'NV200',
       'NV400',
+      'Almera', // ✅ Added
+      'Primera', // ✅ Added
+      'Note', // ✅ Added
+      '350Z', // ✅ Added
+      '370Z', // ✅ Added
+      'GT-R', // ✅ Added
       'Jiný model'
     ]
   },
@@ -369,10 +409,12 @@ export const carBrands = {
       'CX-3',
       'CX-30',
       'CX-5',
+      'CX-7', // ✅ Added
       'CX-60',
       'MX-5',
       'MX-30',
       'CX-90',
+      'RX-8', // ✅ Added
       'Jiný model'
     ]
   },
@@ -387,6 +429,10 @@ export const carBrands = {
       'e:Ny1',
       'Civic Type R',
       'NSX',
+      'Prelude', // ✅ Added
+      'S2000', // ✅ Added
+      'Legend', // ✅ Added
+      'Integra', // ✅ Added
       'Jiný model'
     ]
   },
@@ -405,6 +451,8 @@ export const carBrands = {
       'Leon FR',
       'Leon Cupra',
       'Ateca FR',
+      'Exeo', // ✅ Added
+      'Altea', // ✅ Added
       'Jiný model'
     ]
   },
@@ -426,11 +474,16 @@ export const carBrands = {
     models: [
       '500',
       'Panda',
+      'Punto', // ✅ Added
       'Tipo',
       '500X',
       'Doblo',
       'Ducato',
       '500e',
+      'Bravo', // ✅ Added
+      'Brava', // ✅ Added
+      'Stilo', // ✅ Added
+      'Multipla', // ✅ Added
       'Jiný model'
     ]
   },
@@ -473,6 +526,8 @@ export const carBrands = {
       'C40',
       'EX30',
       'EX90',
+      '850', // ✅ Added
+      'C70', // ✅ Added
       'Jiný model'
     ]
   },
@@ -652,6 +707,7 @@ export const carBrands = {
     models: [
       '9-3',
       '9-5',
+      '9-7X', // ✅ Added
       '900',
       '9000',
       'Jiný model'
@@ -675,6 +731,9 @@ export const carBrands = {
       'Delta',
       'Musa',
       'Thesis',
+      'Lybra', // ✅ Added
+      'Kappa', // ✅ Added
+      'Thema', // ✅ Added
       'Jiný model'
     ]
   },
@@ -740,6 +799,140 @@ export const carBrands = {
       'GV60',
       'GV70',
       'GV80',
+      'Jiný model'
+    ]
+  },
+  // ✅ Added new luxury brands
+  'pontiac': {
+    name: 'Pontiac',
+    models: [
+      'G6',
+      'G8',
+      'Grand Prix',
+      'Bonneville',
+      'Firebird',
+      'Trans Am',
+      'GTO',
+      'Solstice',
+      'Vibe',
+      'Jiný model'
+    ]
+  },
+  'hummer': {
+    name: 'Hummer',
+    models: [
+      'H1',
+      'H2',
+      'H3',
+      'EV',
+      'Jiný model'
+    ]
+  },
+  'cadillac': {
+    name: 'Cadillac',
+    models: [
+      'ATS',
+      'CTS',
+      'XTS',
+      'CT4',
+      'CT5',
+      'CT6',
+      'Escalade',
+      'XT4',
+      'XT5',
+      'XT6',
+      'Lyriq',
+      'Celestiq',
+      'Jiný model'
+    ]
+  },
+  'lincoln': {
+    name: 'Lincoln',
+    models: [
+      'MKZ',
+      'Continental',
+      'Navigator',
+      'Aviator',
+      'Corsair',
+      'Nautilus',
+      'MKC',
+      'MKX',
+      'Jiný model'
+    ]
+  },
+  // ✅ Added Jaguar Land Rover brands
+  'jaguar': {
+    name: 'Jaguar',
+    models: [
+      'XE',
+      'XF',
+      'XJ',
+      'F-Type',
+      'E-Pace',
+      'F-Pace',
+      'I-Pace',
+      'X-Type',
+      'S-Type',
+      'XK',
+      'Jiný model'
+    ]
+  },
+  'land_rover': {
+    name: 'Land Rover',
+    models: [
+      'Defender',
+      'Discovery',
+      'Discovery Sport',
+      'Range Rover',
+      'Range Rover Sport',
+      'Range Rover Evoque',
+      'Range Rover Velar',
+      'Freelander',
+      'Jiný model'
+    ]
+  },
+  // ✅ Added Chinese brands
+  'byd': {
+    name: 'BYD',
+    models: [
+      'Atto 3',
+      'Han',
+      'Tang',
+      'Seal',
+      'Dolphin',
+      'e6',
+      'Jiný model'
+    ]
+  },
+  'nio': {
+    name: 'NIO',
+    models: [
+      'ES6',
+      'ES8',
+      'ET5',
+      'ET7',
+      'EC6',
+      'Jiný model'
+    ]
+  },
+  'xpeng': {
+    name: 'XPeng',
+    models: [
+      'P5',
+      'P7',
+      'G3',
+      'G6',
+      'G9',
+      'Jiný model'
+    ]
+  },
+  'chery': {
+    name: 'Chery',
+    models: [
+      'Tiggo 7',
+      'Tiggo 8',
+      'Arrizo 6',
+      'QQ',
       'Jiný model'
     ]
   },
