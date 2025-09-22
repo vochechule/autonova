@@ -8,9 +8,11 @@ interface BrandSelectProps {
   value: string
   onChange: (value: string) => void
   required?: boolean // eslint-disable-line @typescript-eslint/no-unused-vars
+  disabled?: boolean
+  className?: string // ✅ Add className prop
 }
 
-export default function BrandSelect({ value, onChange }: BrandSelectProps) {
+export default function BrandSelect({ value, onChange, required, disabled, className }: BrandSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
