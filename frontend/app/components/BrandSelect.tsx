@@ -12,7 +12,7 @@ interface BrandSelectProps {
   className?: string // ✅ Add className prop
 }
 
-export default function BrandSelect({ value, onChange, required, disabled, className }: BrandSelectProps) {
+export default function BrandSelect({ value, onChange}: BrandSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
