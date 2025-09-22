@@ -34,23 +34,51 @@ export class ContactController {
       throw new HttpException('Spam detekován.', HttpStatus.BAD_REQUEST);
     }
 
-    // ✅ Vylepšená validace s lepšími chybovými hláškami
-    if (!body.name || body.name.trim().length === 0) {
-      throw new HttpException('Vyplňte jméno.', HttpStatus.BAD_REQUEST);
-    }
-    if (!body.email || !/^[^@]+@[^@]+\.[^@]+$/.test(body.email)) {
-      throw new HttpException('Neplatný e-mail.', HttpStatus.BAD_REQUEST);
-    }
-    if (!body.message || body.message.trim().length < 5) {
-      throw new HttpException('Zpráva musí mít alespoň 5 znaků.', HttpStatus.BAD_REQUEST);
-    }
-
     try {
+      // ✅ Enhanced validation with specific error messages
+      const errors: string[] = [];
+      
+      if (!body.name || body.name.trim().length === 0) {
+        errors.push('Jméno je povinné');
+      } else if (body.name.trim().length < 2) {
+        errors.push('Jméno musí mít alespoň 2 znaky');
+      } else if (body.name.trim().length > 100) {
+        errors.push('Jméno je příliš dlouhé (max 100 znaků)');
+      }
+      
+      if (!body.email || body.email.trim().length === 0) {
+        errors.push('E-mail je povinný');
+      } else if (!/^[^@]+@[^@]+\.[^@]+$/.test(body.email)) {
+        errors.push('Neplatný formát e-mailu');
+      } else if (body.email.length > 254) {
+        errors.push('E-mail je příliš dlouhý');
+      }
+      
+      if (!body.message || body.message.trim().length === 0) {
+        errors.push('Zpráva je povinná');
+      } else if (body.message.trim().length < 5) {
+        errors.push('Zpráva musí mít alespoň 5 znaků');
+      } else if (body.message.trim().length > 5000) {
+        errors.push('Zpráva je příliš dlouhá (max 5000 znaků)');
+      }
+      
+      if (errors.length > 0) {
+        throw new HttpException({
+          statusCode: 400,
+          message: errors,
+          error: 'Bad Request'
+        }, HttpStatus.BAD_REQUEST);
+      }
+
       // ✅ Uložení do databáze + odeslání notifikace na Discord
       await this.contactWebhookService.saveAndNotify(body.name, body.email, body.message);
       this.logger.log(`Kontaktní formulář úspěšně odeslán uživatelem ${body.email}`);
       return { ok: true, message: 'Zpráva byla úspěšně odeslána.' };
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      
       this.logger.error(`Nepodařilo se zpracovat kontaktní formulář: ${error.message}`);
       throw new HttpException(
         'Nepodařilo se odeslat zprávu. Zkuste to prosím později.',
