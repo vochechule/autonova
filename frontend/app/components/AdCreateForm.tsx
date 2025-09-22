@@ -14,11 +14,32 @@ import MapSelector from './MapSelector'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// ✅ Define proper types instead of any
+interface ValidationRule {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: RegExp;
+  message: string;
+}
+
+interface ValidationRules {
+  [key: string]: ValidationRule;
+}
+
+interface FieldErrors {
+  [key: string]: string;
+}
+
+type FormFieldValue = string | number | boolean | null | undefined;
+
 export default function AdCreateForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({}) // ✅ Field-specific errors
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({}) // ✅ Proper type
   const [success, setSuccess] = useState(false)
   const [createdAdId, setCreatedAdId] = useState<string | null>(null)
   const [images, setImages] = useState<File[]>([])
@@ -45,8 +66,8 @@ export default function AdCreateForm() {
 
   const modelsList = getModelsList(selectedBrand)
 
-  // ✅ Form validation rules
-  const validationRules = {
+  // ✅ Form validation rules with proper typing
+  const validationRules: ValidationRules = {
     title: {
       required: true,
       minLength: 5,
@@ -137,9 +158,9 @@ export default function AdCreateForm() {
     }
   };
 
-  // ✅ Client-side validation function
-  const validateField = (name: string, value: any): string | null => {
-    const rule = validationRules[name as keyof typeof validationRules];
+  // ✅ Client-side validation function with proper typing
+  const validateField = (name: string, value: FormFieldValue): string | null => {
+    const rule = validationRules[name];
     if (!rule) return null;
 
     // Required check
@@ -176,9 +197,9 @@ export default function AdCreateForm() {
     return null;
   };
 
-  // ✅ Validate all fields
-  const validateForm = (formData: FormData): {[key: string]: string} => {
-    const errors: {[key: string]: string} = {};
+  // ✅ Validate all fields with proper typing
+  const validateForm = (formData: FormData): FieldErrors => {
+    const errors: FieldErrors = {};
 
     // Validate basic fields
     Object.keys(validationRules).forEach(fieldName => {
@@ -218,8 +239,8 @@ export default function AdCreateForm() {
     return errors;
   };
 
-  // ✅ Clear field error when user starts typing
-  const handleFieldChange = (fieldName: string, value: any) => {
+  // ✅ Clear field error when user starts typing with proper typing
+  const handleFieldChange = (fieldName: string, value: FormFieldValue) => {
     if (fieldErrors[fieldName]) {
       setFieldErrors(prev => {
         const newErrors = { ...prev };
@@ -483,9 +504,9 @@ export default function AdCreateForm() {
         const errData = await res.json().catch(() => ({}))
         console.error('❌ Backend error response:', errData);
         
-        // ✅ Enhanced server error handling
+        // ✅ Enhanced server error handling - use const instead of let
         let errorMessage = 'Chyba při ukládání inzerátu';
-        let serverFieldErrors: {[key: string]: string} = {};
+        const serverFieldErrors: FieldErrors = {}; // ✅ Use const and proper typing
         
         if (errData.message) {
           if (Array.isArray(errData.message)) {
@@ -590,6 +611,7 @@ export default function AdCreateForm() {
                   onChange={handleBrandChange}
                   required
                   className={fieldErrors.brand ? 'error' : ''}
+
                 />
                 {fieldErrors.brand && <div className="field-error">{fieldErrors.brand}</div>}
               </div>
@@ -603,6 +625,7 @@ export default function AdCreateForm() {
                   disabled={!selectedBrand}
                   required
                   className={fieldErrors.model ? 'error' : ''}
+
                 />
                 {fieldErrors.model && <div className="field-error">{fieldErrors.model}</div>}
               </div>
@@ -721,6 +744,7 @@ export default function AdCreateForm() {
                   }}
                   required
                   className={fieldErrors.color ? 'error' : ''}
+
                 />
                 {fieldErrors.color && <div className="field-error">{fieldErrors.color}</div>}
               </div>
