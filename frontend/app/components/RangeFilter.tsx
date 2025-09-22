@@ -28,12 +28,19 @@ export default function RangeFilter({
   const [isOpen, setIsOpen] = useState(false)
   const [fromValue, setFromValue] = useState(valueFrom)
   const [toValue, setToValue] = useState(valueTo)
+  
+  // ✅ Add separate state for input display values (allows empty/partial input)
+  const [fromInputValue, setFromInputValue] = useState(valueFrom.toString())
+  const [toInputValue, setToInputValue] = useState(valueTo.toString())
+  
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Synchronizace s props při změně
   useEffect(() => {
     setFromValue(valueFrom)
     setToValue(valueTo)
+    setFromInputValue(valueFrom.toString())
+    setToInputValue(valueTo.toString())
   }, [valueFrom, valueTo])
 
   // Zavření dropdownu při kliknutí mimo
@@ -60,14 +67,75 @@ export default function RangeFilter({
     onValueChange?.(fromValue, newTo)
   }
 
+  // ✅ New input handlers that allow empty/partial input
   const handleFromInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || min
-    handleFromChange(Math.max(min, Math.min(max, value)))
+    const inputValue = e.target.value
+    setFromInputValue(inputValue)
+    
+    // Only update actual value if input is a valid number
+    if (inputValue !== '' && !isNaN(Number(inputValue))) {
+      const numValue = parseInt(inputValue)
+      const clampedValue = Math.max(min, Math.min(max, numValue))
+      handleFromChange(clampedValue)
+    }
   }
 
   const handleToInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || max
-    handleToChange(Math.max(min, Math.min(max, value)))
+    const inputValue = e.target.value
+    setToInputValue(inputValue)
+    
+    // Only update actual value if input is a valid number
+    if (inputValue !== '' && !isNaN(Number(inputValue))) {
+      const numValue = parseInt(inputValue)
+      const clampedValue = Math.max(min, Math.min(max, numValue))
+      handleToChange(clampedValue)
+    }
+  }
+
+  // ✅ Handle blur events to validate and correct invalid input
+  const handleFromInputBlur = () => {
+    if (fromInputValue === '' || isNaN(Number(fromInputValue))) {
+      // Reset to current valid value if input is empty or invalid
+      setFromInputValue(fromValue.toString())
+    } else {
+      const numValue = parseInt(fromInputValue)
+      const clampedValue = Math.max(min, Math.min(max, numValue))
+      const finalValue = Math.min(clampedValue, toValue)
+      
+      setFromValue(finalValue)
+      setFromInputValue(finalValue.toString())
+      onValueChange?.(finalValue, toValue)
+    }
+  }
+
+  const handleToInputBlur = () => {
+    if (toInputValue === '' || isNaN(Number(toInputValue))) {
+      // Reset to current valid value if input is empty or invalid
+      setToInputValue(toValue.toString())
+    } else {
+      const numValue = parseInt(toInputValue)
+      const clampedValue = Math.max(min, Math.min(max, numValue))
+      const finalValue = Math.max(clampedValue, fromValue)
+      
+      setToValue(finalValue)
+      setToInputValue(finalValue.toString())
+      onValueChange?.(fromValue, finalValue)
+    }
+  }
+
+  // ✅ Handle Enter key to apply changes immediately
+  const handleFromInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleFromInputBlur()
+      e.currentTarget.blur()
+    }
+  }
+
+  const handleToInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleToInputBlur()
+      e.currentTarget.blur()
+    }
   }
 
   const getDisplayText = () => {
@@ -111,28 +179,34 @@ export default function RangeFilter({
             <span className="range-filter__label">{label}</span>
           </div>
           
-          {/* Input fields */}
+          {/* ✅ Updated input fields with better handling */}
           <div className="range-filter__inputs">
             <div className="range-filter__input-group">
               <label>Od</label>
               <input
                 type="number"
-                value={fromValue}
+                value={fromInputValue}
                 onChange={handleFromInputChange}
+                onBlur={handleFromInputBlur}
+                onKeyDown={handleFromInputKeyDown}
                 min={min}
                 max={max}
                 step={step}
+                placeholder={min.toString()}
               />
             </div>
             <div className="range-filter__input-group">
               <label>Do</label>
               <input
                 type="number"
-                value={toValue}
+                value={toInputValue}
                 onChange={handleToInputChange}
+                onBlur={handleToInputBlur}
+                onKeyDown={handleToInputKeyDown}
                 min={min}
                 max={max}
                 step={step}
+                placeholder={max.toString()}
               />
             </div>
           </div>
@@ -154,7 +228,11 @@ export default function RangeFilter({
               max={max}
               step={step}
               value={fromValue}
-              onChange={(e) => handleFromChange(parseInt(e.target.value))}
+              onChange={(e) => {
+                const newValue = parseInt(e.target.value)
+                handleFromChange(newValue)
+                setFromInputValue(newValue.toString()) // ✅ Update input display
+              }}
               className="range-filter__thumb range-filter__thumb--from"
             />
             <input
@@ -163,7 +241,11 @@ export default function RangeFilter({
               max={max}
               step={step}
               value={toValue}
-              onChange={(e) => handleToChange(parseInt(e.target.value))}
+              onChange={(e) => {
+                const newValue = parseInt(e.target.value)
+                handleToChange(newValue)
+                setToInputValue(newValue.toString()) // ✅ Update input display
+              }}
               className="range-filter__thumb range-filter__thumb--to"
             />
           </div>
@@ -175,6 +257,8 @@ export default function RangeFilter({
               onClick={() => {
                 setFromValue(min)
                 setToValue(max)
+                setFromInputValue(min.toString()) // ✅ Reset input display too
+                setToInputValue(max.toString())
                 onValueChange?.(min, max)
               }}
               className="range-filter__reset"
