@@ -5,7 +5,7 @@ import QuickCategories from './components/QuickCategories'
 import HeroSection from './components/HeroSection'
 import StartupBanner from './components/StartupBanner'
 import WhyCartaSection from './components/WhyCartaSection'
-import UserReviewsSection from './components/UserReviewsSection'
+// import UserReviewsSection from './components/UserReviewsSection'
 import SellCarCTA from './components/SellCarCTA'
 import ContactForm from './components/ContactForm'
 import { generateMetadata } from './lib/seo'
@@ -50,15 +50,16 @@ export default function Home() {
         </h1>
         
         <HeroSection />
-        <StartupBanner />
         <Suspense fallback={null}>
           <AdFilter />
         </Suspense>
         <Suspense fallback={null}>
+        <StartupBanner />
+
           <QuickCategories />
         </Suspense>
         <WhyCartaSection />
-        <UserReviewsSection />
+        {/* <UserReviewsSection /> */}
         <SellCarCTA />
         <ContactForm />
       </main>
