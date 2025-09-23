@@ -1620,6 +1620,128 @@
     gap: 0.375rem;
   }
 }
+// Add to: frontend/app/styles/AdDetailPage.scss
+// Na konec souboru přidej:
+.listing-detail-page__additional-info {
+  margin: 48px 0;
+
+  .listing-detail-page__info-block {
+    margin-bottom: 28px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.2s, transform 0.2s;
+
+    &:hover {
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.10);
+      transform: translateY(-2px);
+    }
+
+    h3 {
+      margin: 0 0 20px 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d3748;
+      border-bottom: 3px solid #edf2f7;
+      padding-bottom: 12px;
+      letter-spacing: -0.3px;
+    }
+
+    .listing-detail-page__info-content {
+      p {
+        margin: 0;
+        line-height: 1.7;
+        color: #4a5568;
+        font-size: 16px;
+        font-weight: 500;
+        white-space: pre-line;
+      }
+    }
+  }
+
+  .listing-detail-page__info-block:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .listing-detail-page__additional-info {
+    margin: 24px 0;
+
+    .listing-detail-page__info-block {
+      padding: 16px;
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
+      border-bottom: 8px solid #f8fafc;
+
+      &:hover {
+        transform: none;
+        box-shadow: none;
+      }
+
+      h3 {
+        font-size: 18px;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+      }
+
+      .listing-detail-page__info-content {
+        p {
+          font-size: 15px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 400px) {
+  .listing-detail-page__additional-info {
+    margin: 16px 0;
+
+    .listing-detail-page__info-block {
+      padding: 12px;
+      border-bottom: 6px solid #f8fafc;
+
+      h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+      }
+
+      .listing-detail-page__info-content {
+        p {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}
+
+// Dark mode
+[data-theme="dark"] {
+  .listing-detail-page__additional-info {
+    .listing-detail-page__info-block {
+      background: #1a202c;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      border-color: rgba(255, 255, 255, 0.1);
+
+      h3 {
+        color: #e2e8f0;
+        border-bottom-color: #4a5568;
+      }
+
+      .listing-detail-page__info-content {
+        p {
+          color: #cbd5e0;
+        }
+      }
+    }
+  }
+}
 
 .listing-detail-page__auth-btn {
   padding: 0.625rem 1.25rem;

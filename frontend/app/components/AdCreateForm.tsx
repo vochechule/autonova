@@ -135,12 +135,6 @@ export default function AdCreateForm() {
       max: 12,
       message: 'Počet míst musí být 1-12'
     },
-    airbagCount: {
-      required: true,
-      min: 0,
-      max: 20,
-      message: 'Počet airbagů musí být 0-20'
-    },
     gearCount: {
       required: true,
       min: 1,
@@ -426,7 +420,8 @@ export default function AdCreateForm() {
       // String fields
       const stringFields = ['title', 'description', 'bodyType', 
                            'fuel', 'transmission', 'drivetrain', 'airConditioning', 'condition', 
-                           'countryOfOrigin', 'euroStandard', 'contactPhone', 'contactEmail', 'contactName']
+                           'countryOfOrigin', 'euroStandard', 'contactPhone', 'contactEmail', 'contactName',
+                           'safetyFeatures', 'assistSystems', 'securityFeatures', 'interiorComfort'] // ✅ PŘIDÁNO
       
       stringFields.forEach(field => {
         const value = formData.get(field)
@@ -437,7 +432,7 @@ export default function AdCreateForm() {
 
       // Integer fields
       const integerFields = ['price', 'mileage', 'year', 'firstRegistration', 'doorCount', 
-                            'seatCount', 'engineVolume', 'power', 'airbagCount', 'gearCount']
+                            'seatCount', 'engineVolume', 'power', 'gearCount'] // ✅ ODSTRANĚNO airbagCount
       
       integerFields.forEach(field => {
         const value = formData.get(field)
@@ -786,16 +781,14 @@ export default function AdCreateForm() {
 
               {/* Vzhled a rozměry - AIRBAGY NEPOVINNÉ */}
               <div className="form-group">
-                <label htmlFor="airbagCount">Počet airbagů <span className="required">*</span></label>
+                <label htmlFor="airbagCount">Počet airbagů</label> {/* ✅ Odstraněna * */}
                 <input 
                   name="airbagCount" 
                   id="airbagCount" 
                   type="number" 
-                  required 
                   placeholder="6"
                   min="0"
                   max="20"
-                  defaultValue="0" // ✅ Ensure default value
                   className={fieldErrors.airbagCount ? 'error' : ''}
                   onChange={() => handleFieldChange('airbagCount')}
                 />
@@ -981,6 +974,65 @@ export default function AdCreateForm() {
             </div>
           </div>
 
+             {/* ✅ NOVÁ SEKCE - Další informace */}
+          <div className="form-section">
+            <h3 className="form-section__title">Další informace o vozidle</h3>
+            <div className="form-grid">
+              <div className="form-group form-group--full-width">
+                <label htmlFor="safetyFeatures">Bezpečnostní systémy</label>
+                <textarea 
+                  name="safetyFeatures" 
+                  id="safetyFeatures" 
+                  placeholder="ABS, ESP, ASR, airbagů řidiče a spolujezdce..."
+                  rows={3}
+                />
+                <small className="form-help">
+                  Uveďte bezpečnostní vybavení vozidla (ABS, ESP, airbags, atd.)
+                </small>
+              </div>
+
+              <div className="form-group form-group--full-width">
+                <label htmlFor="assistSystems">Asistenční systémy</label>
+                <textarea 
+                  name="assistSystems" 
+                  id="assistSystems" 
+                  placeholder="Adaptivní tempomat, asistent jízdy v pruzích, parkovací asistent..."
+                  rows={3}
+                />
+                <small className="form-help">
+                  Uveďte asistenční systémy (tempomat, parkovací asistent, atd.)
+                </small>
+              </div>
+
+              <div className="form-group form-group--full-width">
+                <label htmlFor="securityFeatures">Zabezpečení vozidla</label>
+                <textarea 
+                  name="securityFeatures" 
+                  id="securityFeatures" 
+                  placeholder="Alarm, imobilizér, centrální zamykání, GPS tracking..."
+                  rows={3}
+                />
+                <small className="form-help">
+                  Uveďte zabezpečovací prvky vozidla
+                </small>
+              </div>
+
+              <div className="form-group form-group--full-width">
+                <label htmlFor="interiorComfort">Vnitřní výbava a komfort</label>
+                <textarea 
+                  name="interiorComfort" 
+                  id="interiorComfort" 
+                  placeholder="Kožené sedačky, vyhřívání sedadel, elektrické okna, navigace..."
+                  rows={3}
+                />
+                <small className="form-help">
+                  Popište komfortní vybavení interiéru
+                </small>
+              </div>
+            </div>
+          </div>
+
+
           {/* Kontaktní údaje */}
           <div className="form-section">
             <h3 className="form-section__title">Kontaktní údaje prodejce</h3>
@@ -1159,6 +1211,7 @@ export default function AdCreateForm() {
             {fieldErrors.location && <div className="field-error">{fieldErrors.location}</div>}
           </section>
 
+       
           <button type="submit" disabled={loading || (adCount !== null && adCount >= 10) || Object.keys(fieldErrors).length > 0}>
             {loading ? <ButtonLoading /> : 'Přidat inzerát'}
           </button>

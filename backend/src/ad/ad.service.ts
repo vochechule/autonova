@@ -71,7 +71,7 @@ export class AdService {
       firstRegistration: dto.firstRegistration ? Number(dto.firstRegistration) : undefined,
       doorCount: dto.doorCount ? Number(dto.doorCount) : undefined,
       seatCount: dto.seatCount ? Number(dto.seatCount) : undefined,
-      airbagCount: dto.airbagCount !== undefined ? Number(dto.airbagCount) : 0,
+      airbagCount: dto.airbagCount ? Number(dto.airbagCount) : undefined, // ✅ ZMĚNĚNO - může být undefined
       engineVolume: dto.engineVolume ? Number(dto.engineVolume) : undefined,
       power: dto.power ? Number(dto.power) : undefined,
       avgConsumption: dto.avgConsumption ? Number(dto.avgConsumption) : undefined,
@@ -95,13 +95,19 @@ export class AdService {
       
       // Kontaktní údaje
       contactPhone: dto.contactPhone,
-      contactEmail: dto.contactEmail,
+      contactEmail: dto.contactEmail || undefined,
       contactName: dto.contactName || undefined,
       
       // Lokační údaje
       latitude: dto.latitude ? Number(dto.latitude) : undefined,
       longitude: dto.longitude ? Number(dto.longitude) : undefined,
       address: dto.address || undefined,
+
+      // ✅ NOVÉ TEXTOVÉ FIELDS
+      safetyFeatures: dto.safetyFeatures || undefined,
+      assistSystems: dto.assistSystems || undefined,
+      securityFeatures: dto.securityFeatures || undefined,
+      interiorComfort: dto.interiorComfort || undefined,
     };
 
     return transformed;
@@ -212,16 +218,16 @@ export class AdService {
     // Transformace dat
     const transformedData = this.transformAdData(dto);
     
-    // Ensure required numeric fields have defaults
+    // ✅ ZMĚNĚNO - airbagCount už není povinný
     const dataToSave = {
       ...transformedData,
-      airbagCount: transformedData.airbagCount ?? 0,
       doorCount: transformedData.doorCount ?? 4,
       seatCount: transformedData.seatCount ?? 5,
       gearCount: transformedData.gearCount ?? 5,
+      // airbagCount už není potřeba defaultovat
     };
     
-    // Remove undefined values but keep 0 values
+    // Remove undefined values but keep 0 values and empty strings for optional fields
     Object.keys(dataToSave).forEach(key => {
       if (dataToSave[key] === undefined) {
         delete dataToSave[key];
