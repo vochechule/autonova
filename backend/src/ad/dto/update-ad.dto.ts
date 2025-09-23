@@ -39,4 +39,10 @@ export class UpdateAdDto extends PartialType(CreateAdDto) {
     return undefined;
   })
   imagesToDelete?: string[];
+
+  // ✅ PŘIDÁNO - order of existing images
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  existingImagesOrder?: string[];
 }

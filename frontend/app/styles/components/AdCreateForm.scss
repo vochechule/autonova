@@ -242,6 +242,8 @@
     border-radius: 6px;
     overflow: hidden;
     border: 1.5px solid #e2e8f0;
+    cursor: grab;
+    transition: all 0.2s ease;
 
     img {
       width: 100%;
@@ -249,15 +251,58 @@
       object-fit: cover;
       display: block;
       border-radius: 6px 6px 0 0;
+      pointer-events: none;
     }
 
+    &.main-image {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      
+      &::after {
+        content: "HLAVNÍ";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        background: #2563eb;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        z-index: 2;
+      }
+    }
+
+    // ✅ Drag states
+    &.dragging {
+      opacity: 0.5;
+      transform: rotate(3deg) scale(1.02);
+      cursor: grabbing;
+      z-index: 1000;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    &.drag-over {
+      border-color: #16a34a;
+      background: #f0fdf4;
+      transform: scale(1.02);
+    }
+
+    &:hover:not(.dragging) {
+      border-color: #94a3b8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    // ✅ OPRAVENO - Remove button only (top right)
     .remove-image-btn {
       position: absolute;
-      top: 0.25rem;
-      right: 0.25rem;
+      top: 4px;
+      right: 4px;
       width: 22px;
       height: 22px;
-      background: rgba(220,38,38,0.85);
+      background: rgba(220,38,38,0.9);
       color: white;
       border: none;
       border-radius: 50%;
@@ -267,16 +312,49 @@
       justify-content: center;
       font-size: 14px;
       line-height: 1;
-      transition: background 0.18s;
+      transition: all 0.2s ease;
+      z-index: 3;
 
       &:hover {
-        background: #b91c1c;
+        background: #dc2626;
+        transform: scale(1.1);
+      }
+    }
+
+    // ✅ OPRAVENO - Drag handle (bottom left)
+    .drag-handle {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      background: rgba(100,116,139,0.9);
+      color: white;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      z-index: 3;
+      
+      &:hover {
+        background: #64748b;
+      }
+      
+      &:active {
+        cursor: grabbing;
+      }
+      
+      svg {
+        width: 12px;
+        height: 12px;
       }
     }
 
     .image-info {
       padding: 0.5rem;
       background: #f8fafc;
+      position: relative;
 
       .image-name {
         display: block;
@@ -287,11 +365,68 @@
         overflow: hidden;
         text-overflow: ellipsis;
         margin-bottom: 0.18rem;
+        padding-right: 20px; // ✅ Make space for order number
       }
 
       .image-size {
         font-size: 0.7rem;
         color: #64748b;
+        margin-bottom: 4px;
+      }
+      
+      // ✅ OPRAVENO - Order indicator (top right of info section)
+      .image-order {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        background: #64748b;
+        color: white;
+        font-size: 0.6rem;
+        font-weight: 700;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      // ✅ OPRAVENO - Move buttons (bottom of info section, no overlap)
+      .move-buttons {
+        display: flex;
+        gap: 4px;
+        margin-top: 4px;
+        justify-content: center;
+
+        .move-btn {
+          background: rgba(100,116,139,0.9);
+          color: white;
+          border: none;
+          border-radius: 4px;
+          width: 24px;
+          height: 18px;
+          font-size: 10px;
+          font-weight: bold;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            background: #64748b;
+            transform: scale(1.05);
+          }
+
+          &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            
+            &:hover {
+              transform: none;
+            }
+          }
+        }
       }
     }
   }
@@ -1075,6 +1210,287 @@
 
     .field-error {
       font-size: 0.8rem;
+    }
+  }
+
+  // ✅ IMAGE REORDERING STYLES - přidej na konec souboru
+
+  // ✅ Reorderable gallery variant
+  .image-gallery.reorderable {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.75rem;
+  }
+
+  // ✅ Enhanced image preview for reordering
+  .image-preview {
+    // Existing styles remain the same
+    
+    &.main-image {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      
+      &::after {
+        content: "HLAVNÍ";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        background: #2563eb;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        z-index: 2;
+      }
+    }
+
+    // ✅ Drag states
+    &.dragging {
+      opacity: 0.5;
+      transform: rotate(3deg) scale(1.02);
+      cursor: grabbing;
+      z-index: 1000;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    &.drag-over {
+      border-color: #16a34a;
+      background: #f0fdf4;
+      transform: scale(1.02);
+    }
+
+    &:hover:not(.dragging) {
+      border-color: #94a3b8;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+  }
+
+  .image-controls {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    gap: 2px;
+    z-index: 3;
+  }
+
+  .image-control-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    line-height: 1;
+    transition: all 0.2s ease;
+    
+    &.main-btn {
+      background: rgba(37,99,235,0.9);
+      color: white;
+      
+      &:hover {
+        background: #2563eb;
+        transform: scale(1.1);
+      }
+    }
+    
+    &.move-btn {
+      background: rgba(100,116,139,0.9);
+      color: white;
+      
+      &:hover {
+        background: #64748b;
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  // ✅ Drag handle
+  .drag-handle {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    background: rgba(100,116,139,0.9);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    z-index: 3;
+    
+    &:hover {
+      background: #64748b;
+    }
+    
+    &:active {
+      cursor: grabbing;
+    }
+    
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  // ✅ Image order indicator
+  .image-info .image-order {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: #64748b;
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // ✅ Reorder help section
+  .image-reorder-help {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: #64748b;
+    
+    .help-icon {
+      display: inline-block;
+      margin-right: 0.5rem;
+      font-size: 1rem;
+    }
+    
+    strong {
+      color: #2563eb;
+    }
+  }
+
+  // ✅ Quick action buttons
+  .image-quick-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+    
+    .quick-action-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #64748b;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+      }
+    }
+  }
+
+  // ✅ Dark mode styles for new elements
+  [data-theme="dark"] & {
+    .image-preview {
+      &.main-image {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        
+        &::after {
+          background: #60a5fa;
+        }
+      }
+      
+      &.drag-over {
+        border-color: #34d399;
+        background: #022c22;
+      }
+    }
+    
+    .image-info .image-order {
+      background: #64748b;
+    }
+    
+    .drag-handle {
+      background: rgba(100,116,139,0.9);
+      
+      &:hover {
+        background: #64748b;
+      }
+    }
+    
+    .image-reorder-help {
+      background: #1e293b;
+      border-color: #334155;
+      color: #94a3b8;
+      
+      strong {
+        color: #60a5fa;
+      }
+    }
+    
+    .image-quick-actions .quick-action-btn {
+      background: #1e293b;
+      border-color: #334155;
+      color: #94a3b8;
+      
+      &:hover {
+        background: #334155;
+        color: #e2e8f0;
+      }
+    }
+  }
+
+  // ✅ Mobile responsive
+  @media (max-width: 768px) {
+    .image-gallery.reorderable {
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.5rem;
+    }
+    
+    .image-preview {
+      img {
+        height: 70px;
+      }
+      
+      .remove-image-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+      }
+      
+      .drag-handle {
+        width: 18px;
+        height: 18px;
+        
+        svg {
+          width: 10px;
+          height: 10px;
+        }
+      }
+      
+      .image-info {
+        padding: 0.4rem;
+        
+        .move-buttons .move-btn {
+          width: 20px;
+          height: 16px;
+          font-size: 9px;
+        }
+      }
     }
   }
 }

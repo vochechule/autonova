@@ -145,10 +145,12 @@ export class AdService {
         .from('photos')
         .getPublicUrl(filename);
 
+      // ✅ PŘIDÁNO - zachování pořadí obrázků
       await this.prisma.image.create({
         data: {
           url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
           adId: adId,
+          order: i, // ✅ Pořadí podle pozice v array
         },
       });
     }
@@ -400,7 +402,13 @@ export class AdService {
       this.prisma.ad.findMany({
         where,
         orderBy,
-        include: { images: true, user: true, features: true },
+        include: { 
+          images: {
+            orderBy: { order: 'asc' }  // ✅ Vždy řaď podle pořadí
+          }, 
+          user: true, 
+          features: true 
+        },
         skip,
         take: limit
       }),

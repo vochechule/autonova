@@ -136,6 +136,14 @@ export default function AdCreateForm({
   const [adData, setAdData] = useState<AdData | null>(null)
   const [initialLoading, setInitialLoading] = useState(false)
 
+  // ✅ Add new state for drag & drop (add after existing state)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
+  // ✅ Add state for drag & drop for existing images
+  const [draggedExistingIndex, setDraggedExistingIndex] = useState<number | null>(null)
+  const [dragOverExistingIndex, setDragOverExistingIndex] = useState<number | null>(null)
+
   const modelsList = getModelsList(selectedBrand)
 
   // Validation rules remain the same
@@ -448,11 +456,119 @@ export default function AdCreateForm({
     handleFieldChange('location')
   }
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  // ✅ Add reorder functions (add after existing functions)
+  const moveImage = (fromIndex: number, toIndex: number) => {
+    const newImages = [...images]
+    const [movedImage] = newImages.splice(fromIndex, 1)
+    newImages.splice(toIndex, 0, movedImage)
+    setImages(newImages)
+    showSuccess('Pořadí změněno', `Obrázek přesunut na pozici ${toIndex + 1}`)
+  }
+
+  const moveImageUp = (index: number) => {
+    if (index > 0) {
+      moveImage(index, index - 1)
+    }
+  }
+
+  const moveImageDown = (index: number) => {
+    if (index < images.length - 1) {
+      moveImage(index, index + 1)
+    }
+  }
+
+  const setAsMainImage = (index: number) => {
+    if (index !== 0) {
+      moveImage(index, 0)
+      showSuccess('Hlavní obrázek nastaven', 'Obrázek byl nastaven jako hlavní')
+    }
+  }
+
+  // ✅ Add reorder functions for existing images
+  const moveExistingImage = (fromIndex: number, toIndex: number) => {
+    const newImages = [...existingImages]
+    const [movedImage] = newImages.splice(fromIndex, 1)
+    newImages.splice(toIndex, 0, movedImage)
+    setExistingImages(newImages)
+    showSuccess('Pořadí změněno', `Obrázek přesunut na pozici ${toIndex + 1}`)
+  }
+
+  const moveExistingImageUp = (index: number) => {
+    if (index > 0) {
+      moveExistingImage(index, index - 1)
+    }
+  }
+
+  const moveExistingImageDown = (index: number) => {
+    if (index < existingImages.length - 1) {
+      moveExistingImage(index, index + 1)
+    }
+  }
+
+  // ✅ Add drag handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', '')
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault()
-    setDragActive(false)
-    const files = Array.from(e.dataTransfer.files)
-    validateAndAddFiles(files)
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIndex(index)
+  }
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    
+    if (draggedIndex !== null && draggedIndex !== dropIndex) {
+      moveImage(draggedIndex, dropIndex)
+    }
+    
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  // ✅ Drag handlers for existing images
+  const handleExistingDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedExistingIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', '')
+  }
+
+  const handleExistingDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverExistingIndex(index)
+  }
+
+  const handleExistingDragLeave = () => {
+    setDragOverExistingIndex(null)
+  }
+
+  const handleExistingDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    
+    if (draggedExistingIndex !== null && draggedExistingIndex !== dropIndex) {
+      moveExistingImage(draggedExistingIndex, dropIndex)
+    }
+    
+    setDraggedExistingIndex(null)
+    setDragOverExistingIndex(null)
+  }
+
+  const handleExistingDragEnd = () => {
+    setDraggedExistingIndex(null)
+    setDragOverExistingIndex(null)
   }
 
   // ✅ Update validateAndAddFiles for both modes
@@ -1152,7 +1268,7 @@ export default function AdCreateForm({
 
           {/* Stav a údaje */}
           <div className="form-section">
-            <h3 className="form-section__title">Stav a dokumenty</h3>
+            <h3 className="form-section__title">Stav vozidla</h3>
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="condition">Stav vozidla <span className="required">*</span></label>
@@ -1403,20 +1519,63 @@ export default function AdCreateForm({
               </small>
             </p>
 
-            {/* ✅ Existing Images (for edit mode) */}
+            {/* ✅ Existing Images with Reordering */}
             {mode === 'edit' && existingImages.length > 0 && (
               <div className="existing-images">
-                <h4>Současné obrázky:</h4>
-                <div className="image-gallery">
-                  {existingImages.map((image) => (
-                    <div key={image.id} className="image-preview">
+                <h4>
+                  Současné obrázky: 
+                  <span style={{ fontWeight: 'normal', fontSize: '0.9rem', color: '#64748b' }}>
+                    ({existingImages.length} {existingImages.length === 1 ? 'obrázek' : 'obrázků'})
+                  </span>
+                </h4>
+                
+                {/* ✅ Reorder help for existing images */}
+                <div className="image-reorder-help">
+                  <span className="help-icon">💡</span>
+                  <strong>První obrázek</strong> se zobrazí jako hlavní v seznamu aut. 
+                  Přetáhněte obrázky pro změnu pořadí.
+                </div>
+
+                {/* ✅ Quick actions for existing images */}
+                {existingImages.length > 1 && (
+                  <div className="image-quick-actions">
+                    <button
+                      type="button"
+                      className="quick-action-btn"
+                      onClick={() => {
+                        const reversed = [...existingImages].reverse()
+                        setExistingImages(reversed)
+                        showSuccess('Pořadí obráceno', 'Pořadí existujících obrázků bylo obráceno')
+                      }}
+                    >
+                      🔄 Obrátit pořadí
+                    </button>
+                  </div>
+                )}
+                
+                <div className="image-gallery reorderable">
+                  {existingImages.map((image, index) => (
+                    <div 
+                      key={image.id}
+                      className={`image-preview ${index === 0 ? 'main-image' : ''} ${
+                        draggedExistingIndex === index ? 'dragging' : ''
+                      } ${dragOverExistingIndex === index ? 'drag-over' : ''}`}
+                      draggable
+                      onDragStart={(e) => handleExistingDragStart(e, index)}
+                      onDragOver={(e) => handleExistingDragOver(e, index)}
+                      onDragLeave={handleExistingDragLeave}
+                      onDrop={(e) => handleExistingDrop(e, index)}
+                      onDragEnd={handleExistingDragEnd}
+                    >
                       <Image
                         src={image.url}
-                        alt="Současný obrázek"
+                        alt={`Současný obrázek ${index + 1}`}
                         width={180}
-                        height={120}
-                        style={{ objectFit: 'cover' }}
+                        height={80}
+                        style={{ objectFit: 'cover', borderRadius: '6px 6px 0 0' }}
                       />
+                      
+                      {/* ✅ Remove button */}
                       <button
                         type="button"
                         className="remove-image-btn"
@@ -1425,42 +1584,166 @@ export default function AdCreateForm({
                       >
                         ×
                       </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* ✅ New Images */}
-            {images.length > 0 && (
-              <div className="new-images">
-                <h4>{mode === 'edit' ? 'Nové obrázky:' : 'Náhled obrázků:'}</h4>
-                <div className="image-gallery">
-                  {images.map((image, index) => (
-                    <div key={index} className="image-preview">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img 
-                        src={URL.createObjectURL(image)} 
-                        alt={`Náhled ${index + 1}`}
-                        onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
-                      />
-                      <button
-                        type="button"
-                        className="remove-image-btn"
-                        onClick={() => handleImageRemove(index)}
-                        title="Odstranit obrázek"
-                      >
-                        ×
-                      </button>
+                      
+                      {/* ✅ Drag handle */}
+                      <div className="drag-handle" title="Přetáhněte pro změnu pořadí">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M7 5h2v2H7zm0 8h2v2H7zm0-4h2v2H7zm4-4h2v2h-2zm0 8h2v2h-2zm0-4h2v2h-2z"/>
+                        </svg>
+                      </div>
+                      
                       <div className="image-info">
-                        <span className="image-name">{image.name}</span>
-                        <span className="image-size">{(image.size / 1024 / 1024).toFixed(1)} MB</span>
+                        <span className="image-name">Existující #{index + 1}</span>
+                        <span className="image-size">Uložený obrázek</span>
+                        
+                        {/* ✅ Order number */}
+                        <div className="image-order">{index + 1}</div>
+                        
+                        {/* ✅ Move buttons */}
+                        <div className="move-buttons">
+                          <button
+                            type="button"
+                            className="move-btn"
+                            onClick={() => moveExistingImageUp(index)}
+                            disabled={index === 0}
+                            title="Posunout nahoru"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="move-btn"
+                            onClick={() => moveExistingImageDown(index)}
+                            disabled={index === existingImages.length - 1}
+                            title="Posunout dolů"
+                          >
+                            ↓
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+            
+                      {/* ✅ New Images */}
+          {images.length > 0 && (
+            <div className="new-images">
+              <h4>
+                {mode === 'edit' ? 'Nové obrázky:' : 'Náhled obrázků:'} 
+                <span style={{ fontWeight: 'normal', fontSize: '0.9rem', color: '#64748b' }}>
+                  ({images.length} {images.length === 1 ? 'obrázek' : 'obrázků'})
+                </span>
+              </h4>
+              
+              {/* ✅ Reorder help */}
+              <div className="image-reorder-help">
+                <span className="help-icon">💡</span>
+                <strong>První obrázek</strong> se zobrazí jako hlavní v seznamu aut. 
+                Přetáhněte obrázky pro změnu pořadí nebo použijte tlačítka.
+              </div>
+              
+              {/* ✅ Quick actions */}
+              {images.length > 1 && (
+                <div className="image-quick-actions">
+                  <button
+                    type="button"
+                    className="quick-action-btn"
+                    onClick={() => {
+                      const reversed = [...images].reverse()
+                      setImages(reversed)
+                      showSuccess('Pořadí obráceno', 'Pořadí všech obrázků bylo obráceno')
+                    }}
+                  >
+                    🔄 Obrátit pořadí
+                  </button>
+                  <button
+                    type="button"
+                    className="quick-action-btn"
+                    onClick={() => {
+                      const shuffled = [...images].sort(() => Math.random() - 0.5)
+                      setImages(shuffled)
+                      showSuccess('Pořadí zamícháno', 'Obrázky byly náhodně zamíchány')
+                    }}
+                  >
+                    🎲 Zamíchat
+                  </button>
+                </div>
+              )}
+              
+              <div className="image-gallery reorderable">
+                {images.map((image, index) => (
+                  <div 
+                    key={`${image.name}-${index}`}
+                    className={`image-preview ${index === 0 ? 'main-image' : ''} ${
+                      draggedIndex === index ? 'dragging' : ''
+                    } ${dragOverIndex === index ? 'drag-over' : ''}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={URL.createObjectURL(image)} 
+                      alt={`Náhled ${index + 1}`}
+                      onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
+                    />
+                    
+                    {/* ✅ OPRAVENO - Only remove button (top right) */}
+                    <button
+                      type="button"
+                      className="remove-image-btn"
+                      onClick={() => handleImageRemove(index)}
+                      title="Odstranit obrázek"
+                    >
+                      ×
+                    </button>
+                    
+                    {/* ✅ OPRAVENO - Drag handle (bottom left) */}
+                    <div className="drag-handle" title="Přetáhněte pro změnu pořadí">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7 5h2v2H7zm0 8h2v2H7zm0-4h2v2H7zm4-4h2v2h-2zm0 8h2v2h-2zm0-4h2v2h-2z"/>
+                      </svg>
+                    </div>
+                    
+                    <div className="image-info">
+                      <span className="image-name">{image.name}</span>
+                      <span className="image-size">{(image.size / 1024 / 1024).toFixed(1)} MB</span>
+                      
+                      {/* ✅ OPRAVENO - Order number (top right of info) */}
+                      <div className="image-order">{index + 1}</div>
+                      
+                      {/* ✅ OPRAVENO - Move buttons (centered at bottom, no overlap) */}
+                      <div className="move-buttons">
+                        <button
+                          type="button"
+                          className="move-btn"
+                          onClick={() => moveImageUp(index)}
+                          disabled={index === 0}
+                          title="Posunout nahoru"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          className="move-btn"
+                          onClick={() => moveImageDown(index)}
+                          disabled={index === images.length - 1}
+                          title="Posunout dolů"
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
             {/* Image Counter */}
             <div className="image-counter">
@@ -1538,8 +1821,8 @@ export default function AdCreateForm({
           </section>
 
        
-          <button type="submit" disabled={loading || (adCount !== null && adCount >= 10) || Object.keys(fieldErrors).length > 0}>
-            {loading ? <ButtonLoading /> : 'Přidat inzerát'}
+          <button type="submit" disabled={loading || (mode === 'create' && adCount !== null && adCount >= 10) || Object.keys(fieldErrors).length > 0}>
+            {loading ? <ButtonLoading /> : (mode === 'create' ? 'Přidat inzerát' : 'Uložit změny')}
           </button>
           
           {/* Enhanced error display */}
