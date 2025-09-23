@@ -36,7 +36,7 @@ model Ad {
   seatCount           Int
   color               String
   colorFinish         String?
-  airbagCount         Int            @default(0)
+  airbagCount         Int?           // ✅ ZMĚNĚNO - nyní volitelný
   airConditioning     AirConditioning?
   fuel                FuelType
   engineVolume        Int
@@ -67,13 +67,19 @@ model Ad {
   views               Int            @default(0)
   image_url           String?
 
-  contactPhone         String       // ✅ Povinný telefon
-  contactEmail         String?      // ✅ Volitelný email (? = nullable)
+  contactPhone         String       // Povinný telefon
+  contactEmail         String?      // Volitelný email
   contactName          String?      // Volitelné jméno kontaktní osoby
   
   latitude  Float?
   longitude Float?
   address   String?
+
+  // ✅ NOVÉ TEXTOVÉ FIELDS
+  safetyFeatures       String?      // Bezpečnostní systémy
+  assistSystems        String?      // Asistenční systémy  
+  securityFeatures     String?      // Zabezpečení vozidla
+  interiorComfort      String?      // Vnitřní výbava a komfort
 
   @@index([latitude, longitude])
   @@index([createdAt])
@@ -86,10 +92,13 @@ model CarFeature {
 }
 
 model Image {
-  id    String @id @default(uuid())
-  url   String
-  ad    Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
-  adId  String
+  id      String @id @default(uuid())
+  url     String
+  order   Int    @default(0)  // ✅ PŘIDÁNO - pořadí obrázku
+  ad      Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+  adId    String
+  
+  @@index([adId, order])  // ✅ Index pro rychlé řazení
 }
 
 model Review {

@@ -62,40 +62,37 @@ export class CreateAdDto {
   @IsEnum(ColorFinish)
   colorFinish?: ColorFinish;
 
+  // ✅ ZMĚNĚNO - airbagCount je nyní volitelný
   @IsOptional()
   @IsInt({ message: 'Počet airbagů musí být celé číslo' })
   @Min(0, { message: 'Počet airbagů nemůže být záporný' })
   @Max(20, { message: 'Počet airbagů nemůže být více než 20' })
-  @Transform(({ value }) => value ? parseInt(value, 10) : 0)
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
   airbagCount?: number;
 
-  @IsOptional() // ✅ PŘIDÁNO - klimatizace nepovinná
+  @IsOptional()
   @IsEnum(AirConditioning)
-  airConditioning?: AirConditioning; // ✅ ZMĚNĚNO na optional
+  airConditioning?: AirConditioning;
 
   @IsEnum(FuelType)
   fuel: FuelType;
 
-  // ✅ PŘIDEJTE TRANSMISSION
   @IsEnum(Transmission)
   transmission: Transmission;
 
   @IsEnum(Drivetrain)
   drivetrain: Drivetrain;
 
-  // ✅ PŘIDEJTE CONDITION
   @IsEnum(CarCondition)
   condition: CarCondition;
 
-  // ✅ PŘIDEJTE COUNTRY OF ORIGIN
   @IsOptional()
   @IsString()
   countryOfOrigin?: string;
 
-  // ✅ PŘIDEJTE EURO STANDARD
   @IsOptional()
-  @IsEnum(EmissionClass) // ✅ ZMĚNĚNO z @IsString() na @IsEnum()
-  euroStandard?: EmissionClass; // ✅ ZMĚNĚNO typ
+  @IsEnum(EmissionClass)
+  euroStandard?: EmissionClass;
 
   @Type(() => Number)
   @IsInt()
@@ -107,22 +104,21 @@ export class CreateAdDto {
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 }) // ✅ Změna z @IsInt() na @IsNumber()
+  @IsNumber({ maxDecimalPlaces: 2 })
   avgConsumption?: number;
 
   @Type(() => Number)
   @IsInt()
   gearCount: number;
 
-  // ✅ Features jako array
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   features?: string[];
 
-  // Boolean hodnoty - REMOVE @Transform decorators completely
-  @IsOptional() // ✅ Make them optional so NestJS doesn't auto-convert
-  ecoTaxPaid?: any; // ✅ Use 'any' to prevent auto-conversion
+  // Boolean hodnoty
+  @IsOptional()
+  ecoTaxPaid?: any;
 
   @IsOptional()
   isFirstOwner?: any;
@@ -136,20 +132,19 @@ export class CreateAdDto {
   @IsOptional()
   hasServiceBook?: any;
 
-  // ✅ PŘIDEJTE DATUM FIELDY
   @IsOptional()
   @IsDateString()
-  technicalCheckUntil?: string; // ISO string datum
+  technicalCheckUntil?: string;
 
   @IsOptional()
   @IsDateString()
-  warrantyUntil?: string; // ISO string datum
+  warrantyUntil?: string;
 
-  // ✅ PŘIDÁNO - Kontaktní údaje
+  // Kontaktní údaje
   @IsString()
   contactPhone: string;
 
-  @IsOptional() // ✅ PŘIDÁNO - email není povinný
+  @IsOptional()
   @IsEmail()
   contactEmail?: string;
 
@@ -157,7 +152,7 @@ export class CreateAdDto {
   @IsString()
   contactName?: string;
 
-  // ✅ PŘIDÁNO - Lokační údaje
+  // Lokační údaje
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -171,4 +166,21 @@ export class CreateAdDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  // ✅ NOVÉ TEXTOVÉ FIELDS
+  @IsOptional()
+  @IsString()
+  safetyFeatures?: string;     // Bezpečnostní systémy
+
+  @IsOptional()
+  @IsString()
+  assistSystems?: string;      // Asistenční systémy
+
+  @IsOptional()
+  @IsString()
+  securityFeatures?: string;   // Zabezpečení vozidla
+
+  @IsOptional()
+  @IsString()
+  interiorComfort?: string;    // Vnitřní výbava a komfort
 }

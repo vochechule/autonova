@@ -8,7 +8,7 @@ import ShareButton from '../../components/ShareButton'
 import '../../styles/AdDetailPage.scss'
 import Link from 'next/link'
 import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatter'
-import { conditionMap, fuelMap, transmissionMap, colorMap, colorFinishMap } from '../../utils/labelMaps'
+import { conditionMap, fuelMap, transmissionMap, colorMap, colorFinishMap, airConditioningMap, drivetrainMap } from '../../utils/labelMaps'
 import { PageLoading } from '../../components/LoadingStates'
 import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
 import { useToast } from '../../contexts/ToastContext'
@@ -92,6 +92,12 @@ interface AdType {
   condition?: string;
   firstRegistration?: string;
   euroStandard?: string;
+  
+  // ✅ NOVÉ FIELDS
+  safetyFeatures?: string;      // Bezpečnostní systémy
+  assistSystems?: string;       // Asistenční systémy
+  securityFeatures?: string;    // Zabezpečení vozidla
+  interiorComfort?: string;     // Vnitřní výbava a komfort
 }
 
 export default function AdDetailPage() {
@@ -477,6 +483,16 @@ export default function AdDetailPage() {
             </div>
           </div>
 
+           {/* Popis */}
+          {ad.description && (
+            <section className="listing-detail-page__description">
+              <h2 className="listing-detail-page__section-title">Popis</h2>
+              <div className="listing-detail-page__description-content">
+                <p>{ad.description}</p>
+              </div>
+            </section>
+          )}
+
           {/* Detailní specifikace */}
           <section className="listing-detail-page__specs">
             <h2 className="listing-detail-page__section-title">Specifikace</h2>
@@ -551,7 +567,9 @@ export default function AdDetailPage() {
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Pohon</span>
-                  <span className="listing-detail-page__spec-value">{ad.drivetrain ?? '-'}</span>
+                  <span className="listing-detail-page__spec-value">
+                    {ad.drivetrain ? drivetrainMap[ad.drivetrain as string] ?? ad.drivetrain : '-'}
+                  </span>
                 </div>
               </div>
 
@@ -587,7 +605,10 @@ export default function AdDetailPage() {
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Klimatizace</span>
-                  <span className="listing-detail-page__spec-value">{ad.airConditioning ?? '-'}</span>
+                  {/* ✅ OPRAVENO - použití airConditioningMap */}
+                  <span className="listing-detail-page__spec-value">
+                    {ad.airConditioning ? airConditioningMap[ad.airConditioning as string] ?? ad.airConditioning : '-'}
+                  </span>
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">První majitel</span>
@@ -625,15 +646,51 @@ export default function AdDetailPage() {
             </div>
           </section>
 
-          {/* Popis */}
-          {ad.description && (
-            <section className="listing-detail-page__description">
-              <h2 className="listing-detail-page__section-title">Popis</h2>
-              <div className="listing-detail-page__description-content">
-                <p>{ad.description}</p>
-              </div>
+         
+
+           {/* ✅ NOVÁ SEKCE - Další informace o vozidle */}
+          {(ad.safetyFeatures || ad.assistSystems || ad.securityFeatures || ad.interiorComfort) && (
+            <section className="listing-detail-page__additional-info">
+              <h2 className="listing-detail-page__section-title">Další informace o vozidle</h2>
+              
+              {ad.safetyFeatures && (
+                <div className="listing-detail-page__info-block">
+                  <h3>Bezpečnostní systémy</h3>
+                  <div className="listing-detail-page__info-content">
+                    <p>{ad.safetyFeatures}</p>
+                  </div>
+                </div>
+              )}
+              
+              {ad.assistSystems && (
+                <div className="listing-detail-page__info-block">
+                  <h3>Asistenční systémy</h3>
+                  <div className="listing-detail-page__info-content">
+                    <p>{ad.assistSystems}</p>
+                  </div>
+                </div>
+              )}
+              
+              {ad.securityFeatures && (
+                <div className="listing-detail-page__info-block">
+                  <h3>Zabezpečení vozidla</h3>
+                  <div className="listing-detail-page__info-content">
+                    <p>{ad.securityFeatures}</p>
+                  </div>
+                </div>
+              )}
+              
+              {ad.interiorComfort && (
+                <div className="listing-detail-page__info-block">
+                  <h3>Vnitřní výbava a komfort</h3>
+                  <div className="listing-detail-page__info-content">
+                    <p>{ad.interiorComfort}</p>
+                  </div>
+                </div>
+              )}
             </section>
           )}
+
 
           {/* Mapa lokace */}
           {ad.latitude && ad.longitude && ad.address && (
@@ -660,7 +717,8 @@ export default function AdDetailPage() {
               </div>
             </section>
           )}
-        </div>
+
+                 </div>
         
         <footer className="listing-detail-page__disclaimer">
           <AlertTriangle size={20} style={{marginRight: 8, verticalAlign: 'middle'}} />

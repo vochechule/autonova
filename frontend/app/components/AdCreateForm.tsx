@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import '../styles/components/AdCreateForm.scss'
 import '../styles/components/SuccessMessage.scss'
@@ -11,10 +11,17 @@ import ColorFinishSelect from './ColorFinishSelect'
 import { FormLoading, ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
 import MapSelector from './MapSelector'
+import Image from 'next/image'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// ✅ Define proper types instead of any
+// ✅ Add props for edit mode support
+interface AdCreateFormProps {
+  mode?: 'create' | 'edit'
+  adId?: string
+  initialData?: AdData
+}
+
 interface ValidationRule {
   required?: boolean;
   minLength?: number;
@@ -33,17 +40,77 @@ interface FieldErrors {
   [key: string]: string;
 }
 
-// ✅ Updated type to include File and FormDataEntryValue
 type FormFieldValue = string | number | boolean | null | undefined | File;
 
-export default function AdCreateForm() {
+// ✅ Add interface for ad data
+interface AdImage {
+  id: string
+  url: string
+}
+
+interface AdData {
+  id?: string
+  title?: string
+  brand?: string
+  model?: string
+  description?: string
+  price?: number
+  mileage?: number
+  year?: number
+  firstRegistration?: number
+  bodyType?: string
+  doorCount?: number
+  seatCount?: number
+  airbagCount?: number
+  fuel?: string
+  engineVolume?: number
+  power?: number
+  avgConsumption?: number
+  transmission?: string
+  gearCount?: number
+  airConditioning?: string
+  drivetrain?: string
+  condition?: string
+  technicalCheckUntil?: string
+  countryOfOrigin?: string
+  euroStandard?: string
+  warrantyUntil?: string
+  ecoTaxPaid?: boolean
+  isFirstOwner?: boolean
+  isDisabledAdapted?: boolean
+  wasCrashed?: boolean
+  hasServiceBook?: boolean
+  contactName?: string
+  contactPhone?: string
+  contactEmail?: string
+  color?: string
+  colorFinish?: string
+  images?: AdImage[]
+  latitude?: number
+  longitude?: number
+  address?: string
+  // ✅ New fields
+  safetyFeatures?: string
+  assistSystems?: string
+  securityFeatures?: string
+  interiorComfort?: string
+}
+
+// ✅ Add default props
+export default function AdCreateForm({ 
+  mode = 'create', 
+  adId, 
+  initialData 
+}: AdCreateFormProps = {}) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({}) // ✅ Proper type
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [success, setSuccess] = useState(false)
   const [createdAdId, setCreatedAdId] = useState<string | null>(null)
   const [images, setImages] = useState<File[]>([])
+  // ✅ Add state for existing images (edit mode)
+  const [existingImages, setExistingImages] = useState<AdImage[]>([])
   const [imageError, setImageError] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const [selectedBrand, setSelectedBrand] = useState<string>('')
@@ -65,9 +132,21 @@ export default function AdCreateForm() {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [uploadStep, setUploadStep] = useState<string>('')
 
+  // ✅ Add state for ad data and loading
+  const [adData, setAdData] = useState<AdData | null>(null)
+  const [initialLoading, setInitialLoading] = useState(false)
+
+  // ✅ Add new state for drag & drop (add after existing state)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+
+  // ✅ Add state for drag & drop for existing images
+  const [draggedExistingIndex, setDraggedExistingIndex] = useState<number | null>(null)
+  const [dragOverExistingIndex, setDragOverExistingIndex] = useState<number | null>(null)
+
   const modelsList = getModelsList(selectedBrand)
 
-  // ✅ Form validation rules with proper typing
+  // Validation rules remain the same
   const validationRules: ValidationRules = {
     title: {
       required: true,
@@ -135,12 +214,6 @@ export default function AdCreateForm() {
       max: 12,
       message: 'Počet míst musí být 1-12'
     },
-    airbagCount: {
-      required: true,
-      min: 0,
-      max: 20,
-      message: 'Počet airbagů musí být 0-20'
-    },
     gearCount: {
       required: true,
       min: 1,
@@ -154,17 +227,62 @@ export default function AdCreateForm() {
     }
   };
 
-  // ✅ Client-side validation function with proper typing - handle File objects
+  // ✅ Add function to fetch ad data for edit mode
+  const fetchAdData = useCallback(async () => {
+    if (mode === 'create') return
+
+    try {
+      setInitialLoading(true)
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_URL}/ad/${adId}`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: 'include'
+      })
+
+      if (!res.ok) {
+        throw new Error('Nepodařilo se načíst data inzerátu')
+      }
+
+      const data: AdData = await res.json()
+      setAdData(data)
+      populateFormData(data)
+    } catch (err) {
+      console.error('Error fetching ad data:', err)
+      setError(err instanceof Error ? err.message : 'Chyba při načítání dat')
+      showError('Chyba při načítání', 'Nepodařilo se načíst data inzerátu')
+    } finally {
+      setInitialLoading(false)
+    }
+  }, [mode, adId, showError])
+
+  // ✅ Add function to populate form with existing data
+  const populateFormData = (data: AdData) => {
+    setSelectedBrand(data.brand || '')
+    setSelectedModel(data.model || '')
+    setSelectedColor(data.color || '')
+    setSelectedColorFinish(data.colorFinish || 'standard')
+    setExistingImages(data.images || [])
+
+    if (data.latitude && data.longitude && data.address) {
+      setLocation({
+        latitude: data.latitude,
+        longitude: data.longitude,
+        address: data.address
+      })
+    }
+  }
+
+  // Validation functions remain the same
   const validateField = (name: string, value: FormFieldValue): string | null => {
     const rule = validationRules[name];
     if (!rule) return null;
 
-    // ✅ Skip validation for File objects (these are handled separately)
     if (value instanceof File) {
       return null;
     }
 
-    // Required check
     if (rule.required && (!value || value.toString().trim() === '')) {
       return rule.message || `${name} je povinné`;
     }
@@ -174,7 +292,6 @@ export default function AdCreateForm() {
     const stringValue = value.toString().trim();
     const numberValue = Number(value);
 
-    // String length validation
     if (rule.minLength && stringValue.length < rule.minLength) {
       return rule.message || `Minimálně ${rule.minLength} znaků`;
     }
@@ -182,7 +299,6 @@ export default function AdCreateForm() {
       return rule.message || `Maximálně ${rule.maxLength} znaků`;
     }
 
-    // Number range validation
     if (rule.min !== undefined && numberValue < rule.min) {
       return rule.message || `Minimální hodnota je ${rule.min}`;
     }
@@ -190,7 +306,6 @@ export default function AdCreateForm() {
       return rule.message || `Maximální hodnota je ${rule.max}`;
     }
 
-    // Pattern validation
     if (rule.pattern && !rule.pattern.test(stringValue)) {
       return rule.message || 'Neplatný formát';
     }
@@ -198,20 +313,18 @@ export default function AdCreateForm() {
     return null;
   };
 
-  // ✅ Validate all fields with proper typing - handle FormDataEntryValue
+  // ✅ Update validateForm to handle both modes
   const validateForm = (formData: FormData): FieldErrors => {
     const errors: FieldErrors = {};
 
-    // Validate basic fields
     Object.keys(validationRules).forEach(fieldName => {
-      const value = formData.get(fieldName); // This is FormDataEntryValue | null
-      const error = validateField(fieldName, value); // ✅ Now properly typed
+      const value = formData.get(fieldName);
+      const error = validateField(fieldName, value);
       if (error) {
         errors[fieldName] = error;
       }
     });
 
-    // Special validations
     if (!selectedBrand) {
       errors.brand = 'Vyberte značku vozidla';
     }
@@ -225,22 +338,21 @@ export default function AdCreateForm() {
       errors.location = 'Vyberte lokalitu vozidla na mapě';
     }
 
-    // Cross-field validation
     const year = Number(formData.get('year'));
     const firstRegistration = Number(formData.get('firstRegistration'));
     if (year && firstRegistration && firstRegistration < year) {
       errors.firstRegistration = 'První registrace nemůže být před rokem výroby';
     }
 
-    // Image validation
-    if (images.length < 2) {
+    // ✅ Update image validation for both modes
+    const totalImages = existingImages.length + images.length;
+    if (totalImages < 2) {
       errors.images = 'Přidejte alespoň 2 obrázky';
     }
 
     return errors;
   };
 
-  // ✅ Clear field error when user starts typing with proper typing
   const handleFieldChange = (fieldName: string) => {
     if (fieldErrors[fieldName]) {
       setFieldErrors(prev => {
@@ -252,24 +364,36 @@ export default function AdCreateForm() {
     if (error) setError(null);
   };
 
+  // ✅ Update useEffect to handle both modes
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      setShowLoginModal(true)
-      return
-    }
-    fetch(`${API_URL}/ad/my`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        setAdCount(Array.isArray(data) ? data.length : 0)
-        if (Array.isArray(data) && data.length >= 10) {
-          setShowLimitModal(true)
-        }
+    if (mode === 'create') {
+      // Original create mode logic
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setShowLoginModal(true)
+        return
+      }
+      fetch(`${API_URL}/ad/my`, {
+        headers: { Authorization: `Bearer ${token}` }
       })
-      .catch(() => setAdCount(null))
-  }, [])
+        .then(res => res.ok ? res.json() : [])
+        .then(data => {
+          setAdCount(Array.isArray(data) ? data.length : 0)
+          if (Array.isArray(data) && data.length >= 10) {
+            setShowLimitModal(true)
+          }
+        })
+        .catch(() => setAdCount(null))
+    } else if (mode === 'edit') {
+      // Load ad data for edit mode
+      if (initialData) {
+        setAdData(initialData)
+        populateFormData(initialData)
+      } else if (adId) {
+        fetchAdData()
+      }
+    }
+  }, [mode, adId, initialData, fetchAdData])
 
   const handleBrandChange = (brandValue: string) => {
     setSelectedBrand(brandValue)
@@ -286,8 +410,9 @@ export default function AdCreateForm() {
     const newImages = images.filter((_, i) => i !== index)
     setImages(newImages)
     
-    if (newImages.length < 2) {
-      setImageError('Přidejte alespoň dva obrázky.')
+    const totalImages = existingImages.length + newImages.length
+    if (totalImages < 2) {
+      setImageError('Musíte mít alespoň dva obrázky.')
       setFieldErrors(prev => ({ ...prev, images: 'Přidejte alespoň 2 obrázky' }))
     } else {
       setImageError(null)
@@ -299,6 +424,12 @@ export default function AdCreateForm() {
     }
     
     showSuccess('Obrázek odebrán', 'Obrázek byl odebrán ze seznamu')
+  }
+
+  // ✅ Add function to handle existing image removal
+  const handleExistingImageRemove = (imageId: string) => {
+    setExistingImages(prev => prev.filter(img => img.id !== imageId))
+    showWarning('Obrázek bude smazán', 'Existující obrázek bude smazán při uložení')
   }
 
   const handleDrag = (e: React.DragEvent) => {
@@ -325,13 +456,116 @@ export default function AdCreateForm() {
     handleFieldChange('location')
   }
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setDragActive(false)
-    const files = Array.from(e.dataTransfer.files)
-    validateAndAddFiles(files)
+  // ✅ Add reorder functions (add after existing functions)
+  const moveImage = (fromIndex: number, toIndex: number) => {
+    const newImages = [...images]
+    const [movedImage] = newImages.splice(fromIndex, 1)
+    newImages.splice(toIndex, 0, movedImage)
+    setImages(newImages)
+    showSuccess('Pořadí změněno', `Obrázek přesunut na pozici ${toIndex + 1}`)
   }
 
+  const moveImageUp = (index: number) => {
+    if (index > 0) {
+      moveImage(index, index - 1)
+    }
+  }
+
+  const moveImageDown = (index: number) => {
+    if (index < images.length - 1) {
+      moveImage(index, index + 1)
+    }
+  }
+
+
+  // ✅ Add reorder functions for existing images
+  const moveExistingImage = (fromIndex: number, toIndex: number) => {
+    const newImages = [...existingImages]
+    const [movedImage] = newImages.splice(fromIndex, 1)
+    newImages.splice(toIndex, 0, movedImage)
+    setExistingImages(newImages)
+    showSuccess('Pořadí změněno', `Obrázek přesunut na pozici ${toIndex + 1}`)
+  }
+
+  const moveExistingImageUp = (index: number) => {
+    if (index > 0) {
+      moveExistingImage(index, index - 1)
+    }
+  }
+
+  const moveExistingImageDown = (index: number) => {
+    if (index < existingImages.length - 1) {
+      moveExistingImage(index, index + 1)
+    }
+  }
+
+  // ✅ Add drag handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', '')
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIndex(index)
+  }
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null)
+  }
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    
+    if (draggedIndex !== null && draggedIndex !== dropIndex) {
+      moveImage(draggedIndex, dropIndex)
+    }
+    
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+    setDragOverIndex(null)
+  }
+
+  // ✅ Drag handlers for existing images
+  const handleExistingDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedExistingIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', '')
+  }
+
+  const handleExistingDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverExistingIndex(index)
+  }
+
+  const handleExistingDragLeave = () => {
+    setDragOverExistingIndex(null)
+  }
+
+  const handleExistingDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault()
+    
+    if (draggedExistingIndex !== null && draggedExistingIndex !== dropIndex) {
+      moveExistingImage(draggedExistingIndex, dropIndex)
+    }
+    
+    setDraggedExistingIndex(null)
+    setDragOverExistingIndex(null)
+  }
+
+  const handleExistingDragEnd = () => {
+    setDraggedExistingIndex(null)
+    setDragOverExistingIndex(null)
+  }
+
+  // ✅ Update validateAndAddFiles for both modes
   const validateAndAddFiles = (newFiles: File[]) => {
     const maxSize = 10 * 1024 * 1024 // 10MB
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -352,14 +586,15 @@ export default function AdCreateForm() {
       validFiles.push(file)
     })
 
-    if (images.length + validFiles.length > 15) {
-      errors.push(`Můžete nahrát maximálně 15 obrázků. Aktuálně máte ${images.length}, snažíte se přidat ${validFiles.length}.`)
+    const currentTotal = existingImages.length + images.length
+    if (currentTotal + validFiles.length > 15) {
+      errors.push(`Můžete mít maximálně 15 obrázků. Aktuálně máte ${currentTotal}, snažíte se přidat ${validFiles.length}.`)
     } else {
       setImages(prev => [...prev, ...validFiles])
       if (validFiles.length > 0) {
         showSuccess('Obrázky přidány', `Přidáno ${validFiles.length} ${validFiles.length === 1 ? 'obrázek' : 'obrázků'}`)
-        // Clear image error if we now have enough images
-        if (images.length + validFiles.length >= 2) {
+        
+        if (currentTotal + validFiles.length >= 2) {
           setImageError(null)
           setFieldErrors(prev => {
             const newErrors = { ...prev };
@@ -378,10 +613,11 @@ export default function AdCreateForm() {
     }
   }
 
+  // ✅ Update handleSubmit for both modes
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     
-    if (adCount !== null && adCount >= 10) {
+    if (mode === 'create' && adCount !== null && adCount >= 10) {
       setShowLimitModal(true)
       return
     }
@@ -394,18 +630,15 @@ export default function AdCreateForm() {
       const form = e.currentTarget
       const formData = new FormData(form)
 
-      // ✅ Client-side validation first
       const validationErrors = validateForm(formData);
       if (Object.keys(validationErrors).length > 0) {
         setFieldErrors(validationErrors);
         setError('Zkontrolujte všechna pole formuláře');
         setLoading(false);
         
-        // Show first error in toast
         const firstError = Object.values(validationErrors)[0];
         showError('Chyba ve formuláři', firstError);
         
-        // Scroll to first error
         const firstErrorField = Object.keys(validationErrors)[0];
         const element = document.querySelector(`[name="${firstErrorField}"], #${firstErrorField}`);
         if (element) {
@@ -417,16 +650,16 @@ export default function AdCreateForm() {
       // Build FormData for submission
       const submitFormData = new FormData()
       
-      // Brand and model from state
       submitFormData.append('brand', selectedBrand)
       submitFormData.append('model', selectedModel)
       submitFormData.append('color', selectedColor)
       submitFormData.append('colorFinish', selectedColorFinish || 'standard')
 
-      // String fields
+      // ✅ Updated string fields to include new ones
       const stringFields = ['title', 'description', 'bodyType', 
                            'fuel', 'transmission', 'drivetrain', 'airConditioning', 'condition', 
-                           'countryOfOrigin', 'euroStandard', 'contactPhone', 'contactEmail', 'contactName']
+                           'countryOfOrigin', 'euroStandard', 'contactPhone', 'contactEmail', 'contactName',
+                           'safetyFeatures', 'assistSystems', 'securityFeatures', 'interiorComfort']
       
       stringFields.forEach(field => {
         const value = formData.get(field)
@@ -435,9 +668,9 @@ export default function AdCreateForm() {
         }
       })
 
-      // Integer fields
+      // Integer fields (removed airbagCount from required)
       const integerFields = ['price', 'mileage', 'year', 'firstRegistration', 'doorCount', 
-                            'seatCount', 'engineVolume', 'power', 'airbagCount', 'gearCount']
+                            'seatCount', 'engineVolume', 'power', 'gearCount']
       
       integerFields.forEach(field => {
         const value = formData.get(field)
@@ -445,6 +678,12 @@ export default function AdCreateForm() {
           submitFormData.append(field, value.toString())
         }
       })
+
+      // ✅ Optional airbagCount
+      const airbagCountValue = formData.get('airbagCount')
+      if (airbagCountValue && airbagCountValue.toString().trim()) {
+        submitFormData.append('airbagCount', airbagCountValue.toString())
+      }
 
       // Float field
       const avgConsumptionValue = formData.get('avgConsumption')
@@ -470,6 +709,13 @@ export default function AdCreateForm() {
         submitFormData.append('warrantyUntil', new Date(warrantyValue.toString()).toISOString())
       }
 
+      // ✅ Handle existing images order for edit mode
+      if (mode === 'edit' && existingImages.length > 0) {
+        const existingImageIds = existingImages.map(img => img.id)
+        submitFormData.append('existingImagesOrder', JSON.stringify(existingImageIds))
+        console.log('🔍 Sending existingImagesOrder:', existingImageIds)
+      }
+
       // Location
       if (location) {
         submitFormData.append('latitude', location.latitude.toString())
@@ -477,10 +723,23 @@ export default function AdCreateForm() {
         submitFormData.append('address', location.address)
       }
 
+      // ✅ Handle image deletion for edit mode
+      if (mode === 'edit' && adData) {
+        const imagesToDelete = adData.images?.filter((img) =>
+          !existingImages.find(existing => existing.id === img.id)
+        )
+
+        if (imagesToDelete && imagesToDelete.length > 0) {
+          const idsToDelete = imagesToDelete.map((img) => img.id)
+          submitFormData.append('imagesToDelete', JSON.stringify(idsToDelete))
+          console.log('🔍 Sending imagesToDelete:', idsToDelete)
+        }
+      }
+
       // Images
-      setUploading(true)
-      setUploadStep('Nahrávám obrázky...')
       if (images.length > 0) {
+        setUploading(true)
+        setUploadStep('Nahrávám obrázky...')
         for (let i = 0; i < images.length; i++) {
           setUploadStep(`Nahrávám obrázek ${i + 1} z ${images.length}`)
           setUploadProgress(Math.round(((i + 1) / images.length) * 100))
@@ -488,12 +747,16 @@ export default function AdCreateForm() {
         }
       }
 
-      setUploadStep('Ukládám inzerát...')
+      setUploadStep(mode === 'create' ? 'Ukládám inzerát...' : 'Ukládám změny...')
       setUploadProgress(null)
 
+      // ✅ Dynamic endpoint and method based on mode
       const token = localStorage.getItem('token')
-      const res = await fetch(`${API_URL}/ad`, {
-        method: 'POST',
+      const url = mode === 'create' ? `${API_URL}/ad` : `${API_URL}/ad/${adId}`
+      const method = mode === 'create' ? 'POST' : 'PATCH'
+
+      const res = await fetch(url, {
+        method,
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
@@ -505,15 +768,12 @@ export default function AdCreateForm() {
         const errData = await res.json().catch(() => ({}))
         console.error('❌ Backend error response:', errData);
         
-        // ✅ Enhanced server error handling - use const instead of let
-        let errorMessage = 'Chyba při ukládání inzerátu';
-        const serverFieldErrors: FieldErrors = {}; // ✅ Use const and proper typing
+        let errorMessage = mode === 'create' ? 'Chyba při ukládání inzerátu' : 'Chyba při aktualizaci inzerátu';
+        const serverFieldErrors: FieldErrors = {};
         
         if (errData.message) {
           if (Array.isArray(errData.message)) {
-            // Handle validation error array from class-validator
             errData.message.forEach((msg: string) => {
-              // Try to extract field name from message
               if (msg.includes('title')) serverFieldErrors.title = msg;
               else if (msg.includes('price')) serverFieldErrors.price = msg;
               else if (msg.includes('email')) serverFieldErrors.contactEmail = msg;
@@ -532,8 +792,6 @@ export default function AdCreateForm() {
         } else if (res.status === 401) {
           errorMessage = 'Nejste přihlášeni. Přihlaste se prosím.';
           setShowLoginModal(true);
-        } else if (res.status === 429) {
-          errorMessage = 'Příliš mnoho požadavků. Zkuste to prosím později.';
         }
         
         if (Object.keys(serverFieldErrors).length > 0) {
@@ -544,21 +802,27 @@ export default function AdCreateForm() {
       }
 
       const result = await res.json()
-      setCreatedAdId(result.id)
       setSuccess(true)
-      form.reset()
-      setImages([])
-      setSelectedBrand('')
-      setSelectedModel('')
-      setSelectedColor('')
-      setLocation(null)
+      
+      if (mode === 'create') {
+        setCreatedAdId(result.id)
+        form.reset()
+        setImages([])
+        setSelectedBrand('')
+        setSelectedModel('')
+        setSelectedColor('')
+        setLocation(null)
+        showSuccess('Inzerát vytvořen', 'Váš inzerát byl úspěšně publikován')
+      } else {
+        showSuccess('Inzerát aktualizován', 'Všechny změny byly úspěšně uloženy')
+      }
+
       setFieldErrors({})
 
-      showSuccess('Inzerát vytvořen', 'Váš inzerát byl úspěšně publikován')
-
       setTimeout(() => {
-        if (result.id) {
-          router.push(`/ads/${result.id}`)
+        const targetId = mode === 'create' ? result.id : adId
+        if (targetId) {
+          router.push(`/ads/${targetId}`)
         } else {
           router.push('/ads')
         }
@@ -581,13 +845,73 @@ export default function AdCreateForm() {
     }
   }
 
+  // ✅ Loading state for edit mode
+  if (mode === 'edit' && initialLoading && !adData) {
+    return (
+      <div className="ad-create-form">
+        <div className="form-container">
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                border: '3px solid #e2e8f0',
+                borderTop: '3px solid #0070f3',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                margin: '0 auto'
+              }}></div>
+            </div>
+            <h3 style={{ color: '#4a5568', margin: 0 }}>Načítám data inzerátu...</h3>
+            <p style={{ color: '#718096', marginTop: '8px' }}>Prosím čekejte</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (mode === 'edit' && !adData) {
+    return (
+      <div className="ad-create-form">
+        <div className="form-container">
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <h3 style={{ color: '#e53e3e', marginBottom: '16px' }}>Chyba při načítání</h3>
+            <p style={{ color: '#718096', marginBottom: '24px' }}>Nepodařilo se načíst data inzerátu</p>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                background: '#0070f3',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              Zkusit znovu
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ Calculate total images for both modes
+  const totalImages = existingImages.length + images.length
+
   return (
     <div className="ad-create-form">
       <div className="form-container" style={{ position: 'relative' }}>
-        <h2>Přidat inzerát</h2>
-        <p className="form-subtitle">Vytvořte nový inzerát a prodejte své vozidlo rychle a snadno</p>
+        {/* ✅ Dynamic titles */}
+        <h2>{mode === 'create' ? 'Přidat inzerát' : 'Upravit inzerát'}</h2>
+        <p className="form-subtitle">
+          {mode === 'create' 
+            ? 'Vytvořte nový inzerát a prodejte své vozidlo rychle a snadno'
+            : 'Upravte údaje vašeho inzerátu'
+          }
+        </p>
 
-        <form onSubmit={handleSubmit} id="ad-create-form">
+        <form onSubmit={handleSubmit} id={mode === 'create' ? 'ad-create-form' : 'ad-edit-form'}>
           {/* Základní informace */}
           <div className="form-section">
             <h3 className="form-section__title">Základní informace</h3>
@@ -601,6 +925,7 @@ export default function AdCreateForm() {
                   placeholder="Např. Škoda Octavia 2.0 TDI Combi"
                   className={fieldErrors.title ? 'error' : ''}
                   onChange={() => handleFieldChange('title')}
+                  defaultValue={mode === 'edit' ? adData?.title : ''}
                 />
                 {fieldErrors.title && <div className="field-error">{fieldErrors.title}</div>}
               </div>
@@ -637,6 +962,7 @@ export default function AdCreateForm() {
                   placeholder="Popište stav vozidla, výbavu, historii..." 
                   className={fieldErrors.description ? 'error' : ''}
                   onChange={() => handleFieldChange('description')}
+                  defaultValue={mode === 'edit' ? adData?.description : ''}
                 />
                 {fieldErrors.description && <div className="field-error">{fieldErrors.description}</div>}
               </div>
@@ -657,6 +983,7 @@ export default function AdCreateForm() {
                   placeholder="450000"
                   className={fieldErrors.price ? 'error' : ''}
                   onChange={() => handleFieldChange('price')}
+                  defaultValue={mode === 'edit' ? adData?.price : ''}
                 />
                 {fieldErrors.price && <div className="field-error">{fieldErrors.price}</div>}
               </div>
@@ -671,6 +998,7 @@ export default function AdCreateForm() {
                   placeholder="150000"
                   className={fieldErrors.mileage ? 'error' : ''}
                   onChange={() => handleFieldChange('mileage')}
+                  defaultValue={mode === 'edit' ? adData?.mileage : ''}
                 />
                 {fieldErrors.mileage && <div className="field-error">{fieldErrors.mileage}</div>}
               </div>
@@ -685,6 +1013,7 @@ export default function AdCreateForm() {
                   placeholder="2018"
                   className={fieldErrors.year ? 'error' : ''}
                   onChange={() => handleFieldChange('year')}
+                  defaultValue={mode === 'edit' ? adData?.year : ''}
                 />
                 {fieldErrors.year && <div className="field-error">{fieldErrors.year}</div>}
               </div>
@@ -699,6 +1028,7 @@ export default function AdCreateForm() {
                   placeholder="2018"
                   className={fieldErrors.firstRegistration ? 'error' : ''}
                   onChange={() => handleFieldChange('firstRegistration')}
+                  defaultValue={mode === 'edit' ? adData?.firstRegistration : ''}
                 />
                 {fieldErrors.firstRegistration && <div className="field-error">{fieldErrors.firstRegistration}</div>}
               </div>
@@ -717,6 +1047,7 @@ export default function AdCreateForm() {
                   required
                   className={fieldErrors.bodyType ? 'error' : ''}
                   onChange={() => handleFieldChange('bodyType')}
+                  defaultValue={mode === 'edit' ? adData?.bodyType : ''}
                 >
                   <option value="">Vyberte karoserii</option>
                   <option value="hatchback">Hatchback</option>
@@ -766,6 +1097,7 @@ export default function AdCreateForm() {
                   placeholder="5"
                   className={fieldErrors.doorCount ? 'error' : ''}
                   onChange={() => handleFieldChange('doorCount')}
+                  defaultValue={mode === 'edit' ? adData?.doorCount : ''}
                 />
                 {fieldErrors.doorCount && <div className="field-error">{fieldErrors.doorCount}</div>}
               </div>
@@ -780,24 +1112,23 @@ export default function AdCreateForm() {
                   placeholder="5"
                   className={fieldErrors.seatCount ? 'error' : ''}
                   onChange={() => handleFieldChange('seatCount')}
+                  defaultValue={mode === 'edit' ? adData?.seatCount : ''}
                 />
                 {fieldErrors.seatCount && <div className="field-error">{fieldErrors.seatCount}</div>}
               </div>
 
-              {/* Vzhled a rozměry - AIRBAGY NEPOVINNÉ */}
               <div className="form-group">
-                <label htmlFor="airbagCount">Počet airbagů <span className="required">*</span></label>
+                <label htmlFor="airbagCount">Počet airbagů</label>
                 <input 
                   name="airbagCount" 
                   id="airbagCount" 
                   type="number" 
-                  required 
                   placeholder="6"
                   min="0"
                   max="20"
-                  defaultValue="0" // ✅ Ensure default value
                   className={fieldErrors.airbagCount ? 'error' : ''}
                   onChange={() => handleFieldChange('airbagCount')}
+                  defaultValue={mode === 'edit' ? adData?.airbagCount || '' : ''}
                 />
                 {fieldErrors.airbagCount && <div className="field-error">{fieldErrors.airbagCount}</div>}
               </div>
@@ -810,7 +1141,12 @@ export default function AdCreateForm() {
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="fuel">Palivo <span className="required">*</span></label>
-                <select name="fuel" id="fuel" required>
+                <select 
+                  name="fuel" 
+                  id="fuel" 
+                  required
+                  defaultValue={mode === 'edit' ? adData?.fuel : ''}
+                >
                   <option value="">Vyberte palivo</option>
                   <option value="petrol">Benzín</option>
                   <option value="diesel">Nafta</option>
@@ -831,6 +1167,7 @@ export default function AdCreateForm() {
                   placeholder="1968"
                   className={fieldErrors.engineVolume ? 'error' : ''}
                   onChange={() => handleFieldChange('engineVolume')}
+                  defaultValue={mode === 'edit' ? adData?.engineVolume : ''}
                 />
                 {fieldErrors.engineVolume && <div className="field-error">{fieldErrors.engineVolume}</div>}
               </div>
@@ -845,6 +1182,7 @@ export default function AdCreateForm() {
                   placeholder="110"
                   className={fieldErrors.power ? 'error' : ''}
                   onChange={() => handleFieldChange('power')}
+                  defaultValue={mode === 'edit' ? adData?.power : ''}
                 />
                 {fieldErrors.power && <div className="field-error">{fieldErrors.power}</div>}
               </div>
@@ -860,14 +1198,19 @@ export default function AdCreateForm() {
                   placeholder="5.2"
                   className={fieldErrors.avgConsumption ? 'error' : ''}
                   onChange={() => handleFieldChange('avgConsumption')}
+                  defaultValue={mode === 'edit' ? adData?.avgConsumption : ''}
                 />
                 {fieldErrors.avgConsumption && <div className="field-error">{fieldErrors.avgConsumption}</div>}
               </div>
 
-              {/* ✅ PŘIDÁNO ZPĚT - Převodovka */}
               <div className="form-group">
                 <label htmlFor="transmission">Převodovka <span className="required">*</span></label>
-                <select name="transmission" id="transmission" required>
+                <select 
+                  name="transmission" 
+                  id="transmission" 
+                  required
+                  defaultValue={mode === 'edit' ? adData?.transmission : ''}
+                >
                   <option value="">Vyberte převodovku</option>
                   <option value="manual">Manuální</option>
                   <option value="automatic">Automatická</option>
@@ -876,7 +1219,6 @@ export default function AdCreateForm() {
                 </select>
               </div>
 
-              {/* ✅ PŘIDÁNO ZPĚT - Počet rychlostí */}
               <div className="form-group">
                 <label htmlFor="gearCount">Počet rychlostí <span className="required">*</span></label>
                 <input 
@@ -887,13 +1229,18 @@ export default function AdCreateForm() {
                   placeholder="6"
                   className={fieldErrors.gearCount ? 'error' : ''}
                   onChange={() => handleFieldChange('gearCount')}
+                  defaultValue={mode === 'edit' ? adData?.gearCount : ''}
                 />
                 {fieldErrors.gearCount && <div className="field-error">{fieldErrors.gearCount}</div>}
               </div>
 
               <div className="form-group">
                 <label htmlFor="airConditioning">Klimatizace</label>
-                <select name="airConditioning" id="airConditioning">
+                <select 
+                  name="airConditioning" 
+                  id="airConditioning"
+                  defaultValue={mode === 'edit' ? adData?.airConditioning : ''}
+                >
                   <option value="">Vyberte klimatizaci</option>
                   <option value="none">Žádná</option>
                   <option value="manual">Manuální</option>
@@ -905,7 +1252,12 @@ export default function AdCreateForm() {
 
               <div className="form-group">
                 <label htmlFor="drivetrain">Pohon <span className="required">*</span></label>
-                <select name="drivetrain" id="drivetrain" required>
+                <select 
+                  name="drivetrain" 
+                  id="drivetrain" 
+                  required
+                  defaultValue={mode === 'edit' ? adData?.drivetrain : ''}
+                >
                   <option value="">Vyberte pohon</option>
                   <option value="fwd">Přední (FWD)</option>
                   <option value="rwd">Zadní (RWD)</option>
@@ -918,11 +1270,16 @@ export default function AdCreateForm() {
 
           {/* Stav a údaje */}
           <div className="form-section">
-            <h3 className="form-section__title">Stav a dokumenty</h3>
+            <h3 className="form-section__title">Stav vozidla</h3>
             <div className="form-grid">
               <div className="form-group">
                 <label htmlFor="condition">Stav vozidla <span className="required">*</span></label>
-                <select name="condition" id="condition" required>
+                <select 
+                  name="condition" 
+                  id="condition" 
+                  required
+                  defaultValue={mode === 'edit' ? adData?.condition : ''}
+                >
                   <option value="">Vyberte stav</option>
                   <option value="new">Nové</option>
                   <option value="used">Použité</option>           
@@ -933,17 +1290,33 @@ export default function AdCreateForm() {
 
               <div className="form-group">
                 <label htmlFor="technicalCheckUntil">STK do</label>
-                <input name="technicalCheckUntil" id="technicalCheckUntil" type="date" />
+                <input 
+                  name="technicalCheckUntil" 
+                  id="technicalCheckUntil" 
+                  type="date"
+                  defaultValue={mode === 'edit' && adData?.technicalCheckUntil ? 
+                    new Date(adData.technicalCheckUntil).toISOString().split('T')[0] : ''}
+                />
               </div>
 
               <div className="form-group">
                 <label htmlFor="countryOfOrigin">Země původu <span className="required">*</span></label>
-                <input name="countryOfOrigin" id="countryOfOrigin" required placeholder="ČR" />
+                <input 
+                  name="countryOfOrigin" 
+                  id="countryOfOrigin" 
+                  required 
+                  placeholder="ČR"
+                  defaultValue={mode === 'edit' ? adData?.countryOfOrigin : ''}
+                />
               </div>
 
               <div className="form-group">
-                <label htmlFor="euroStandard">Emisní norma</label> {/* ✅ ODSTRANĚNO required * */}
-                <select name="euroStandard" id="euroStandard"> {/* ✅ ODSTRANĚNO required */}
+                <label htmlFor="euroStandard">Emisní norma</label>
+                <select 
+                  name="euroStandard" 
+                  id="euroStandard"
+                  defaultValue={mode === 'edit' ? adData?.euroStandard : ''}
+                >
                   <option value="">Vyberte normu</option>
                   <option value="euro1">Euro 1</option>
                   <option value="euro2">Euro 2</option>
@@ -957,27 +1330,115 @@ export default function AdCreateForm() {
 
               <div className="form-group">
                 <label htmlFor="warrantyUntil">Záruka do</label>
-                <input name="warrantyUntil" id="warrantyUntil" type="date" />
+                <input 
+                  name="warrantyUntil" 
+                  id="warrantyUntil" 
+                  type="date"
+                  defaultValue={mode === 'edit' && adData?.warrantyUntil ? 
+                    new Date(adData.warrantyUntil).toISOString().split('T')[0] : ''}
+                />
               </div>
             </div>
 
             {/* Checkboxy */}
             <div className="form-grid" style={{ marginTop: '1rem' }}>
               <label className="checkbox-label">
-                <input name="ecoTaxPaid" type="checkbox" /> Eko daň zaplacena
+                <input 
+                  name="ecoTaxPaid" 
+                  type="checkbox" 
+                  defaultChecked={mode === 'edit' ? adData?.ecoTaxPaid : false}
+                /> Eko daň zaplacena
               </label>
               <label className="checkbox-label">
-                <input name="isFirstOwner" type="checkbox" /> První majitel
+                <input 
+                  name="isFirstOwner" 
+                  type="checkbox" 
+                  defaultChecked={mode === 'edit' ? adData?.isFirstOwner : false}
+                /> První majitel
               </label>
               <label className="checkbox-label">
-                <input name="isDisabledAdapted" type="checkbox" /> Úprava pro ZTP
+                <input 
+                  name="isDisabledAdapted" 
+                  type="checkbox" 
+                  defaultChecked={mode === 'edit' ? adData?.isDisabledAdapted : false}
+                /> Úprava pro ZTP
               </label>
               <label className="checkbox-label">
-                <input name="wasCrashed" type="checkbox" /> Bylo havarované
+                <input 
+                  name="wasCrashed" 
+                  type="checkbox" 
+                  defaultChecked={mode === 'edit' ? adData?.wasCrashed : false}
+                /> Bylo havarované
               </label>
               <label className="checkbox-label">
-                <input name="hasServiceBook" type="checkbox" /> Servisní knížka
+                <input 
+                  name="hasServiceBook" 
+                  type="checkbox" 
+                  defaultChecked={mode === 'edit' ? adData?.hasServiceBook : false}
+                /> Servisní knížka
               </label>
+            </div>
+          </div>
+
+          {/* ✅ NOVÁ SEKCE - Další informace */}
+          <div className="form-section">
+            <h3 className="form-section__title">Další informace o vozidle</h3>
+            <div className="form-grid">
+              <div className="form-group form-group--full-width">
+                <label htmlFor="safetyFeatures">Bezpečnostní systémy</label>
+                <textarea 
+                  name="safetyFeatures" 
+                  id="safetyFeatures" 
+                  placeholder="ABS, ESP, ASR, airbagů řidiče a spolujezdce..."
+                  rows={3}
+                  defaultValue={mode === 'edit' ? adData?.safetyFeatures || '' : ''}
+                />
+                <small className="form-help">
+                  Uveďte bezpečnostní vybavení vozidla (ABS, ESP, airbags, atd.)
+                </small>
+              </div>
+
+              <div className="form-group form-group--full-width">
+                <label htmlFor="assistSystems">Asistenční systémy</label>
+                <textarea 
+                  name="assistSystems" 
+                  id="assistSystems" 
+                  placeholder="Adaptivní tempomat, asistent jízdy v pruzích, parkovací asistent..."
+                  rows={3}
+                  defaultValue={mode === 'edit' ? adData?.assistSystems || '' : ''}
+                />
+                <small className="form-help">
+                  Uveďte asistenční systémy (tempomat, parkovací asistent, atd.)
+                </small>
+              </div>
+
+              <div className="form-group form-group--full-width">
+                <label htmlFor="securityFeatures">Zabezpečení vozidla</label>
+                <textarea 
+                  name="securityFeatures" 
+                  id="securityFeatures" 
+                  placeholder="Alarm, imobilizér, centrální zamykání, GPS tracking..."
+                  rows={3}
+                  defaultValue={mode === 'edit' ? adData?.securityFeatures || '' : ''}
+                />
+                <small className="form-help">
+                  Uveďte zabezpečovací prvky vozidla
+                </small>
+              </div>
+
+              <div className="form-group form-group--full-width">
+                <label htmlFor="interiorComfort">Vnitřní výbava a komfort</label>
+                <textarea 
+                  name="interiorComfort" 
+                  id="interiorComfort" 
+                  placeholder="Kožené sedačky, vyhřívání sedadel, elektrické okna, navigace..."
+                  rows={3}
+                  defaultValue={mode === 'edit' ? adData?.interiorComfort || '' : ''}
+                />
+                <small className="form-help">
+                  Popište komfortní vybavení interiéru
+                </small>
+              </div>
             </div>
           </div>
 
@@ -991,6 +1452,7 @@ export default function AdCreateForm() {
                   name="contactName" 
                   id="contactName" 
                   placeholder="Vyplňte pouze pokud se liší od vašeho jména" 
+                  defaultValue={mode === 'edit' ? adData?.contactName || '' : ''}
                 />
                 <small className="form-help">
                   Volitelné - zobrazí se pouze pokud se liší od jména z vašeho profilu
@@ -1007,6 +1469,7 @@ export default function AdCreateForm() {
                   placeholder="+420 123 456 789"
                   className={fieldErrors.contactPhone ? 'error' : ''}
                   onChange={() => handleFieldChange('contactPhone')}
+                  defaultValue={mode === 'edit' ? adData?.contactPhone || '' : ''}
                 />
                 <small className="form-help">
                   Telefon se zobrazí pouze registrovaným uživatelům
@@ -1014,9 +1477,8 @@ export default function AdCreateForm() {
                 {fieldErrors.contactPhone && <div className="field-error">{fieldErrors.contactPhone}</div>}
               </div>
 
-              {/* ✅ Email je nyní VOLITELNÝ */}
               <div className="form-group">
-                <label htmlFor="contactEmail">Email</label> {/* ✅ Odstraněna * */}
+                <label htmlFor="contactEmail">Email</label>
                 <input 
                   name="contactEmail" 
                   id="contactEmail" 
@@ -1024,6 +1486,7 @@ export default function AdCreateForm() {
                   placeholder="vase@email.cz (volitelné)"
                   className={fieldErrors.contactEmail ? 'error' : ''}
                   onChange={() => handleFieldChange('contactEmail')}
+                  defaultValue={mode === 'edit' ? adData?.contactEmail || '' : ''}
                 />
                 <small className="form-help">
                   Email se zobrazí pouze registrovaným uživatelům
@@ -1038,35 +1501,201 @@ export default function AdCreateForm() {
                 <path d="m9 12 2 2 4-4"/>
               </svg>
               <p>
-                {/* ✅ Aktualizovaný text */}
                 Telefon bude zobrazen zájemcům přímo u vašeho inzerátu. Email je volitelný.
                 Můžete použít jiné kontakty než ty z vašeho profilu.
               </p>
             </div>
           </div>
 
-          {/* Image Upload Section */}
+          {/* ✅ UPDATED Image Upload Section - supports both modes and 15 images */}
           <div className="image-upload-section">
-            <h3>Obrázky inzerátu <span className="required">*</span></h3> {/* ✅ PŘIDÁNO * */}
+            <h3>Obrázky inzerátu <span className="required">*</span></h3>
             <p className="image-requirement">
-              Přidejte alespoň 2 kvalitní obrázky vašeho vozidla
+              {mode === 'create' 
+                ? 'Přidejte alespoň 2 kvalitní obrázky vašeho vozidla'
+                : 'Musíte mít alespoň 2 obrázky, maximálně 15'
+              }
               <br />
               <small style={{ color: '#6c757d' }}>
-                Maximální velikost: 10MB na obrázek | Povolené formáty: JPEG, PNG, WebP | Maximum: 10 obrázků
+                Maximální velikost: 10MB na obrázek | Povolené formáty: JPEG, PNG, WebP | Maximum: 15 obrázků
               </small>
             </p>
+
+            {/* ✅ Existing Images with Reordering */}
+            {mode === 'edit' && existingImages.length > 0 && (
+              <div className="existing-images">
+                <h4>
+                  Současné obrázky: 
+                  <span style={{ fontWeight: 'normal', fontSize: '0.9rem', color: '#64748b' }}>
+                    ({existingImages.length} {existingImages.length === 1 ? 'obrázek' : 'obrázků'})
+                  </span>
+                </h4>
+                
+                {/* ✅ Reorder help for existing images */}
+                <div className="image-reorder-help">
+                  <span className="help-icon">💡</span>
+                  <strong>První obrázek</strong> se zobrazí jako hlavní v seznamu aut. 
+                  Přetáhněte obrázky pro změnu pořadí.
+                </div>
+
+                {/* ✅ Quick actions for existing images */}
+                {existingImages.length > 1 && (
+                  <div className="image-quick-actions">
+                    <button
+                      type="button"
+                      className="quick-action-btn"
+                      onClick={() => {
+                        const reversed = [...existingImages].reverse()
+                        setExistingImages(reversed)
+                        showSuccess('Pořadí obráceno', 'Pořadí existujících obrázků bylo obráceno')
+                      }}
+                    >
+                      🔄 Obrátit pořadí
+                    </button>
+                  </div>
+                )}
+                
+                <div className="image-gallery reorderable">
+                  {existingImages.map((image, index) => (
+                    <div 
+                      key={image.id}
+                      className={`image-preview ${index === 0 ? 'main-image' : ''} ${
+                        draggedExistingIndex === index ? 'dragging' : ''
+                      } ${dragOverExistingIndex === index ? 'drag-over' : ''}`}
+                      draggable
+                      onDragStart={(e) => handleExistingDragStart(e, index)}
+                      onDragOver={(e) => handleExistingDragOver(e, index)}
+                      onDragLeave={handleExistingDragLeave}
+                      onDrop={(e) => handleExistingDrop(e, index)}
+                      onDragEnd={handleExistingDragEnd}
+                    >
+                      <Image
+                        src={image.url}
+                        alt={`Současný obrázek ${index + 1}`}
+                        width={180}
+                        height={80}
+                        style={{ objectFit: 'cover', borderRadius: '6px 6px 0 0' }}
+                      />
+                      
+                      {/* ✅ Remove button */}
+                      <button
+                        type="button"
+                        className="remove-image-btn"
+                        onClick={() => handleExistingImageRemove(image.id)}
+                        title="Odstranit obrázek"
+                      >
+                        ×
+                      </button>
+                      
+                      {/* ✅ Drag handle */}
+                      <div className="drag-handle" title="Přetáhněte pro změnu pořadí">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M7 5h2v2H7zm0 8h2v2H7zm0-4h2v2H7zm4-4h2v2h-2zm0 8h2v2h-2zm0-4h2v2h-2z"/>
+                        </svg>
+                      </div>
+                      
+                      <div className="image-info">
+                        <span className="image-name">Existující #{index + 1}</span>
+                        <span className="image-size">Uložený obrázek</span>
+                        
+                        {/* ✅ Order number */}
+                        <div className="image-order">{index + 1}</div>
+                        
+                        {/* ✅ Move buttons */}
+                        <div className="move-buttons">
+                          <button
+                            type="button"
+                            className="move-btn"
+                            onClick={() => moveExistingImageUp(index)}
+                            disabled={index === 0}
+                            title="Posunout nahoru"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            className="move-btn"
+                            onClick={() => moveExistingImageDown(index)}
+                            disabled={index === existingImages.length - 1}
+                            title="Posunout dolů"
+                          >
+                            ↓
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
-            {/* Image Gallery */}
-            {images.length > 0 && (
-              <div className="image-gallery">
+                      {/* ✅ New Images */}
+          {images.length > 0 && (
+            <div className="new-images">
+              <h4>
+                {mode === 'edit' ? 'Nové obrázky:' : 'Náhled obrázků:'} 
+                <span style={{ fontWeight: 'normal', fontSize: '0.9rem', color: '#64748b' }}>
+                  ({images.length} {images.length === 1 ? 'obrázek' : 'obrázků'})
+                </span>
+              </h4>
+              
+              {/* ✅ Reorder help */}
+              <div className="image-reorder-help">
+                <span className="help-icon">💡</span>
+                <strong>První obrázek</strong> se zobrazí jako hlavní v seznamu aut. 
+                Přetáhněte obrázky pro změnu pořadí nebo použijte tlačítka.
+              </div>
+              
+              {/* ✅ Quick actions */}
+              {images.length > 1 && (
+                <div className="image-quick-actions">
+                  <button
+                    type="button"
+                    className="quick-action-btn"
+                    onClick={() => {
+                      const reversed = [...images].reverse()
+                      setImages(reversed)
+                      showSuccess('Pořadí obráceno', 'Pořadí všech obrázků bylo obráceno')
+                    }}
+                  >
+                    🔄 Obrátit pořadí
+                  </button>
+                  <button
+                    type="button"
+                    className="quick-action-btn"
+                    onClick={() => {
+                      const shuffled = [...images].sort(() => Math.random() - 0.5)
+                      setImages(shuffled)
+                      showSuccess('Pořadí zamícháno', 'Obrázky byly náhodně zamíchány')
+                    }}
+                  >
+                    🎲 Zamíchat
+                  </button>
+                </div>
+              )}
+              
+              <div className="image-gallery reorderable">
                 {images.map((image, index) => (
-                  <div key={index} className="image-preview">
+                  <div 
+                    key={`${image.name}-${index}`}
+                    className={`image-preview ${index === 0 ? 'main-image' : ''} ${
+                      draggedIndex === index ? 'dragging' : ''
+                    } ${dragOverIndex === index ? 'drag-over' : ''}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    onDragOver={(e) => handleDragOver(e, index)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, index)}
+                    onDragEnd={handleDragEnd}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={URL.createObjectURL(image)} 
                       alt={`Náhled ${index + 1}`}
                       onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)}
                     />
+                    
+                    {/* ✅ OPRAVENO - Only remove button (top right) */}
                     <button
                       type="button"
                       className="remove-image-btn"
@@ -1075,25 +1704,67 @@ export default function AdCreateForm() {
                     >
                       ×
                     </button>
+                    
+                    {/* ✅ OPRAVENO - Drag handle (bottom left) */}
+                    <div className="drag-handle" title="Přetáhněte pro změnu pořadí">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M7 5h2v2H7zm0 8h2v2H7zm0-4h2v2H7zm4-4h2v2h-2zm0 8h2v2h-2zm0-4h2v2h-2z"/>
+                      </svg>
+                    </div>
+                    
                     <div className="image-info">
                       <span className="image-name">{image.name}</span>
                       <span className="image-size">{(image.size / 1024 / 1024).toFixed(1)} MB</span>
+                      
+                      {/* ✅ OPRAVENO - Order number (top right of info) */}
+                      <div className="image-order">{index + 1}</div>
+                      
+                      {/* ✅ OPRAVENO - Move buttons (centered at bottom, no overlap) */}
+                      <div className="move-buttons">
+                        <button
+                          type="button"
+                          className="move-btn"
+                          onClick={() => moveImageUp(index)}
+                          disabled={index === 0}
+                          title="Posunout nahoru"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          className="move-btn"
+                          onClick={() => moveImageDown(index)}
+                          disabled={index === images.length - 1}
+                          title="Posunout dolů"
+                        >
+                          ↓
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
+
+            {/* Image Counter */}
+            <div className="image-counter">
+              <span className={`counter ${totalImages >= 2 ? 'valid' : 'invalid'} ${totalImages >= 15 ? 'full' : ''}`}>
+                {totalImages} / 15 obrázků (min. 2)
+                {totalImages >= 15 && <span className="limit-reached"> - limit dosažen</span>}
+              </span>
+            </div>
 
             {/* Drop Zone */}
             <div 
-              className={`drop-zone ${dragActive ? 'active' : ''} ${images.length >= 15 ? 'disabled' : ''}`}
-              onDragEnter={images.length < 15 ? handleDrag : undefined}
-              onDragLeave={images.length < 15 ? handleDrag : undefined}
-              onDragOver={images.length < 15 ? handleDrag : undefined}
-              onDrop={images.length < 15 ? handleDrop : undefined}
+              className={`drop-zone ${dragActive ? 'active' : ''} ${totalImages >= 15 ? 'disabled' : ''}`}
+              onDragEnter={totalImages < 15 ? handleDrag : undefined}
+              onDragLeave={totalImages < 15 ? handleDrag : undefined}
+              onDragOver={totalImages < 15 ? handleDrag : undefined}
+              onDrop={totalImages < 15 ? (e => { e.preventDefault(); setDragActive(false); }) : undefined}
             >
               <div className="drop-zone-content">
-                {images.length >= 15 ? (
+                {totalImages >= 15 ? (
                   <>
                     <p className="drop-text">Dosáhli jste maximálního počtu obrázků (15)</p>
                     <p className="drop-subtext">Odstraňte některé obrázky pro přidání nových</p>
@@ -1124,14 +1795,6 @@ export default function AdCreateForm() {
               />
             </div>
 
-            {/* Image Counter */}
-            <div className="image-counter">
-              <span className={`counter ${images.length >= 2 ? 'valid' : 'invalid'} ${images.length >= 15 ? 'full' : ''}`}>
-                {images.length} / 15 obrázků (min. 2)
-                {images.length >= 15 && <span className="limit-reached"> - limit dosažen</span>}
-              </span>
-            </div>
-
             {imageError && (
               <div className="image-error" style={{ 
                 color: '#dc3545', 
@@ -1159,8 +1822,9 @@ export default function AdCreateForm() {
             {fieldErrors.location && <div className="field-error">{fieldErrors.location}</div>}
           </section>
 
-          <button type="submit" disabled={loading || (adCount !== null && adCount >= 10) || Object.keys(fieldErrors).length > 0}>
-            {loading ? <ButtonLoading /> : 'Přidat inzerát'}
+       
+          <button type="submit" disabled={loading || (mode === 'create' && adCount !== null && adCount >= 10) || Object.keys(fieldErrors).length > 0}>
+            {loading ? <ButtonLoading /> : (mode === 'create' ? 'Přidat inzerát' : 'Uložit změny')}
           </button>
           
           {/* Enhanced error display */}

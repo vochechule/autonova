@@ -22,6 +22,23 @@ export const transmissionMap: Record<string, string> = {
   semi_automatic: 'poloautomatická',
 }
 
+// ✅ PŘIDÁNO - Mapa pro klimatizaci
+export const airConditioningMap: Record<string, string> = {
+  none: 'Žádná',
+  manual: 'Manuální',
+  automatic: 'Automatická',
+  two_zone: 'Dvouzónová',
+  three_zone: 'Třízónová',
+}
+
+// ✅ PŘIDÁNO - Mapa pro pohon kol
+export const drivetrainMap: Record<string, string> = {
+  fwd: 'Přední (FWD)',
+  rwd: 'Zadní (RWD)',
+  awd: '4x4 (AWD)',
+  four_x_four: '4x4 (mechanické)',
+}
+
 // ✅ COMPLETE color map with ALL colors from colorData.ts
 export const colorMap: Record<string, string> = {
   // Basic colors (already had these)
