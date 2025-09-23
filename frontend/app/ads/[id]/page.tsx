@@ -523,7 +523,11 @@ export default function AdDetailPage() {
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Výkon</span>
-                  <span className="listing-detail-page__spec-value">{ad.power ? `${ad.power} kW` : '-'}</span>
+                  <span className="listing-detail-page__spec-value">
+                    {ad.power 
+                      ? `${ad.power} kW (${Math.round(ad.power * 1.35962)} koní)` 
+                      : '-'}
+                  </span>
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Spotřeba</span>
