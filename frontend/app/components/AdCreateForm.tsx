@@ -1761,7 +1761,7 @@ export default function AdCreateForm({
               onDragEnter={totalImages < 15 ? handleDrag : undefined}
               onDragLeave={totalImages < 15 ? handleDrag : undefined}
               onDragOver={totalImages < 15 ? handleDrag : undefined}
-              onDrop={totalImages < 15 ? handleDrop : undefined}
+              onDrop={totalImages < 15 ? (e => { e.preventDefault(); setDragActive(false); }) : undefined}
             >
               <div className="drop-zone-content">
                 {totalImages >= 15 ? (
