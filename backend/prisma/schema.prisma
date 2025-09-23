@@ -24,7 +24,7 @@ model User {
 model Ad {
   id                  String         @id @default(uuid())
   title               String
-  brand               String         // <-- přidej toto
+  brand               String
   model               String
   description         String
   price               Int
@@ -36,7 +36,7 @@ model Ad {
   seatCount           Int
   color               String
   colorFinish         String?
-  airbagCount     Int         @default(0) // ✅ Required with default value
+  airbagCount         Int            @default(0)
   airConditioning     AirConditioning?
   fuel                FuelType
   engineVolume        Int
@@ -67,8 +67,8 @@ model Ad {
   views               Int            @default(0)
   image_url           String?
 
-  contactPhone         String       // Telefon pro tento inzerát
-  contactEmail         String       // Email pro tento inzerát
+  contactPhone         String       // ✅ Povinný telefon
+  contactEmail         String?      // ✅ Volitelný email (? = nullable)
   contactName          String?      // Volitelné jméno kontaktní osoby
   
   latitude  Float?

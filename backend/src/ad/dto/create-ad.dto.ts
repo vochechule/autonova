@@ -149,8 +149,9 @@ export class CreateAdDto {
   @IsString()
   contactPhone: string;
 
+  @IsOptional() // ✅ PŘIDÁNO - email není povinný
   @IsEmail()
-  contactEmail: string;
+  contactEmail?: string;
 
   @IsOptional()
   @IsString()

@@ -151,11 +151,6 @@ export default function AdCreateForm() {
       required: true,
       pattern: /^(\+420\s?)?[0-9\s]{9,}$/,
       message: 'Zadejte platné telefonní číslo'
-    },
-    contactEmail: {
-      required: true,
-      pattern: /^[^@]+@[^@]+\.[^@]+$/,
-      message: 'Zadejte platnou e-mailovou adresu'
     }
   };
 
@@ -1013,20 +1008,26 @@ export default function AdCreateForm() {
                   className={fieldErrors.contactPhone ? 'error' : ''}
                   onChange={() => handleFieldChange('contactPhone')}
                 />
+                <small className="form-help">
+                  Telefon se zobrazí pouze registrovaným uživatelům
+                </small>
                 {fieldErrors.contactPhone && <div className="field-error">{fieldErrors.contactPhone}</div>}
               </div>
 
+              {/* ✅ Email je nyní VOLITELNÝ */}
               <div className="form-group">
-                <label htmlFor="contactEmail">Email <span className="required">*</span></label>
+                <label htmlFor="contactEmail">Email</label> {/* ✅ Odstraněna * */}
                 <input 
                   name="contactEmail" 
                   id="contactEmail" 
                   type="email" 
-                  required 
-                  placeholder="vase@email.cz"
+                  placeholder="vase@email.cz (volitelné)"
                   className={fieldErrors.contactEmail ? 'error' : ''}
                   onChange={() => handleFieldChange('contactEmail')}
                 />
+                <small className="form-help">
+                  Email se zobrazí pouze registrovaným uživatelům
+                </small>
                 {fieldErrors.contactEmail && <div className="field-error">{fieldErrors.contactEmail}</div>}
               </div>
             </div>
@@ -1037,7 +1038,8 @@ export default function AdCreateForm() {
                 <path d="m9 12 2 2 4-4"/>
               </svg>
               <p>
-                Telefon a email budou zobrazeny zájemcům přímo u vašeho inzerátu. 
+                {/* ✅ Aktualizovaný text */}
+                Telefon bude zobrazen zájemcům přímo u vašeho inzerátu. Email je volitelný.
                 Můžete použít jiné kontakty než ty z vašeho profilu.
               </p>
             </div>
