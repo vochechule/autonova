@@ -110,28 +110,43 @@ export class AdController {
     @Req() req
   ) {
     try {
+      // ✅ OPRAVENO - Proper parsing of imagesToDelete
+      let imagesToDelete: string[] = [];
+      
+      if (req.body.imagesToDelete) {
+        if (typeof req.body.imagesToDelete === 'string') {
+          try {
+            // Try to parse as JSON first
+            imagesToDelete = JSON.parse(req.body.imagesToDelete);
+          } catch {
+            // If JSON parsing fails, treat as single string
+            imagesToDelete = [req.body.imagesToDelete];
+          }
+        } else if (Array.isArray(req.body.imagesToDelete)) {
+          imagesToDelete = req.body.imagesToDelete;
+        }
+      }
 
-      // ✅ PŘIDÁNO - Ručně extrahuj imagesToDelete z req.body
-      const imagesToDelete = req.body.imagesToDelete;
-      
-      // ✅ PŘIDÁNO - Předej imagesToDelete explicitně do service
-      const dtoWithImages = {
+      // ✅ Create clean DTO with properly parsed imagesToDelete
+      const cleanDto = {
         ...dto,
-        imagesToDelete: imagesToDelete
+        imagesToDelete: imagesToDelete.length > 0 ? imagesToDelete : undefined
       };
-      
-      
+
+      console.log('🔍 Parsed imagesToDelete:', imagesToDelete);
+      console.log('🔍 Clean DTO:', cleanDto);
+
       if (!req.user || !req.user.id) {
         throw new UnauthorizedException('User not authenticated properly');
       }
 
-      // Zkontroluj vlastnictví inzerátu
+      // Check ad ownership
       const existingAd = await this.adService.findOne(id);
       if (existingAd.userId !== req.user.id) {
         throw new UnauthorizedException('Můžete editovat pouze své inzeráty');
       }
 
-      return await this.adService.update(id, dtoWithImages, req.user.id, files); // ✅ ZMĚNĚNO
+      return await this.adService.update(id, cleanDto, req.user.id, files);
     } catch (error) {
       console.error('❌ Update controller error:', error);
       

@@ -9,7 +9,7 @@ export const metadata = generateMetadata(
   'https://carta.cz/ads/create'
 )
 
-// ✅ Remove ssr: false to work in server component
+// ✅ Use your enhanced AdCreateForm component
 const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
   loading: () => (
     <div style={{ 
@@ -24,7 +24,8 @@ const AdCreateForm = dynamic(() => import('../../components/AdCreateForm'), {
         height: '40px',
         border: '3px solid #e2e8f0',
         borderTop: '3px solid #0070f3',
-        borderRadius: '50%'
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite'
       }}></div>
       <p style={{ marginTop: '16px', color: '#4a5568' }}>Načítám formulář...</p>
     </div>
@@ -37,7 +38,8 @@ export default function CreateAdPage() {
       <h1 style={{ position: 'absolute', left: '-9999px' }}>
         Přidat inzerát auta zdarma na Carta.cz
       </h1>
-      <AdCreateForm />
+      {/* ✅ Using enhanced AdCreateForm in create mode */}
+      <AdCreateForm mode="create" />
     </main>
   )
 }
