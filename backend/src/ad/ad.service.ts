@@ -113,7 +113,7 @@ export class AdService {
     return transformed;
   }
 
-  private async uploadImages(files: Express.Multer.File[], adId: string) {
+  private async uploadImages(files: Express.Multer.File[], adId: string, startOrder: number = 0) {
     if (!files || !Array.isArray(files) || files.length === 0) {
       throw new BadRequestException('Žádné soubory k uploadu');
     }
@@ -145,12 +145,12 @@ export class AdService {
         .from('photos')
         .getPublicUrl(filename);
 
-      // ✅ PŘIDÁNO - zachování pořadí obrázků
+      // ✅ AKTUALIZOVÁNO - zachování pořadí s startOrder
       await this.prisma.image.create({
         data: {
           url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
           adId: adId,
-          order: i, // ✅ Pořadí podle pozice v array
+          order: startOrder + i, // ✅ Zachování správného pořadí
         },
       });
     }
@@ -259,7 +259,13 @@ export class AdService {
     // Vrať kompletní inzerát
     return this.prisma.ad.findUnique({
       where: { id: ad.id },
-      include: { images: true, user: true, features: true },
+      include: { 
+        images: {
+          orderBy: { order: 'asc' }
+        }, 
+        user: true, 
+        features: true 
+      },
     });
   }
 
@@ -473,7 +479,13 @@ export class AdService {
     
     const ads = await this.prisma.ad.findMany({
       orderBy: this.getOrderBy(sortBy, sortOrder),
-      include: { user: true, images: true, features: true },
+      include: { 
+        images: {
+          orderBy: { order: 'asc' },
+          take: 1 // Pro listing stačí hlavní obrázek
+        }, 
+        user: true 
+      },
     });
     
     await this.attachUserRatings(ads);
@@ -483,7 +495,13 @@ export class AdService {
   async findOne(id: string) {
     const ad = await this.prisma.ad.findUnique({
       where: { id },
-      include: { images: true, user: true, features: true },
+      include: { 
+        images: {
+          orderBy: { order: 'asc' }
+        }, 
+        user: true, 
+        features: true 
+      },
     });
     
     if (!ad) {
@@ -523,45 +541,51 @@ export class AdService {
       throw new BadRequestException('Můžete editovat pouze své inzeráty');
     }
 
-    // Handle image deletion
-    if (dto.imagesToDelete) {
-      let imagesToDelete: string[] = [];
-      try {
-        if (typeof dto.imagesToDelete === 'string') {
-          try {
-            imagesToDelete = JSON.parse(dto.imagesToDelete);
-          } catch {
-            imagesToDelete = [dto.imagesToDelete];
-          }
-        } else if (Array.isArray(dto.imagesToDelete)) {
-          imagesToDelete = dto.imagesToDelete;
-        }
-
-        for (const imageId of imagesToDelete) {
-          const imageToDelete = await this.prisma.image.findUnique({
-            where: { id: imageId }
-          });
-
-          if (imageToDelete && imageToDelete.adId === id) {
-            const fileName = imageToDelete.url.split('/').pop();
-            if (fileName) {
-              await this.supabase.storage.from('photos').remove([fileName]);
-            }
-            await this.prisma.image.delete({ where: { id: imageId } });
-          }
-        }
-      } catch (error) {
-        // Ignore deletion errors
+    // ✅ PŘIDÁNO - Handle existing images reordering
+    if (dto.existingImagesOrder && Array.isArray(dto.existingImagesOrder)) {
+      console.log('🔍 Processing existingImagesOrder:', dto.existingImagesOrder);
+      
+      // Update order of existing images
+      for (let i = 0; i < dto.existingImagesOrder.length; i++) {
+        const imageId = dto.existingImagesOrder[i];
+        await this.prisma.image.updateMany({
+          where: { 
+            id: imageId,
+            adId: id // Ensure the image belongs to this ad
+          },
+          data: { order: i }
+        });
       }
     }
 
-    // Transform and update data
-    const { features, imagesToDelete, ...adBaseData } = dto;
-    const transformedData = this.transformAdData(adBaseData);
+    // Handle image deletion
+    if (dto.imagesToDelete && Array.isArray(dto.imagesToDelete)) {
+      console.log('🔍 Processing imagesToDelete:', dto.imagesToDelete);
+      
+      for (const imageId of dto.imagesToDelete) {
+        const imageToDelete = await this.prisma.image.findUnique({
+          where: { id: imageId }
+        });
 
-    // Remove undefined values
+        if (imageToDelete && imageToDelete.adId === id) {
+          // Delete from storage
+          const fileName = imageToDelete.url.split('/').pop();
+          if (fileName) {
+            await this.supabase.storage.from('photos').remove([fileName]);
+          }
+          // Delete from database
+          await this.prisma.image.delete({ where: { id: imageId } });
+        }
+      }
+    }
+
+    // Transform and update ad data
+    const transformedData = this.transformAdData(dto);
+
+    // Remove undefined values and the order arrays (they're processed above)
     Object.keys(transformedData).forEach(key => {
-      if (transformedData[key] === undefined || transformedData[key] === '') {
+      if (transformedData[key] === undefined || transformedData[key] === '' || 
+          key === 'imagesToDelete' || key === 'existingImagesOrder') {
         delete transformedData[key];
       }
     });
@@ -569,13 +593,28 @@ export class AdService {
     const updatedAd = await this.prisma.ad.update({
       where: { id },
       data: transformedData,
-      include: { images: true, user: true, features: true },
+      include: { 
+        images: {
+          orderBy: { order: 'asc' }  // ✅ Order by the order field
+        }, 
+        user: true, 
+        features: true 
+      },
     });
 
     // Upload new images
     if (files && files.length > 0) {
-      this.validateImages(files, 0); // No minimum for updates
-      await this.uploadImages(files, updatedAd.id);
+      this.validateImages(files, 0);
+      
+      // Get the highest order from existing images
+      const maxOrder = await this.prisma.image.findFirst({
+        where: { adId: id },
+        orderBy: { order: 'desc' },
+        select: { order: true }
+      });
+      
+      const startOrder = maxOrder ? maxOrder.order + 1 : 0;
+      await this.uploadImages(files, updatedAd.id, startOrder);
     }
 
     // Check minimum image count
@@ -589,7 +628,13 @@ export class AdService {
 
     return this.prisma.ad.findUnique({
       where: { id },
-      include: { images: true, user: true, features: true },
+      include: { 
+        images: {
+          orderBy: { order: 'asc' }  // ✅ Always order by order field
+        }, 
+        user: true, 
+        features: true 
+      },
     });
   }
 
