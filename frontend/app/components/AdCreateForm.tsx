@@ -77,15 +77,15 @@ export default function AdCreateForm() {
     },
     description: {
       required: true,
-      minLength: 20,
+      minLength: 10,
       maxLength: 5000,
-      message: 'Popis musí mít 20-5000 znaků'
+      message: 'Popis musí mít 10-5000 znaků'
     },
     price: {
       required: true,
-      min: 1000,
-      max: 50000000,
-      message: 'Cena musí být 1 000 - 50 000 000 Kč'
+      min: 1,
+      max: 1000000000,
+      message: 'Cena musí být 1 - 1 000 000 000 Kč'
     },
     mileage: {
       required: true,
@@ -120,8 +120,8 @@ export default function AdCreateForm() {
     avgConsumption: {
       required: true,
       min: 0.1,
-      max: 50,
-      message: 'Spotřeba musí být 0.1-50 l/100km'
+      max: 100,
+      message: 'Spotřeba musí být 0.1-100 l/100km'
     },
     doorCount: {
       required: true,
