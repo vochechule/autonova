@@ -8,7 +8,7 @@ import ShareButton from '../../components/ShareButton'
 import '../../styles/AdDetailPage.scss'
 import Link from 'next/link'
 import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatter'
-import { conditionMap, fuelMap, transmissionMap, colorMap, colorFinishMap } from '../../utils/labelMaps'
+import { conditionMap, fuelMap, transmissionMap, colorMap, colorFinishMap, airConditioningMap, drivetrainMap } from '../../utils/labelMaps'
 import { PageLoading } from '../../components/LoadingStates'
 import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
 import { useToast } from '../../contexts/ToastContext'
@@ -567,7 +567,9 @@ export default function AdDetailPage() {
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Pohon</span>
-                  <span className="listing-detail-page__spec-value">{ad.drivetrain ?? '-'}</span>
+                  <span className="listing-detail-page__spec-value">
+                    {ad.drivetrain ? drivetrainMap[ad.drivetrain as string] ?? ad.drivetrain : '-'}
+                  </span>
                 </div>
               </div>
 
@@ -603,7 +605,10 @@ export default function AdDetailPage() {
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Klimatizace</span>
-                  <span className="listing-detail-page__spec-value">{ad.airConditioning ?? '-'}</span>
+                  {/* ✅ OPRAVENO - použití airConditioningMap */}
+                  <span className="listing-detail-page__spec-value">
+                    {ad.airConditioning ? airConditioningMap[ad.airConditioning as string] ?? ad.airConditioning : '-'}
+                  </span>
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">První majitel</span>
