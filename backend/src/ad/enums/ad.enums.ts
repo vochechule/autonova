@@ -60,19 +60,60 @@ export enum CarCondition {
 }
 
 export enum Color {
-  BLACK = 'black',
+  // Most popular colors
   WHITE = 'white',
-  SILVER = 'silver',
+  BLACK = 'black',
   GRAY = 'gray',
-  RED = 'red',
+  SILVER = 'silver',
+
+  // Common car colors
   BLUE = 'blue',
+  RED = 'red',
   GREEN = 'green',
   YELLOW = 'yellow',
   ORANGE = 'orange',
   BROWN = 'brown',
-  GOLD = 'gold',
-  BURGUNDY = 'burgundy',
+
+  // Additional common car colors
+  BEIGE = 'beige',
+  CREAM = 'cream',
+  CHAMPAGNE = 'champagne',
+  BRONZE = 'bronze',
+  COPPER = 'copper',
+
+  // Shades and variants
+  LIGHTGRAY = 'lightgray',
+  DARKGRAY = 'darkgray',
+  ANTHRACITE = 'anthracite',
+  CHARCOAL = 'charcoal',
+
+  // Blue variants
+  LIGHTBLUE = 'lightblue',
+  DARKBLUE = 'darkblue',
   NAVY = 'navy',
+  PETROL = 'petrol',
+
+  // Green variants
+  DARKGREEN = 'darkgreen',
+  FORESTGREEN = 'forestgreen',
+  OLIVE = 'olive',
+
+  // Red variants
+  BURGUNDY = 'burgundy',
+  MAROON = 'maroon',
+  CHERRY = 'cherry',
+
+  // Metallic/Premium colors
+  GOLD = 'gold',
+  PLATINUM = 'platinum',
+  TITANIUM = 'titanium',
+
+  // Special/Luxury colors
+  PURPLE = 'purple',
+  VIOLET = 'violet',
+  PINK = 'pink',
+
+  // Always keep "other" last
   OTHER = 'other'
 }
 
@@ -81,5 +122,7 @@ export enum ColorFinish {
   METALLIC = 'metallic',
   PEARL = 'pearl',
   MATTE = 'matte',
+  SATIN = 'satin',     // ✅ Added satin finish
+  GLOSS = 'gloss',     // ✅ Added high gloss
   SPECIAL = 'special'
 }

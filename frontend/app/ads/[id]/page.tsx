@@ -1,4 +1,4 @@
-// Update: frontend/app/ads/[id]/page.tsx
+// Complete fix: frontend/app/ads/[id]/page.tsx
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -7,8 +7,8 @@ import FavoriteButton from '../../components/FavoriteButton'
 import ShareButton from '../../components/ShareButton'
 import '../../styles/AdDetailPage.scss'
 import Link from 'next/link'
-import { formatCarTitle } from '../../utils/CarFormatter'
-import { fuelMap, transmissionMap } from '../../utils/labelMaps'
+import { formatBrand, formatModel, formatCarTitle } from '../../utils/CarFormatter'
+import { conditionMap, fuelMap, transmissionMap, colorMap, colorFinishMap } from '../../utils/labelMaps'
 import { PageLoading } from '../../components/LoadingStates'
 import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
 import { useToast } from '../../contexts/ToastContext'
@@ -104,7 +104,6 @@ export default function AdDetailPage() {
   const { showError } = useToast()
   const { isAuthenticated } = useAuth()
   
-  // ✅ State for showing contact details
   const [showPhone, setShowPhone] = useState(false)
   const [showEmail, setShowEmail] = useState(false)
 
@@ -145,7 +144,6 @@ export default function AdDetailPage() {
     window.location.reload()
   }
 
-  // Update the navigation handlers to show loading:
   const handlePrev = () => {
     if (!ad?.images || imageLoading) return
     setImageLoading(true)
@@ -158,7 +156,6 @@ export default function AdDetailPage() {
     setImgIndex((prev) => prev === ad.images.length - 1 ? 0 : prev + 1)
   }
 
-  // Update dot click handler:
   const handleDotClick = (index: number) => {
     if (imageLoading || index === imgIndex) return
     setImageLoading(true)
@@ -176,7 +173,6 @@ export default function AdDetailPage() {
   if (error === 'network-error') return <NetworkErrorPage onRetry={handleRetry} />
   if (!ad) return <NotFoundPage />
 
-  // ✅ Structured data function
   const addStructuredData = (ad: AdType) => (
     <script
       type="application/ld+json"
@@ -263,7 +259,6 @@ export default function AdDetailPage() {
             <div className="listing-detail-page__carousel" {...swipeHandlers}>
               {ad.images && ad.images.length > 0 ? (
                 <>
-                  {/* ✅ Loading overlay */}
                   {imageLoading && (
                     <div className="listing-detail-page__image-loading">
                       <div className="listing-detail-page__image-spinner">
@@ -392,7 +387,7 @@ export default function AdDetailPage() {
                 )}
               </div>
 
-              {/* ✅ UPDATED - Prodejce info s kontakty podle přihlášení */}
+              {/* Prodejce info s kontakty podle přihlášení */}
               <div className="listing-detail-page__seller-compact">
                 <div className="listing-detail-page__seller-avatar">
                   {ad.user?.avatar
@@ -409,7 +404,7 @@ export default function AdDetailPage() {
                   </div>
                   <div className="listing-detail-page__seller-location">{ad.user?.location ?? 'Neuvedeno'}</div>
                   
-                  {/* ✅ Kontaktní údaje - pouze pro přihlášené */}
+                  {/* Kontaktní údaje - pouze pro přihlášené */}
                   <div className="listing-detail-page__contact-info">
                     {isAuthenticated ? (
                       <>
@@ -468,7 +463,7 @@ export default function AdDetailPage() {
                   </div>
                 </div>
                 
-                {/* ✅ Profil prodejce - pouze pro přihlášené nebo změnit text */}
+                {/* Profil prodejce - pouze pro přihlášené nebo změnit text */}
                 {isAuthenticated ? (
                   <Link href={`/profile/${ad.user?.id}`} className="listing-detail-page__contact-btn">
                     Profil prodejce
@@ -482,14 +477,148 @@ export default function AdDetailPage() {
             </div>
           </div>
 
-          {/* Rest of your existing content... */}
-          {/* I'll keep the rest unchanged to avoid making this too long */}
-          {/* Just copy the rest from your original component */}
-          
           {/* Detailní specifikace */}
           <section className="listing-detail-page__specs">
             <h2 className="listing-detail-page__section-title">Specifikace</h2>
-            {/* ... rest of your specs section ... */}
+            <div className="listing-detail-page__specgrid">
+              <div className="listing-detail-page__spec-group">
+                <h3>Základní údaje</h3>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Značka</span>
+                  <span className="listing-detail-page__spec-value">{formatBrand(ad.brand) ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Model</span>
+                  <span className="listing-detail-page__spec-value">{formatModel(ad.brand, ad.model) ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Rok výroby</span>
+                  <span className="listing-detail-page__spec-value">{ad.year ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Nájezd</span>
+                  <span className="listing-detail-page__spec-value">{ad.mileage?.toLocaleString()} km</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">První registrace</span>
+                  <span className="listing-detail-page__spec-value">{ad.firstRegistration ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Stav</span>
+                  <span className="listing-detail-page__spec-value">
+                    {ad.condition ? conditionMap[ad.condition as string] ?? ad.condition : '-'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="listing-detail-page__spec-group">
+                <h3>Motor a výkon</h3>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Palivo</span>
+                  <span className="listing-detail-page__spec-value">{ad.fuel ? fuelMap[ad.fuel as string] ?? ad.fuel : '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Objem motoru</span>
+                  <span className="listing-detail-page__spec-value">{ad.engineVolume ? (ad.engineVolume / 1000).toFixed(1) + 'L' : '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Výkon</span>
+                  <span className="listing-detail-page__spec-value">{ad.power ? `${ad.power} kW` : '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Spotřeba</span>
+                  <span className="listing-detail-page__spec-value">{ad.avgConsumption ? `${ad.avgConsumption} l/100km` : '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Euro norma</span>
+                  <span className="listing-detail-page__spec-value">{ad.euroStandard ?? '-'}</span>
+                </div>
+              </div>
+
+              <div className="listing-detail-page__spec-group">
+                <h3>Převodovka a podvozek</h3>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Převodovka</span>
+                  <span className="listing-detail-page__spec-value">{ad.transmission ? transmissionMap[ad.transmission as string] ?? ad.transmission : '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Počet rychlostí</span>
+                  <span className="listing-detail-page__spec-value">{ad.gearCount ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Pohon</span>
+                  <span className="listing-detail-page__spec-value">{ad.drivetrain ?? '-'}</span>
+                </div>
+              </div>
+
+              <div className="listing-detail-page__spec-group">
+                <h3>Karoserie a design</h3>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Karoserie</span>
+                  <span className="listing-detail-page__spec-value">{ad.bodyType ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Počet dveří</span>
+                  <span className="listing-detail-page__spec-value">{ad.doorCount ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Počet míst</span>
+                  <span className="listing-detail-page__spec-value">{ad.seatCount ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Barva</span>
+                  <span className="listing-detail-page__spec-value">{ad.color ? colorMap[ad.color as string] ?? ad.color : '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Lak</span>
+                  <span className="listing-detail-page__spec-value">{ad.colorFinish ? colorFinishMap[ad.colorFinish as string] ?? ad.colorFinish : '-'}</span>
+                </div>
+              </div>
+
+              <div className="listing-detail-page__spec-group">
+                <h3>Bezpečnost a komfort</h3>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Airbagů</span>
+                  <span className="listing-detail-page__spec-value">{ad.airbagCount ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Klimatizace</span>
+                  <span className="listing-detail-page__spec-value">{ad.airConditioning ?? '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">První majitel</span>
+                  <span className="listing-detail-page__spec-value">{ad.isFirstOwner ? 'Ano' : 'Ne'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Servisní kniha</span>
+                  <span className="listing-detail-page__spec-value">{ad.hasServiceBook ? 'Ano' : 'Ne'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Havarované</span>
+                  <span className="listing-detail-page__spec-value">{ad.wasCrashed ? 'Ano' : 'Ne'}</span>
+                </div>
+              </div>
+
+              <div className="listing-detail-page__spec-group">
+                <h3>Dokumenty a poplatky</h3>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">STK do</span>
+                  <span className="listing-detail-page__spec-value">{ad.technicalCheckUntil ? new Date(ad.technicalCheckUntil).toLocaleDateString() : '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Záruka do</span>
+                  <span className="listing-detail-page__spec-value">{ad.warrantyUntil ? new Date(ad.warrantyUntil).toLocaleDateString() : '-'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Ekopoplatek</span>
+                  <span className="listing-detail-page__spec-value">{ad.ecoTaxPaid ? 'Zaplacen' : 'Nezaplacen'}</span>
+                </div>
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Země původu</span>
+                  <span className="listing-detail-page__spec-value">{ad.countryOfOrigin ?? '-'}</span>
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Popis */}
