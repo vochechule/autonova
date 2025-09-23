@@ -50,12 +50,11 @@ export default function Home() {
         </h1>
         
         <HeroSection />
+        <StartupBanner />
         <Suspense fallback={null}>
           <AdFilter />
         </Suspense>
         <Suspense fallback={null}>
-        <StartupBanner />
-
           <QuickCategories />
         </Suspense>
         <WhyCartaSection />
