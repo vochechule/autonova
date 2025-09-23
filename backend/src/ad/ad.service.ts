@@ -201,7 +201,7 @@ export class AdService {
     const requiredFields = [
       'title', 'brand', 'model', 'price', 'mileage', 'year', 
       'firstRegistration', 'bodyType', 'fuel', 'transmission',
-      'contactPhone', 'contactEmail'
+      'contactPhone' // ✅ Only phone is required now
     ];
 
     const missingFields = requiredFields.filter(field => !dto[field] || dto[field].toString().trim() === '');

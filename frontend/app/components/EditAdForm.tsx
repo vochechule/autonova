@@ -252,18 +252,24 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
       const formValues = new FormData(form)
 
       const contactPhone = formValues.get('contactPhone')
+      // ✅ ZMĚNA - email už není povinný
       const contactEmail = formValues.get('contactEmail')
 
       if (!contactPhone || !contactPhone.toString().trim()) {
         throw new Error('Telefon je povinný')
       }
 
-      if (!contactEmail || !contactEmail.toString().trim()) {
-        throw new Error('Email je povinný')
-      }
+      // ✅ ODEBRÁNA povinnost emailu
+      // if (!contactEmail || !contactEmail.toString().trim()) {
+      //   throw new Error('Email je povinný')
+      // }
 
       formData.append('contactPhone', contactPhone.toString())
-      formData.append('contactEmail', contactEmail.toString())
+      
+      // ✅ Email přidáváme pouze pokud je vyplněn
+      if (contactEmail && contactEmail.toString().trim()) {
+        formData.append('contactEmail', contactEmail.toString())
+      }
 
       const contactName = formValues.get('contactName')
       if (contactName && contactName.toString().trim()) {
@@ -722,7 +728,7 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
                   name="contactName" 
                   id="contactName" 
                   placeholder="Vyplňte pouze pokud se liší od vašeho jména" 
-                  defaultValue={adData?.contactName || ''} // Pro EditAdForm
+                  defaultValue={adData?.contactName || ''}
                 />
                 <small className="form-help">
                   Volitelné - zobrazí se pouze pokud se liší od jména z vašeho profilu
@@ -737,19 +743,19 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
                   type="tel" 
                   required 
                   placeholder="+420 123 456 789"
-                  defaultValue={adData?.contactPhone || ''} // Pro EditAdForm
+                  defaultValue={adData?.contactPhone || ''}
                 />
               </div>
 
+              {/* ✅ Email je nyní volitelný */}
               <div className="form-group">
-                <label htmlFor="contactEmail">Email <span className="required">*</span></label>
+                <label htmlFor="contactEmail">Email</label> {/* ✅ Odstraněna * */}
                 <input 
                   name="contactEmail" 
                   id="contactEmail" 
                   type="email" 
-                  required 
-                  placeholder="vase@email.cz"
-                  defaultValue={adData?.contactEmail || ''} // Pro EditAdForm
+                  placeholder="vase@email.cz (volitelné)"
+                  defaultValue={adData?.contactEmail || ''}
                 />
               </div>
             </div>
@@ -760,7 +766,8 @@ export default function EditAdForm({ adId, initialData }: EditAdFormProps) {
                 <path d="m9 12 2 2 4-4"/>
               </svg>
               <p>
-                Telefon a email budou zobrazeny zájemcům přímo u vašeho inzerátu. 
+                {/* ✅ Aktualizovaný text */}
+                Telefon bude zobrazen zájemcům přímo u vašeho inzerátu. Email je volitelný.
                 Můžete použít jiné kontakty než ty z vašeho profilu.
               </p>
             </div>
