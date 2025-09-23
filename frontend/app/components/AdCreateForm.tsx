@@ -477,12 +477,6 @@ export default function AdCreateForm({
     }
   }
 
-  const setAsMainImage = (index: number) => {
-    if (index !== 0) {
-      moveImage(index, 0)
-      showSuccess('Hlavní obrázek nastaven', 'Obrázek byl nastaven jako hlavní')
-    }
-  }
 
   // ✅ Add reorder functions for existing images
   const moveExistingImage = (fromIndex: number, toIndex: number) => {
