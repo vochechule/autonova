@@ -23,11 +23,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Carta.cz - Největší autobazar zdarma",
+    default: "Carta.cz - Jednoduchý a moderní autobazar",
     template: "%s | Carta.cz",
   },
   description:
-    "Prodej a koupě aut jednoduše, bez reklam a zdarma. Tisíce ověřených inzerátů, transparentní ceny, bezpečné transakce. Najděte své vysněné auto na Carta.cz.",
+    "Objevte nový způsob prodeje a nákupu aut. Bez zbytečných poplatků, jednoduše a přehledně. Vyzkoušejte moderní autobazar na Carta.cz.",
   keywords: [
     "autobazar",
     "inzerce aut",
@@ -60,8 +60,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "Carta.cz - Největší autobazar zdarma",
-    description: "Prodej a koupě aut jednoduše, bez reklam a zdarma",
+    title: "Carta.cz - Jednoduchý a moderní autobazar",
+    description: "Objevte nový způsob prodeje a nákupu aut. Bez zbytečných poplatků.",
     url: "https://carta.cz",
     siteName: "Carta.cz",
     images: [
@@ -69,15 +69,15 @@ export const metadata: Metadata = {
         url: "https://carta.cz/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Carta.cz - Největší autobazar zdarma",
+        alt: "Carta.cz - Jednoduchý a moderní autobazar",
       },
     ],
     locale: "cs_CZ",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Carta.cz - Největší autobazar zdarma",
-    description: "Prodej a koupě aut jednoduše, bez reklam a zdarma",
+    title: "Carta.cz - Jednoduchý a moderní autobazar",
+    description: "Objevte nový způsob prodeje a nákupu aut. Bez zbytečných poplatků.",
     images: ["https://carta.cz/og-image.png"],
   },
   icons: {
