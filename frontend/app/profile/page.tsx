@@ -41,6 +41,7 @@ interface UserProfile {
   email: string;
   avatar?: string;
   isDealer?: boolean;
+  dealerTier?: string;
   createdAt?: string;
   ads?: Ad[];
   [key: string]: unknown;
