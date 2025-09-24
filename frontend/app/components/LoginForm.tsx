@@ -218,6 +218,11 @@ export default function LoginForm() {
       <div className="login-form__switch">
         Nemáte účet? <Link href="/register">Zaregistrujte se zde</Link>
       </div>
+      
+      {/* ✅ PŘIDÁNO - Forgot password link */}
+      <div className="login-form__forgot-password">
+        <Link href="/forgot-password">Zapomněli jste heslo?</Link>
+      </div>
     </form>
   )
 }

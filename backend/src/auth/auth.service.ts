@@ -1,12 +1,20 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
+import { EmailService } from '../email/email.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
-  constructor(private userService: UserService, private jwt: JwtService) {}
+  constructor(
+    private userService: UserService, 
+    private jwt: JwtService,
+    private emailService: EmailService,
+    private prisma: PrismaService
+  ) {}
 
   async register(email: string, password: string, name: string, isDealer?: boolean, dealerTier?: string) {
     // ✅ Input validation
@@ -213,6 +221,139 @@ export class AuthService {
       throw new BadRequestException({
         code: 'PASSWORD_CHANGE_FAILED',
         message: 'Změna hesla se nezdařila'
+      });
+    }
+  }
+
+  // ✅ PŘIDÁNO - Password reset functionality
+  async requestPasswordReset(email: string) {
+    if (!email || !email.includes('@')) {
+      throw new BadRequestException({
+        code: 'INVALID_EMAIL',
+        message: 'Neplatný formát emailu'
+      });
+    }
+
+    try {
+      // Zkontroluj jestli uživatel existuje
+      const user = await this.userService.findByEmail(email);
+      if (!user) {
+        // ✅ Bezpečnostní opatření - neříkáme že user neexistuje
+        return {
+          message: 'Pokud email existuje v našem systému, poslali jsme instrukce pro obnovení hesla.'
+        };
+      }
+
+      // Smaž staré tokeny pro tento email
+      await this.prisma.passwordResetToken.deleteMany({
+        where: { email }
+      });
+
+      // Vygeneruj nový token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hodin
+
+      // Ulož token do databáze
+      await this.prisma.passwordResetToken.create({
+        data: {
+          email,
+          token: resetToken,
+          expiresAt,
+        }
+      });
+
+      // Pošli email
+      await this.emailService.sendPasswordResetEmail(email, resetToken);
+
+      return {
+        message: 'Pokud email existuje v našem systému, poslali jsme instrukce pro obnovení hesla.'
+      };
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      throw new BadRequestException({
+        code: 'PASSWORD_RESET_FAILED',
+        message: 'Nepodařilo se odeslat email pro obnovení hesla'
+      });
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    if (!token) {
+      throw new BadRequestException({
+        code: 'TOKEN_REQUIRED',
+        message: 'Token je povinný'
+      });
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      throw new BadRequestException({
+        code: 'PASSWORD_TOO_SHORT',
+        message: 'Heslo musí mít alespoň 8 znaků'
+      });
+    }
+
+    try {
+      // Najdi token v databázi
+      const resetToken = await this.prisma.passwordResetToken.findUnique({
+        where: { token }
+      });
+
+      if (!resetToken) {
+        throw new BadRequestException({
+          code: 'INVALID_TOKEN',
+          message: 'Neplatný nebo expirovaný token'
+        });
+      }
+
+      // Zkontroluj expiraci
+      if (resetToken.expiresAt < new Date()) {
+        throw new BadRequestException({
+          code: 'TOKEN_EXPIRED',
+          message: 'Token již expiroval'
+        });
+      }
+
+      // Zkontroluj jestli už byl použit
+      if (resetToken.used) {
+        throw new BadRequestException({
+          code: 'TOKEN_ALREADY_USED',
+          message: 'Token již byl použit'
+        });
+      }
+
+      // Najdi uživatele
+      const user = await this.userService.findByEmail(resetToken.email);
+      if (!user) {
+        throw new NotFoundException({
+          code: 'USER_NOT_FOUND',
+          message: 'Uživatel nebyl nalezen'
+        });
+      }
+
+      // Hash nové heslo
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Aktualizuj heslo a označ token jako použitý
+      await Promise.all([
+        this.userService.updatePassword(user.id, hashedPassword),
+        this.prisma.passwordResetToken.update({
+          where: { token },
+          data: { used: true }
+        })
+      ]);
+
+      return {
+        message: 'Heslo bylo úspěšně změněno'
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      console.error('Password reset error:', error);
+      throw new BadRequestException({
+        code: 'PASSWORD_RESET_FAILED',
+        message: 'Nepodařilo se změnit heslo'
       });
     }
   }

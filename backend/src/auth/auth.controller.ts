@@ -59,4 +59,18 @@ export class AuthController {
     
     return this.authService.changePassword(req.user.id, currentPassword, newPassword);
   }
+
+  @Post('forgot-password')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async forgotPassword(@Body() body: { email: string }) {
+    const { email } = body;
+    return this.authService.requestPasswordReset(email);
+  }
+
+  @Post('reset-password')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async resetPassword(@Body() body: { token: string; password: string }) {
+    const { token, password } = body;
+    return this.authService.resetPassword(token, password);
+  }
 }
