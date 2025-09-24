@@ -171,7 +171,7 @@ export default function ProfilePage() {
   }
 
   const handleRemoveSaved = async (savedAdId: string, adId: string) => {
-    if (!confirm('Remove this ad from saved?')) return
+    if (!confirm('Odebrat z uložených?')) return
 
     setRemovingSavedId(savedAdId)
     try {
@@ -185,10 +185,10 @@ export default function ProfilePage() {
         setSavedAds(savedAds => savedAds.filter(sa => sa.id !== savedAdId))
         showSuccess('Odebráno z uložených', 'Inzerát byl odebrán z uložených')
       } else {
-        throw new Error('Failed to remove from saved')
+        throw new Error('Nepodařilo se odebrat z uložených')
       }
     } catch {
-      showError('Chyba při odebírání', 'Failed to remove from saved')
+      showError('Chyba při odebírání', 'Nepodařilo se odebrat z uložených')
     } finally {
       setRemovingSavedId(null)
     }
@@ -419,7 +419,7 @@ export default function ProfilePage() {
                 onClick={() => handleRemoveSaved(savedAd.id, savedAd.ad.id)}
                 disabled={removingSavedId === savedAd.id}
               >
-                {removingSavedId === savedAd.id ? <ButtonLoading /> : 'Remove'}
+                {removingSavedId === savedAd.id ? <ButtonLoading /> : 'Odebrat'}
               </button>
             </div>
           ))}
