@@ -13,6 +13,7 @@
   max-width: 900px;
   margin-left: auto;
   margin-right: auto;
+  position: relative; // ✅ Pro pozicování tier badge
 }
 .profile-page__avatar img {
   width: 96px;
@@ -33,6 +34,45 @@
 .profile-page__meta {
   color: #888;
   font-size: 1rem;
+}
+
+// ✅ PŘIDÁNO - Wrapper pro user info (flex grow)
+.profile-page__user-info {
+  flex: 1;
+}
+
+// ✅ PŘIDÁNO - Tier badge wrapper (pravý horní roh)
+.profile-page__tier-badge-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.profile-page__tier-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  // ✅ Tier barvy
+  &.tier-basic {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+  }
+  
+  &.tier-premium {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+  }
+  
+  &.tier-enterprise {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+  }
 }
 
 .profile-page__ads {

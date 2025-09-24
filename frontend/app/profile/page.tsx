@@ -265,7 +265,7 @@ export default function ProfilePage() {
         <div className="profile-page__avatar">
           <Image src={profile.avatar || '/default-avatar.png'} alt="avatar" width={96} height={96} className="profile-page__avatar-img" />
         </div>
-        <div>
+        <div className="profile-page__user-info">
           <h1 className="profile-page__name">{profile.name}</h1>
           <div className="profile-page__email">
             {(() => {
@@ -283,12 +283,20 @@ export default function ProfilePage() {
             {profile.isDealer ? 'Autobazar' : 'Soukromý prodejce'} &middot; Připojen {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : 'N/A'}
           </div>
         </div>
+        
+        {/* ✅ PŘESUNUTO SEM - Tier badge pro autobazary */}
+        {profile.isDealer && (
+          <div className="profile-page__tier-badge-wrapper">
+            <span className={`profile-page__tier-badge tier-${profile.dealerTier?.toLowerCase()}`}>
+              {profile.dealerTier || 'BASIC'}
+            </span>
+          </div>
+        )}
       </section>
 
       <section className="profile-page__ads">
         <h2>Moje inzeráty</h2>
         <div className="profile-page__ad-limit-indicator">
-          {/* ✅ AKTUALIZOVÁNO - Dynamické limity podle tier */}
           <span>
             {ads.length} / {profile.isDealer 
               ? (profile.dealerTier === 'BASIC' ? '25' : 
@@ -313,19 +321,7 @@ export default function ProfilePage() {
               }}
             />
           </div>
-          {/* ✅ PŘIDÁNO - Tier info pro autobazary */}
-          {profile.isDealer && (
-            <div className="profile-page__tier-info">
-              <span className={`profile-page__tier-badge tier-${profile.dealerTier?.toLowerCase()}`}>
-                {profile.dealerTier || 'BASIC'} TIER
-              </span>
-              <p className="profile-page__tier-description">
-                {profile.dealerTier === 'BASIC' && 'Základní tier pro autobazary'}
-                {profile.dealerTier === 'PREMIUM' && 'Rozšířený tier s pokročilými funkcemi'}
-                {profile.dealerTier === 'ENTERPRISE' && 'Nejvyšší tier pro velké autobazary'}
-              </p>
-            </div>
-          )}
+          {/* ✅ SMAZÁNO - už není třeba tier info zde */}
         </div>
         <table className="profile-page__ads-table">
           <thead>
