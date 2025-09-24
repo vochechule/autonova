@@ -11,8 +11,8 @@ import ContactForm from './components/ContactForm'
 import { generateMetadata } from './lib/seo'
 
 export const metadata = generateMetadata(
-  'Carta.cz - Největší autobazar zdarma',
-  'Prodej a koupě aut jednoduše, bez reklam a zdarma. Tisíce ověřených inzerátů, detailní fotografie, transparentní ceny. Najděte své vysněné auto na Carta.cz.',
+  'Carta.cz - Jednoduchý a moderní autobazar',
+  'Objevte nový způsob prodeje a nákupu aut. Bez zbytečných poplatků, jednoduše a přehledně. Vyzkoušejte moderní autobazar na Carta.cz.',
   ['autobazar zdarma', 'nejlepší ceny aut', 'ověření prodejci', 'bezpečný nákup auta', 'carta autobazar']
 )
 
@@ -28,7 +28,7 @@ export default function Home() {
             "@type": "WebSite",
             "name": "Carta.cz",
             "url": "https://carta.cz",
-            "description": "Největší autobazar v České republice - prodej a koupě aut zdarma",
+            "description": "Jednoduchý a moderní autobazar",
             "potentialAction": {
               "@type": "SearchAction",
               "target": "https://carta.cz/ads?search={search_term_string}",
@@ -46,7 +46,7 @@ export default function Home() {
       <main className="home-page">
         {/* Add SEO-friendly heading structure */}
         <h1 style={{ position: 'absolute', left: '-9999px' }}>
-          Carta.cz - Největší autobazar v České republice
+          Carta.cz - Jednoduchý a moderní autobazar
         </h1>
         
         <HeroSection />
