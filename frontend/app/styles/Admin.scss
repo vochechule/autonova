@@ -163,6 +163,7 @@
   flex-direction: column;
   gap: 0.75rem;
   align-items: flex-end;
+  min-width: 140px; // ✅ Zvětši pro více tlačítek
 }
 
 .status {
@@ -185,20 +186,52 @@
   border: 1px solid #f5c6cb;
 }
 
-.delete-btn {
+.view-btn {
   padding: 0.5rem 1rem;
-  background: #dc3545;
+  background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+
+  &:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #520dc2 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
-.delete-btn:hover {
-  background: #c82333;
+.delete-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+
+  &:hover {
+    background: linear-gradient(135deg, #c82333 0%, #d91a72 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 /* Uživatelé */
@@ -517,9 +550,51 @@
   
   .listing-actions {
     flex-direction: row;
-    align-self: stretch;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    min-width: auto;
+    width: 100%;
+    
+    .view-btn,
+    .delete-btn {
+      flex: 1 1 45%;
+      min-width: 90px;
+      font-size: 0.9rem;
+      padding: 0.5rem 0.8rem;
+      margin: 0.2rem 0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+
+      &:not(:last-child) {
+      margin-right: 0.5rem;
+      }
+    }
+
+    .view-btn {
+      background: #f1f8ff;
+      color: #007bff;
+      border: 1px solid #b6e0fe;
+
+      &:hover {
+      background: #e3f0fc;
+      color: #0056b3;
+      box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+      }
+    }
+
+    .delete-btn {
+      background: #fff5f6;
+      color: #dc3545;
+      border: 1px solid #f5c6cb;
+
+      &:hover {
+      background: #ffe3e6;
+      color: #a71d2a;
+      box-shadow: 0 2px 8px rgba(220,53,69,0.08);
+      }
+    }
   }
   
   .user-row {

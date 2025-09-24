@@ -287,9 +287,20 @@ export default function AdminPage() {
                     <span className={`status ${ad.isVisible ? 'visible' : 'hidden'}`}>
                       {ad.isVisible ? '👁️ Viditelný' : '🙈 Skrytý'}
                     </span>
+                    
+                    {/* ✅ PŘIDÁNO - Zobrazit inzerát tlačítko */}
+                    <button 
+                      className="view-btn"
+                      onClick={() => router.push(`/ads/${ad.id}`)}
+                      title="Zobrazit detail inzerátu"
+                    >
+                      👁️ Zobrazit
+                    </button>
+                    
                     <button 
                       className="delete-btn"
                       onClick={() => deleteListing(ad.id)}
+                      title="Smazat inzerát"
                     >
                       🗑️ Smazat
                     </button>
