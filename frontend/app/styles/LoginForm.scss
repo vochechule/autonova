@@ -138,43 +138,38 @@
   text-decoration: underline;
 }
 
-.login-form__password-wrap {
-  position: relative;
+.login-form__show-password {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.login-form__checkbox-label {
   display: flex;
   align-items: center;
-}
-
-.login-form__password-wrap input {
-  padding-right: 44px !important; // prostor pro ikonu
-}
-
-.login-form__eye {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  color: #94a3b8;
-  opacity: 0.8;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #64748b;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: color 0.18s, opacity 0.18s;
-  z-index: 2;
-  font-size: 1.2rem;
-}
-.login-form__eye:hover,
-.login-form__eye:focus {
-  color: #2563eb;
-  opacity: 1;
+  user-select: none;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #475569;
+  }
 }
 
-.login-form__eye:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.login-form__checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  accent-color: #2563eb;
+  transform: scale(1.1);
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .login-form__password-strength {
@@ -192,6 +187,26 @@
   }
 }
 
+.login-form__forgot-password {
+  text-align: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.login-form__forgot-password a {
+  color: #6b7280;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+}
+
+// Media queries
 @media (max-width: 600px) {
   .login-form {
     padding: 18px 4vw;
@@ -199,6 +214,7 @@
   }
 }
 
+// Dark mode
 [data-theme="dark"] .login-form {
   background: linear-gradient(135deg, #232b36 0%, #1a2233 100%);
   box-shadow: 0 8px 32px rgba(30,41,59,0.22);
@@ -235,4 +251,27 @@
 [data-theme="dark"] .login-form__terms a,
 [data-theme="dark"] .login-form__switch a {
   color: #60a5fa;
+}
+[data-theme="dark"] .login-form__checkbox-label {
+  color: #94a3b8;
+  
+  &:hover {
+    color: #cbd5e1;
+  }
+}
+
+[data-theme="dark"] .login-form__checkbox-label input[type="checkbox"] {
+  accent-color: #3b82f6;
+}
+
+[data-theme="dark"] .login-form__forgot-password {
+  border-top-color: #374151;
+}
+
+[data-theme="dark"] .login-form__forgot-password a {
+  color: #9ca3af;
+  
+  &:hover {
+    color: #60a5fa;
+  }
 }

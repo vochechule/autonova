@@ -5,7 +5,7 @@ import Link from 'next/link'
 import '../styles/RegisterForm.scss'
 import { ButtonLoading } from './LoadingStates'
 import { useToast } from '../contexts/ToastContext'
-import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react'
+import {  User, Mail, Lock, UserCircle, Building2 } from 'lucide-react'
 import { useAuth } from '../hooks/AuthProvider'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
@@ -129,6 +129,10 @@ export default function RegisterForm() {
   const { showSuccess, showError } = useToast()
   const { login } = useAuth()
 
+  // ✅ PŘIDÁNO - Dealer state
+  const [isDealer, setIsDealer] = useState(false)
+  const [dealerTier, setDealerTier] = useState('BASIC')
+
   useEffect(() => {
     setPasswordStrength({
       hasLength: password.length >= 8,
@@ -163,7 +167,14 @@ export default function RegisterForm() {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          name,
+          // ✅ PŘIDÁNO - Dealer data
+          isDealer,
+          dealerTier: isDealer ? dealerTier : undefined
+        }),
       })
 
       // ✅ Better error handling
@@ -210,8 +221,73 @@ export default function RegisterForm() {
     <form className="register-form" onSubmit={handleSubmit} autoComplete="off">
       <h2>Registrace</h2>
       
+      {/* ✅ AKTUALIZOVÁNO - User type selection s Lucide ikonami */}
+      <div className="register-form__user-type">
+        <div className="register-form__radio-group">
+          <label className={`register-form__radio-option ${!isDealer ? 'active' : ''}`}>
+            <input 
+              type="radio" 
+              name="userType" 
+              checked={!isDealer}
+              onChange={() => setIsDealer(false)}
+              disabled={loading}
+            />
+            <div className="register-form__radio-content">
+              <div className="register-form__radio-icon">
+                <UserCircle size={24} />
+              </div>
+              <div className="register-form__radio-text">
+                <strong>Soukromá osoba</strong>
+                <p>Až 10 aktivních inzerátů zdarma</p>
+              </div>
+            </div>
+          </label>
+          
+          <label className={`register-form__radio-option ${isDealer ? 'active' : ''}`}>
+            <input 
+              type="radio" 
+              name="userType" 
+              checked={isDealer}
+              onChange={() => setIsDealer(true)}
+              disabled={loading}
+            />
+            <div className="register-form__radio-content">
+              <div className="register-form__radio-icon">
+                <Building2 size={24} />
+              </div>
+              <div className="register-form__radio-text">
+                <strong>Autobazar</strong>
+                <p>Vyšší limity inzerátů a pokročilé funkce</p>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      {/* ✅ PŘIDÁNO - Dealer tier selection (zatím skryté) */}
+      {isDealer && (
+        <div className="register-form__dealer-tiers" style={{ display: 'none' }}>
+          <label htmlFor="dealerTier">Tier autobazaru</label>
+          <select 
+            id="dealerTier"
+            value={dealerTier}
+            onChange={(e) => setDealerTier(e.target.value)}
+            disabled={loading}
+          >
+            <option value="BASIC">Basic (25 inzerátů)</option>
+            <option value="PREMIUM">Premium (75 inzerátů)</option>
+            <option value="ENTERPRISE">Enterprise (150 inzerátů)</option>
+          </select>
+          <p className="register-form__tier-note">
+            Všichni autobazary začínají s Basic tierem. Pro upgrade kontaktujte administrátora.
+          </p>
+        </div>
+      )}
+      
       <div className="register-form__field">
-        <label htmlFor="name">Jméno</label>
+        <label htmlFor="name">
+          {isDealer ? 'Název autobazaru' : 'Jméno'}
+        </label>
         <div className="register-form__input-wrap">
           <User size={20} className="register-form__icon" />
           <input 
@@ -219,7 +295,7 @@ export default function RegisterForm() {
             id="name" 
             type="text" 
             required 
-            placeholder="Jméno" 
+            placeholder={isDealer ? 'AutoMax s.r.o.' : 'Jméno'} 
             minLength={2}
             disabled={loading}
             autoComplete="name"
@@ -259,17 +335,21 @@ export default function RegisterForm() {
             disabled={loading}
             autoComplete="new-password"
           />
-          <button
-            type="button"
-            className="register-form__eye"
-            tabIndex={-1}
-            onClick={() => setShowPassword(v => !v)}
-            aria-label={showPassword ? 'Skrýt heslo' : 'Zobrazit heslo'}
-            disabled={loading}
-          >
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
         </div>
+        
+        {/* ✅ PŘIDÁNO - Show password checkbox */}
+        <div className="register-form__show-password">
+          <label className="register-form__checkbox-label">
+            <input
+              type="checkbox"
+              checked={showPassword}
+              onChange={(e) => setShowPassword(e.target.checked)}
+              disabled={loading}
+            />
+            Zobrazit heslo
+          </label>
+        </div>
+        
         <div className="register-form__password-strength">
           <div className={`strength-indicator ${passwordStrength.hasLength ? 'valid' : ''}`}>
             • Minimálně 8 znaků
@@ -284,7 +364,7 @@ export default function RegisterForm() {
       </div>
       
       <div className="register-form__terms">
-        <label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <input
             type="checkbox"
             required

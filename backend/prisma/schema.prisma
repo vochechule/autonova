@@ -13,6 +13,8 @@ model User {
   password         String
   name             String
   isDealer         Boolean   @default(false)
+  dealerTier       DealerTier @default(BASIC)
+  tierUpgradedAt   DateTime?  // Kdy byl tier naposledy změněn
   role             Role      @default(USER)
   ads              Ad[]
   savedAds         SavedAd[]
@@ -136,6 +138,19 @@ model ContactSubmission {
   @@map("contact_submissions")
 }
 
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+}
+
 // ---------- ENUMS ----------
 
 enum BodyType {
@@ -202,4 +217,10 @@ enum CarCondition {
 enum Role {
   USER
   ADMIN
+}
+
+enum DealerTier {
+  BASIC     // 25 aktivních inzerátů
+  PREMIUM   // 75 aktivních inzerátů  
+  ENTERPRISE // 150 aktivních inzerátů
 }

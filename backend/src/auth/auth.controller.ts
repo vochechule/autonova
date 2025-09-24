@@ -21,8 +21,15 @@ export class AuthController {
 
   @Post('register')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto.email, dto.password, dto.name);
+  async register(@Body() body: { 
+    email: string; 
+    password: string; 
+    name: string; 
+    isDealer?: boolean;
+    dealerTier?: string;
+  }) {
+    const { email, password, name, isDealer, dealerTier } = body;
+    return this.authService.register(email, password, name, isDealer, dealerTier);
   }
 
   @Post('login')
@@ -51,5 +58,19 @@ export class AuthController {
     }
     
     return this.authService.changePassword(req.user.id, currentPassword, newPassword);
+  }
+
+  @Post('forgot-password')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async forgotPassword(@Body() body: { email: string }) {
+    const { email } = body;
+    return this.authService.requestPasswordReset(email);
+  }
+
+  @Post('reset-password')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async resetPassword(@Body() body: { token: string; password: string }) {
+    const { token, password } = body;
+    return this.authService.resetPassword(token, password);
   }
 }

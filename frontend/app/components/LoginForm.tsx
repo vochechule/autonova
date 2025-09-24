@@ -106,6 +106,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false) // ✅ PŘIDÁNO
   const { showSuccess, showError } = useToast()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -175,11 +176,25 @@ export default function LoginForm() {
       <input 
         name="password" 
         id="password" 
-        type="password" 
+        type={showPassword ? 'text' : 'password'} // ✅ ZMĚNĚNO
         required 
         placeholder="Heslo" 
         disabled={loading}
       />
+      
+      {/* ✅ PŘIDÁNO - Show password checkbox */}
+      <div className="login-form__show-password">
+        <label className="login-form__checkbox-label">
+          <input
+            type="checkbox"
+            checked={showPassword}
+            onChange={(e) => setShowPassword(e.target.checked)}
+            disabled={loading}
+          />
+          Zobrazit heslo
+        </label>
+      </div>
+      
       <button type="submit" disabled={loading || success}>
         {loading ? (
           <>
@@ -202,6 +217,11 @@ export default function LoginForm() {
       )}
       <div className="login-form__switch">
         Nemáte účet? <Link href="/register">Zaregistrujte se zde</Link>
+      </div>
+      
+      {/* ✅ PŘIDÁNO - Forgot password link */}
+      <div className="login-form__forgot-password">
+        <Link href="/forgot-password">Zapomněli jste heslo?</Link>
       </div>
     </form>
   )

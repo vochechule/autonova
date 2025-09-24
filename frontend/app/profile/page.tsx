@@ -41,6 +41,7 @@ interface UserProfile {
   email: string;
   avatar?: string;
   isDealer?: boolean;
+  dealerTier?: string;
   createdAt?: string;
   ads?: Ad[];
   [key: string]: unknown;
@@ -265,7 +266,7 @@ export default function ProfilePage() {
         <div className="profile-page__avatar">
           <Image src={profile.avatar || '/default-avatar.png'} alt="avatar" width={96} height={96} className="profile-page__avatar-img" />
         </div>
-        <div>
+        <div className="profile-page__user-info">
           <h1 className="profile-page__name">{profile.name}</h1>
           <div className="profile-page__email">
             {(() => {
@@ -283,23 +284,45 @@ export default function ProfilePage() {
             {profile.isDealer ? 'Autobazar' : 'Soukromý prodejce'} &middot; Připojen {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : 'N/A'}
           </div>
         </div>
+        
+        {/* ✅ PŘESUNUTO SEM - Tier badge pro autobazary */}
+        {profile.isDealer && (
+          <div className="profile-page__tier-badge-wrapper">
+            <span className={`profile-page__tier-badge tier-${profile.dealerTier?.toLowerCase()}`}>
+              {profile.dealerTier || 'BASIC'}
+            </span>
+          </div>
+        )}
       </section>
 
       <section className="profile-page__ads">
         <h2>Moje inzeráty</h2>
         <div className="profile-page__ad-limit-indicator">
           <span>
-            {ads.length} / 10 aktivních inzerátů
+            {ads.length} / {profile.isDealer 
+              ? (profile.dealerTier === 'BASIC' ? '25' : 
+                 profile.dealerTier === 'PREMIUM' ? '75' : 
+                 profile.dealerTier === 'ENTERPRISE' ? '150' : '25')
+              : '10'} aktivních inzerátů
           </span>
           <div className="profile-page__ad-limit-bar">
             <div
               className="profile-page__ad-limit-bar-inner"
               style={{
-                width: `${Math.min(ads.length / 10 * 100, 100)}%`,
-                background: ads.length >= 10 ? '#dc2626' : '#0070f3'
+                width: `${Math.min(ads.length / (profile.isDealer 
+                  ? (profile.dealerTier === 'BASIC' ? 25 : 
+                     profile.dealerTier === 'PREMIUM' ? 75 : 
+                     profile.dealerTier === 'ENTERPRISE' ? 150 : 25)
+                  : 10) * 100, 100)}%`,
+                background: ads.length >= (profile.isDealer 
+                  ? (profile.dealerTier === 'BASIC' ? 25 : 
+                     profile.dealerTier === 'PREMIUM' ? 75 : 
+                     profile.dealerTier === 'ENTERPRISE' ? 150 : 25)
+                  : 10) ? '#dc2626' : '#0070f3'
               }}
             />
           </div>
+          {/* ✅ SMAZÁNO - už není třeba tier info zde */}
         </div>
         <table className="profile-page__ads-table">
           <thead>
