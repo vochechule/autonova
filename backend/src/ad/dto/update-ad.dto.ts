@@ -28,7 +28,6 @@ export class UpdateAdDto extends PartialType(CreateAdDto) {
   @IsArray()
   @IsString({ each: true })
   @Transform(({ value }) => {
-    console.log('🔍 Transform existingImagesOrder:', value, typeof value);
 
     if (!value) return undefined;
 
@@ -40,20 +39,16 @@ export class UpdateAdDto extends PartialType(CreateAdDto) {
       try {
         const parsed = JSON.parse(value);
         if (Array.isArray(parsed)) {
-          console.log('✅ Successfully parsed existingImagesOrder JSON array:', parsed);
           return parsed;
         }
         // Pokud JSON není array, wrapiť to do array
-        console.log('⚠️ JSON parsed but not array, wrapping:', parsed);
         return [parsed];
       } catch (error) {
         // Pokud JSON parsing selže, považuj to za single string
-        console.log('⚠️ JSON parse failed for existingImagesOrder, treating as single string:', value);
         return [value];
       }
     }
 
-    console.log('⚠️ Unknown type for existingImagesOrder, returning undefined:', typeof value);
     return undefined;
   })
   existingImagesOrder?: string[];

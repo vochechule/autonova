@@ -572,7 +572,6 @@ export class AdService {
 
     // ✅ PŘIDÁNO - Handle existing images reordering
     if (dto.existingImagesOrder && Array.isArray(dto.existingImagesOrder)) {
-      console.log('🔍 Processing existingImagesOrder:', dto.existingImagesOrder);
       
       // Update order of existing images
       for (let i = 0; i < dto.existingImagesOrder.length; i++) {
@@ -589,7 +588,6 @@ export class AdService {
 
     // Handle image deletion
     if (dto.imagesToDelete && Array.isArray(dto.imagesToDelete)) {
-      console.log('🔍 Processing imagesToDelete:', dto.imagesToDelete);
       
       for (const imageId of dto.imagesToDelete) {
         const imageToDelete = await this.prisma.image.findUnique({

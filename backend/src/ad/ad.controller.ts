@@ -133,8 +133,6 @@ export class AdController {
         imagesToDelete: imagesToDelete.length > 0 ? imagesToDelete : undefined
       };
 
-      console.log('🔍 Parsed imagesToDelete:', imagesToDelete);
-      console.log('🔍 Clean DTO:', cleanDto);
 
       if (!req.user || !req.user.id) {
         throw new UnauthorizedException('User not authenticated properly');

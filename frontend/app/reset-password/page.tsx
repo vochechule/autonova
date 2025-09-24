@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react' // ✅ PŘIDÁNO
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -9,7 +10,8 @@ import '../styles/ResetPassword.scss'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-export default function ResetPasswordPage() {
+// ✅ PŘIDÁNO - Oddělíme komponentu která používá useSearchParams
+function ResetPasswordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
@@ -264,5 +266,28 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// ✅ PŘIDÁNO - Loading fallback komponenta
+function ResetPasswordLoading() {
+  return (
+    <div className="reset-password-page">
+      <div className="reset-password-form">
+        <div style={{ padding: '40px', textAlign: 'center' }}>
+          <div className="reset-password-form__spinner" style={{ margin: '0 auto 20px' }} />
+          <p>Načítání...</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ✅ HLAVNÍ KOMPONENTA - zabalená v Suspense
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<ResetPasswordLoading />}>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }

@@ -713,7 +713,6 @@ export default function AdCreateForm({
       if (mode === 'edit' && existingImages.length > 0) {
         const existingImageIds = existingImages.map(img => img.id)
         submitFormData.append('existingImagesOrder', JSON.stringify(existingImageIds))
-        console.log('🔍 Sending existingImagesOrder:', existingImageIds)
       }
 
       // Location
@@ -732,7 +731,6 @@ export default function AdCreateForm({
         if (imagesToDelete && imagesToDelete.length > 0) {
           const idsToDelete = imagesToDelete.map((img) => img.id)
           submitFormData.append('imagesToDelete', JSON.stringify(idsToDelete))
-          console.log('🔍 Sending imagesToDelete:', idsToDelete)
         }
       }
 
