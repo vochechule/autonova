@@ -13,6 +13,8 @@ model User {
   password         String
   name             String
   isDealer         Boolean   @default(false)
+  dealerTier       DealerTier @default(BASIC)
+  tierUpgradedAt   DateTime?  // Kdy byl tier naposledy změněn
   role             Role      @default(USER)
   ads              Ad[]
   savedAds         SavedAd[]
@@ -202,4 +204,10 @@ enum CarCondition {
 enum Role {
   USER
   ADMIN
+}
+
+enum DealerTier {
+  BASIC     // 25 aktivních inzerátů
+  PREMIUM   // 75 aktivních inzerátů  
+  ENTERPRISE // 150 aktivních inzerátů
 }

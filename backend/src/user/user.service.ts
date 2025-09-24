@@ -1,12 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service'; // uprav cestu dle projektu
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async create(email: string, password: string, name: string) {
-    return this.prisma.user.create({ data: { email, password, name } });
+  async create(userData: any) {
+    return this.prisma.user.create({ 
+      data: userData,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        isDealer: true,
+        dealerTier: true,
+        role: true,
+        createdAt: true,
+        // Don't return password
+      }
+    });
   }
 
   async findOne(id: string) {
@@ -131,5 +143,84 @@ export class UserService {
     });
 
     return { message: 'Account deleted successfully' };
+  }
+
+  async getUserAdLimits(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { isDealer: true, dealerTier: true }
+    });
+
+    if (!user) {
+      throw new NotFoundException('Uživatel nenalezen');
+    }
+
+    const currentAdsCount = await this.prisma.ad.count({
+      where: { userId }
+    });
+
+    // Soukromí uživatelé - 10 inzerátů
+    if (!user.isDealer) {
+      return {
+        maxAds: 10,
+        currentAds: currentAdsCount,
+        remainingAds: Math.max(0, 10 - currentAdsCount),
+        tier: 'PRIVATE',
+        isDealer: false
+      };
+    }
+
+    // Dealer tier limity
+    const tierLimits = {
+      BASIC: 25,
+      PREMIUM: 75,
+      ENTERPRISE: 150
+    };
+
+    const maxAds = tierLimits[user.dealerTier] || 25;
+
+    return {
+      maxAds,
+      currentAds: currentAdsCount,
+      remainingAds: Math.max(0, maxAds - currentAdsCount),
+      tier: user.dealerTier,
+      isDealer: true
+    };
+  }
+
+  // ✅ ADMIN - Upgrade/downgrade dealer tier
+  async updateDealerTier(userId: string, newTier: 'BASIC' | 'PREMIUM' | 'ENTERPRISE') {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      throw new NotFoundException('Uživatel nenalezen');
+    }
+
+    if (!user.isDealer) {
+      throw new BadRequestException('Pouze autobazary mohou mít tier');
+    }
+
+    const validTiers = ['BASIC', 'PREMIUM', 'ENTERPRISE'];
+    if (!validTiers.includes(newTier)) {
+      throw new BadRequestException('Neplatný tier');
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        dealerTier: newTier,
+        tierUpgradedAt: new Date()
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        isDealer: true,
+        dealerTier: true,
+        tierUpgradedAt: true
+      }
+    });
   }
 }

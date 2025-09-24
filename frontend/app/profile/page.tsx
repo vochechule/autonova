@@ -288,18 +288,44 @@ export default function ProfilePage() {
       <section className="profile-page__ads">
         <h2>Moje inzeráty</h2>
         <div className="profile-page__ad-limit-indicator">
+          {/* ✅ AKTUALIZOVÁNO - Dynamické limity podle tier */}
           <span>
-            {ads.length} / 10 aktivních inzerátů
+            {ads.length} / {profile.isDealer 
+              ? (profile.dealerTier === 'BASIC' ? '25' : 
+                 profile.dealerTier === 'PREMIUM' ? '75' : 
+                 profile.dealerTier === 'ENTERPRISE' ? '150' : '25')
+              : '10'} aktivních inzerátů
           </span>
           <div className="profile-page__ad-limit-bar">
             <div
               className="profile-page__ad-limit-bar-inner"
               style={{
-                width: `${Math.min(ads.length / 10 * 100, 100)}%`,
-                background: ads.length >= 10 ? '#dc2626' : '#0070f3'
+                width: `${Math.min(ads.length / (profile.isDealer 
+                  ? (profile.dealerTier === 'BASIC' ? 25 : 
+                     profile.dealerTier === 'PREMIUM' ? 75 : 
+                     profile.dealerTier === 'ENTERPRISE' ? 150 : 25)
+                  : 10) * 100, 100)}%`,
+                background: ads.length >= (profile.isDealer 
+                  ? (profile.dealerTier === 'BASIC' ? 25 : 
+                     profile.dealerTier === 'PREMIUM' ? 75 : 
+                     profile.dealerTier === 'ENTERPRISE' ? 150 : 25)
+                  : 10) ? '#dc2626' : '#0070f3'
               }}
             />
           </div>
+          {/* ✅ PŘIDÁNO - Tier info pro autobazary */}
+          {profile.isDealer && (
+            <div className="profile-page__tier-info">
+              <span className={`profile-page__tier-badge tier-${profile.dealerTier?.toLowerCase()}`}>
+                {profile.dealerTier || 'BASIC'} TIER
+              </span>
+              <p className="profile-page__tier-description">
+                {profile.dealerTier === 'BASIC' && 'Základní tier pro autobazary'}
+                {profile.dealerTier === 'PREMIUM' && 'Rozšířený tier s pokročilými funkcemi'}
+                {profile.dealerTier === 'ENTERPRISE' && 'Nejvyšší tier pro velké autobazary'}
+              </p>
+            </div>
+          )}
         </div>
         <table className="profile-page__ads-table">
           <thead>

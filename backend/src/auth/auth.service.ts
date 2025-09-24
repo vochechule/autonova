@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
 export class AuthService {
   constructor(private userService: UserService, private jwt: JwtService) {}
 
-  async register(email: string, password: string, name: string) {
+  async register(email: string, password: string, name: string, isDealer?: boolean, dealerTier?: string) {
     // ✅ Input validation
     if (!email || !email.includes('@')) {
       throw new BadRequestException({
@@ -42,14 +42,46 @@ export class AuthService {
 
     try {
       const hashed = await bcrypt.hash(password, 10);
-      const user = await this.userService.create(email, hashed, name.trim());
+      
+      // ✅ PŘIDÁNO - Dealer registrace s tier
+      const userData: any = {
+        email,
+        password: hashed,
+        name: name.trim(),
+        isDealer: Boolean(isDealer),
+      };
+
+      // Pokud je dealer, nastav tier (defaultně BASIC)
+      if (isDealer) {
+        const validTiers = ['BASIC', 'PREMIUM', 'ENTERPRISE'];
+        // ✅ OPRAVENO - Přidej type guard a default hodnotu
+        const tierToCheck = dealerTier?.toUpperCase() || 'BASIC';
+        userData.dealerTier = validTiers.includes(tierToCheck) 
+          ? tierToCheck 
+          : 'BASIC';
+        userData.tierUpgradedAt = new Date();
+      }
+
+      const user = await this.userService.create(userData);
 
       // Vygenerovat token po registraci (automatické přihlášení)
-      const payload = { sub: user.id, email: user.email };
+      const payload = { 
+        sub: user.id, 
+        email: user.email,
+        role: user.role,
+        isDealer: user.isDealer,
+        dealerTier: user.dealerTier
+      };
       const token = this.jwt.sign(payload);
 
       return {
-        user: { id: user.id, email: user.email, name: user.name },
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          name: user.name,
+          isDealer: user.isDealer,
+          dealerTier: user.dealerTier
+        },
         token,
       };
     } catch (error) {

@@ -21,8 +21,15 @@ export class AuthController {
 
   @Post('register')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto.email, dto.password, dto.name);
+  async register(@Body() body: { 
+    email: string; 
+    password: string; 
+    name: string; 
+    isDealer?: boolean;
+    dealerTier?: string;
+  }) {
+    const { email, password, name, isDealer, dealerTier } = body;
+    return this.authService.register(email, password, name, isDealer, dealerTier);
   }
 
   @Post('login')

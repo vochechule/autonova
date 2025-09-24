@@ -138,43 +138,38 @@
   text-decoration: underline;
 }
 
-.login-form__password-wrap {
-  position: relative;
+.login-form__show-password {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.login-form__checkbox-label {
   display: flex;
   align-items: center;
-}
-
-.login-form__password-wrap input {
-  padding-right: 44px !important; // prostor pro ikonu
-}
-
-.login-form__eye {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  color: #94a3b8;
-  opacity: 0.8;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #64748b;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: color 0.18s, opacity 0.18s;
-  z-index: 2;
-  font-size: 1.2rem;
-}
-.login-form__eye:hover,
-.login-form__eye:focus {
-  color: #2563eb;
-  opacity: 1;
+  user-select: none;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #475569;
+  }
 }
 
-.login-form__eye:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.login-form__checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  accent-color: #2563eb;
+  transform: scale(1.1);
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .login-form__password-strength {
@@ -235,4 +230,15 @@
 [data-theme="dark"] .login-form__terms a,
 [data-theme="dark"] .login-form__switch a {
   color: #60a5fa;
+}
+[data-theme="dark"] .login-form__checkbox-label {
+  color: #94a3b8;
+  
+  &:hover {
+    color: #cbd5e1;
+  }
+}
+
+[data-theme="dark"] .login-form__checkbox-label input[type="checkbox"] {
+  accent-color: #3b82f6;
 }

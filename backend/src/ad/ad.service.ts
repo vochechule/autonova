@@ -188,10 +188,39 @@ export class AdService {
 
   // ✅ MAIN METHODS
   async create(dto: any, userId: string, files?: Express.Multer.File[]) {
-    // Kontrola limitu inzerátů
+    // ✅ AKTUALIZOVANÁ kontrola limitů podle tier
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { isDealer: true, dealerTier: true }
+    });
+
+    if (!user) {
+      throw new BadRequestException('Uživatel nebyl nalezen');
+    }
+
     const userAdsCount = await this.prisma.ad.count({ where: { userId } });
-    if (userAdsCount >= 10) {
-      throw new BadRequestException('Můžete mít maximálně 10 aktivních inzerátů.');
+
+    // Soukromý uživatel - 10 inzerátů
+    if (!user.isDealer) {
+      if (userAdsCount >= 10) {
+        throw new BadRequestException('Můžete mít maximálně 10 aktivních inzerátů.');
+      }
+    } else {
+      // Dealer - podle tier
+      const tierLimits = {
+        BASIC: 25,
+        PREMIUM: 75,
+        ENTERPRISE: 150
+      };
+
+      const maxAds = tierLimits[user.dealerTier] || 25;
+      
+      if (userAdsCount >= maxAds) {
+        throw new BadRequestException(
+          `Váš ${user.dealerTier} tier umožňuje maximálně ${maxAds} aktivních inzerátů. ` +
+          `Pro zvýšení limitu kontaktujte administrátora.`
+        );
+      }
     }
 
     if (!userId) {

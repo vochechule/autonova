@@ -44,18 +44,10 @@
   align-items: center;
 }
 
-.register-form__icon {
-  position: absolute;
-  left: 13px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #bfc9db;
-  pointer-events: none;
-}
-
 .register-form__input-wrap input {
   width: 100%;
-  padding: 12px 44px 12px 40px;
+  padding: 12px 16px 12px 20px;
+  margin-left: 10px; 
   border-radius: 8px;
   border: 1.5px solid #e5e7eb;
   font-size: 1.05rem;
@@ -65,51 +57,51 @@
   color: #222;
 }
 
-.register-form__input-wrap input:focus {
-  border-color: #2563eb;
-  outline: none;
-  box-shadow: 0 2px 8px rgba(37,99,235,0.10);
+/* ✅ SHOW PASSWORD CHECKBOX */
+.register-form__show-password {
+  margin-top: 8px;
+  margin-bottom: 4px;
 }
 
-.register-form__eye {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #94a3b8;
-  opacity: 0.8;
-  cursor: pointer;
+.register-form__checkbox-label {
   display: flex;
   align-items: center;
-  padding: 0;
-  margin: 0;
-  transition: color 0.18s, opacity 0.18s;
-  z-index: 2;
-  font-size: 1.2rem;
-  height: 32px;
-  width: 32px;
-  justify-content: center;
-}
-.register-form__eye:hover,
-.register-form__eye:focus {
-  color: #2563eb;
-  opacity: 1;
-}
-.register-form__eye:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #475569;
+  }
 }
 
+.register-form__checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  accent-color: #2563eb;
+  transform: scale(1.1);
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* ✅ AKTUALIZUJ password strength - zmenši gap */
 .register-form__password-strength {
   display: flex;
   flex-direction: column;
   gap: 2px;
   margin-bottom: 6px;
   font-size: 0.97rem;
-  margin-top: 4px;
+  margin-top: 8px; /* ✅ Zmenšeno z původních 4px */
 }
+
 .strength-indicator {
   color: #b3b3b3;
   &.valid {
@@ -118,12 +110,37 @@
   }
 }
 
+/* ✅ AKTUALIZUJ terms sekci - aby měla konzistentní checkbox styl */
 .register-form__terms {
   font-size: 0.97rem;
   color: #555;
   margin-bottom: 8px;
   text-align: left;
 }
+
+.register-form__terms label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1.4;
+}
+
+.register-form__terms input[type="checkbox"] {
+  margin: 0;
+  margin-top: 2px; /* ✅ Zarovnání s textem */
+  flex-shrink: 0;
+  accent-color: #2563eb;
+  transform: scale(1.1);
+  cursor: pointer;
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .register-form__terms a {
   color: #2563eb;
   text-decoration: underline;
@@ -196,59 +213,387 @@
   to { width: 100%; }
 }
 
-.register-form__switch {
-  text-align: center;
-  font-size: 0.99rem;
-  color: #555;
-  margin-top: 10px;
-}
-.register-form__switch a {
-  color: #2563eb;
-  font-weight: 600;
-  text-decoration: underline;
+/* ✅ USER TYPE SELECTION STYLES - PŘEPRACOVANÉ */
+.register-form__user-type {
+  margin-bottom: 20px;
+  margin-top: 4px;
 }
 
-@media (max-width: 600px) {
-  .register-form {
-    padding: 18px 4vw;
-    margin: 32px 0;
+.register-form__radio-group {
+  display: flex;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.06);
+}
+
+.register-form__radio-option {
+  position: relative;
+  display: block;
+  cursor: pointer;
+  flex: 1;
+  padding: 18px 16px;
+  background: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  border-right: 1px solid #e2e8f0;
+  
+  &:last-child {
+    border-right: none;
+  }
+  
+  // ✅ Hidden radio input
+  input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  // ✅ Base hover effect
+  &:hover:not(.active) {
+    background: rgba(37, 99, 235, 0.05);
+    
+    .register-form__radio-icon {
+      color: #2563eb;
+      transform: scale(1.05);
+    }
+    
+    strong {
+      color: #1e40af;
+    }
+  }
+  
+  // ✅ Active state - selected option
+  &.active {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    color: white;
+    
+    .register-form__radio-icon {
+      color: white;
+      transform: scale(1.1);
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+    
+    strong {
+      color: white !important;
+      font-weight: 700;
+    }
+    
+    p {
+      color: rgba(255, 255, 255, 0.9) !important;
+    }
+  }
+  
+  // ✅ Disabled state
+  &:has(input:disabled) {
+    opacity: 0.6;
+    cursor: not-allowed;
+    
+    &:hover {
+      background: transparent;
+      
+      .register-form__radio-icon {
+        transform: none;
+      }
+    }
   }
 }
 
-[data-theme="dark"] .register-form {
-  background: linear-gradient(135deg, #232b36 0%, #1a2233 100%);
-  box-shadow: 0 8px 32px rgba(30,41,59,0.22);
+.register-form__radio-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  position: relative;
+  z-index: 2;
 }
-[data-theme="dark"] .register-form h2 {
-  color: #60a5fa;
+
+.register-form__radio-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
 }
-[data-theme="dark"] .register-form label {
-  color: #bfc9db;
+
+.register-form__radio-text {
+  flex: 1;
+  min-width: 0; // Prevents text overflow
 }
-[data-theme="dark"] .register-form__input-wrap input {
-  background: #232b36;
-  color: #e2e8f0;
-  border-color: #334155;
+
+.register-form__radio-text strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 2px;
+  transition: color 0.25s ease;
+  line-height: 1.3;
 }
-[data-theme="dark"] .register-form__input-wrap input:focus {
-  border-color: #60a5fa;
-  background: #232b36;
+
+.register-form__radio-text p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.3;
+  transition: color 0.25s ease;
 }
-[data-theme="dark"] .register-form__error {
-  background: #2d2a1a;
-  color: #f87171;
-  border-color: #b91c1c;
+
+/* ✅ DEALER TIER SELECTION (zatím skryté, ale připravené) */
+.register-form__dealer-tiers {
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  
+  label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+    display: block;
+  }
+  
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    font-size: 0.9rem;
+    color: #1e293b;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    
+    &:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+  
+  .register-form__tier-note {
+    margin: 8px 0 0 0;
+    font-size: 0.75rem;
+    color: #64748b;
+    font-style: italic;
+    line-height: 1.4;
+  }
 }
-[data-theme="dark"] .register-form__success {
-  background: #1e293b;
-  color: #60a5fa;
-  border-color: #2563eb;
+
+/* ✅ RESPONSIVE DESIGN */
+@media (max-width: 600px) {
+  .register-form__radio-group {
+    flex-direction: column;
+    
+    .register-form__radio-option {
+      border-right: none;
+      border-bottom: 1px solid #e2e8f0;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+  
+  .register-form__radio-content {
+    gap: 10px;
+  }
+  
+  .register-form__radio-text strong {
+    font-size: 0.9rem;
+  }
+  
+  .register-form__radio-text p {
+    font-size: 0.75rem;
+  }
 }
-[data-theme="dark"] .register-form__terms,
-[data-theme="dark"] .register-form__switch {
-  color: #bfc9db;
+
+/* ✅ FOCUS ACCESSIBILITY */
+.register-form__radio-option:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 8px;
 }
-[data-theme="dark"] .register-form__terms a,
-[data-theme="dark"] .register-form__switch a {
-  color: #60a5fa;
+
+/* ✅ REDUCED MOTION SUPPORT */
+@media (prefers-reduced-motion: reduce) {
+  .register-form__radio-option,
+  .register-form__radio-icon,
+  .register-form__radio-text strong,
+  .register-form__radio-text p {
+    transition: none;
+  }
+}
+
+/* ✅ DARK THEME SUPPORT - KOMPLETNÍ */
+[data-theme="dark"] {
+  /* ✅ Main form */
+  .register-form {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+  }
+
+  .register-form h2 {
+    color: #60a5fa;
+  }
+
+  .register-form label {
+    color: #cbd5e1;
+  }
+
+  /* ✅ Input fields */
+  .register-form__input-wrap input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+
+  .register-form__input-wrap input:focus {
+    border-color: #60a5fa;
+    background: #0f172a;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+  }
+
+  .register-form__icon {
+    color: #64748b;
+  }
+
+  /* ✅ Button */
+  .register-form button {
+    background: linear-gradient(90deg, #1d4ed8 60%, #3b82f6 100%);
+  }
+
+  .register-form button:disabled {
+    background: #374151;
+  }
+
+  /* ✅ Error & Success messages */
+  .register-form__error {
+    background: #1f1b1b;
+    color: #fca5a5;
+    border-color: #7f1d1d;
+  }
+
+  .register-form__success {
+    background: #0c1e3e;
+    color: #93c5fd;
+    border-color: #1e40af;
+  }
+
+  .register-form__bar {
+    background: #1e293b;
+  }
+
+  .register-form__bar-inner {
+    background: #60a5fa;
+  }
+
+  /* ✅ Password strength */
+  .strength-indicator {
+    color: #64748b;
+    
+    &.valid {
+      color: #4ade80;
+    }
+  }
+
+  /* ✅ Terms */
+  .register-form__terms {
+    color: #cbd5e1;
+  }
+
+  .register-form__terms a {
+    color: #60a5fa;
+  }
+
+  .register-form__terms input[type="checkbox"] {
+    accent-color: #3b82f6;
+  }
+
+  /* ✅ Show password checkbox */
+  .register-form__checkbox-label {
+    color: #94a3b8;
+    
+    &:hover {
+      color: #cbd5e1;
+    }
+  }
+
+  .register-form__checkbox-label input[type="checkbox"] {
+    accent-color: #3b82f6;
+  }
+
+  /* ✅ User type selection */
+  .register-form__radio-group {
+    border-color: #374151;
+    background: #1f2937;
+  }
+  
+  .register-form__radio-option {
+    border-right-color: #374151;
+    
+    &:hover:not(.active) {
+      background: rgba(96, 165, 250, 0.1);
+    }
+    
+    &.active {
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    }
+  }
+  
+  .register-form__radio-icon {
+    color: #9ca3af;
+  }
+  
+  .register-form__radio-text strong {
+    color: #f3f4f6;
+  }
+  
+  .register-form__radio-text p {
+    color: #9ca3af;
+  }
+
+  /* ✅ Dealer tiers */
+  .register-form__dealer-tiers {
+    background: #1f2937;
+    border-color: #374151;
+    
+    label {
+      color: #f3f4f6;
+    }
+    
+    select {
+      background: #111827;
+      border-color: #374151;
+      color: #f3f4f6;
+      
+      &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+    }
+    
+    .register-form__tier-note {
+      color: #9ca3af;
+    }
+  }
+
+  /* ✅ PŘIDEJ styly pro switch v dark mode */
+  .register-form__switch {
+    color: #bfc9db;
+  }
+
+  .register-form__switch a {
+    color: #60a5fa;
+    text-decoration: underline;
+  }
 }
