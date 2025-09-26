@@ -1340,13 +1340,13 @@ export default function AdCreateForm({
 
             {/* Checkboxy */}
             <div className="form-grid" style={{ marginTop: '1rem' }}>
-              <label className="checkbox-label">
+              {/* <label className="checkbox-label">
                 <input 
                   name="ecoTaxPaid" 
                   type="checkbox" 
                   defaultChecked={mode === 'edit' ? adData?.ecoTaxPaid : false}
                 /> Eko daň zaplacena
-              </label>
+              </label> */}
               <label className="checkbox-label">
                 <input 
                   name="isFirstOwner" 
