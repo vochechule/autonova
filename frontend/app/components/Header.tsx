@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react' // ✅ PŘIDÁNO useRef
+import { usePathname, useRouter } from 'next/navigation' // ✅ PŘIDÁNO useRouter
 import Image from 'next/image'
 import Link from 'next/link'
 import '../styles/components/Header.scss'
@@ -9,7 +9,11 @@ export default function Header() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
   const [authLoaded, setAuthLoaded] = useState(false)
+  const [showUserDropdown, setShowUserDropdown] = useState(false) // ✅ PŘIDÁNO
+  const [isLoggingOut, setIsLoggingOut] = useState(false) // ✅ PŘIDÁNO
   const pathname = usePathname()
+  const router = useRouter() // ✅ PŘIDÁNO
+  const dropdownRef = useRef<HTMLDivElement>(null) // ✅ PŘIDÁNO
 
   useEffect(() => {
     // ✅ DARK MODE - Safe for SSR
@@ -28,7 +32,7 @@ export default function Header() {
     const checkAuth = () => {
       const token = localStorage.getItem('token')
       setLoggedIn(!!token)
-      setAuthLoaded(true) // ✅ Mark as loaded
+      setAuthLoaded(true)
     }
 
     checkAuth()
@@ -56,10 +60,55 @@ export default function Header() {
     }
   }, [isDarkMode])
 
+  // ✅ PŘIDÁNO - Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false)
+      }
+    }
+
+    if (showUserDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showUserDropdown])
+
   const toggleDarkMode = () => {
     const newMode = !isDarkMode
     setIsDarkMode(newMode)
     localStorage.setItem('darkMode', String(newMode))
+  }
+
+  // ✅ PŘIDÁNO - Logout handler
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    setShowUserDropdown(false)
+    
+    try {
+      // Clear auth data
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      
+      // Dispatch auth change event
+      window.dispatchEvent(new Event('authChange'))
+      
+      // Redirect to home
+      router.push('/')
+      
+      // Show success message (optional)
+      setTimeout(() => {
+        console.log('Odhlášení úspěšné')
+      }, 100)
+      
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setIsLoggingOut(false)
+    }
   }
 
   return (
@@ -81,21 +130,18 @@ export default function Header() {
           <Link href="/" className="header__link">Domů</Link>
           <Link href="/ads" className="header__link">Inzeráty</Link>
           
-          {/* ✅ CONDITIONAL LINK - Only show when loaded and logged in */}
           {authLoaded && loggedIn && (
             <Link href="/saved-ads" className="header__link">Oblíbené</Link>
           )}
           
-          {/* ✅ AUTH BUTTONS - Always present but with loading states */}
           <div className={`header__desktop-nav ${!authLoaded ? 'header__desktop-nav--loading' : ''}`}>
             {!authLoaded ? (
-              // ✅ LOADING STATE - Same layout as real buttons
               <>
                 <div className="header__button-skeleton header__button-skeleton--secondary"></div>
                 <div className="header__button-skeleton header__button-skeleton--primary"></div>
               </>
             ) : loggedIn ? (
-              // ✅ LOGGED IN STATE
+              // ✅ LOGGED IN STATE - upraveno
               <>
                 <Link href="/ads/create" className="header__button header__button--primary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -103,17 +149,57 @@ export default function Header() {
                   </svg>
                   Přidat inzerát
                 </Link>
-                <Link href="/profile" className="header__button header__button--secondary">
-                  <div className="header__profile-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                
+                {/* ✅ USER DROPDOWN */}
+                <div className="header__user-dropdown-wrapper" ref={dropdownRef}>
+                  <button 
+                    className={`header__button header__button--secondary ${showUserDropdown ? 'active' : ''}`}
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  >
+                    <div className="header__profile-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
+                    </div>
+                    Profil
+                    <svg 
+                      width="12" 
+                      height="12" 
+                      viewBox="0 0 24 24" 
+                      fill="none"
+                      className={`header__dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}
+                    >
+                      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                  </div>
-                  Profil
-                </Link>
+                  </button>
+                  
+                  {showUserDropdown && (
+                    <div className="header__user-dropdown">
+                      <Link 
+                        href="/profile" 
+                        className="header__dropdown-item"
+                        onClick={() => setShowUserDropdown(false)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Můj profil
+                      </Link>
+                      <button 
+                        className="header__dropdown-item header__dropdown-item--logout"
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        {isLoggingOut ? 'Odhlašuji...' : 'Odhlásit se'}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
-              // ✅ NOT LOGGED IN STATE
               <>
                 <Link href="/login" className="header__button header__button--secondary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
