@@ -1,4 +1,4 @@
-// Complete fix: frontend/app/ads/[id]/page.tsx
+// Update: frontend/app/ads/[id]/page.tsx
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -46,6 +46,9 @@ interface AdUser {
   lastName?: string;
   avatar?: string;
   location?: string;
+  // ✅ OPRAVENO - správné názvy z backendu
+  averageRating?: number; // Backend posílá "averageRating"
+  reviewCount?: number;   // Možná se jmenuje jinak nebo chybí
 }
 
 interface AdType {
@@ -132,6 +135,13 @@ export default function AdDetailPage() {
         }
         
         const data = await response.json()
+        
+        // ✅ PŘIDÁNO - debug console log
+        console.log('🔍 Ad data received:', data)
+        console.log('🔍 User data:', data.user)
+        console.log('🔍 Rating:', data.user?.rating)
+        console.log('🔍 Review count:', data.user?.reviewCount)
+        
         setAd(data)
       } catch (error) {
         console.error('Error fetching ad:', error)
@@ -409,7 +419,45 @@ export default function AdDetailPage() {
                       ? `${ad.user.firstName} ${ad.user.lastName}`
                       : ad.contactName || `${ad.user?.name}`}
                   </div>
-                  <div className="listing-detail-page__seller-location">{ad.user?.location ?? 'Neuvedeno'}</div>
+                  
+                  {/* ✅ OPRAVENO - lokace z více zdrojů */}
+                  <div className="listing-detail-page__seller-location">
+                    {ad.user?.location || ad.address || 'Neuvedeno'}
+                  </div>
+                  
+                  {/* ✅ PŘIDÁNO - hodnocení prodejce */}
+                  {(() => {
+                    console.log('🔍 Checking rating display:')
+                    console.log('averageRating:', ad.user?.averageRating)
+                    console.log('reviewCount:', ad.user?.reviewCount)
+                    
+                    // Zkus zobrazit i když nemáme reviewCount
+                    const hasRating = ad.user?.averageRating !== undefined && ad.user?.averageRating > 0
+                    console.log('hasRating:', hasRating)
+                    
+                    return hasRating
+                  })() && (
+                    <div className="listing-detail-page__seller-rating">
+                      <div className="listing-detail-page__stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <svg 
+                            key={star}
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill={star <= (ad.user?.averageRating || 0) ? '#fbbf24' : '#e5e7eb'}
+                            className="listing-detail-page__star"
+                          >
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                          </svg>
+                        ))}
+                      </div>
+                      <span className="listing-detail-page__rating-text">
+                        {(ad.user?.averageRating || 0).toFixed(1)}
+                        {ad.user?.reviewCount !== undefined && ` (${ad.user.reviewCount} hodnocení)`}
+                      </span>
+                    </div>
+                  )}
                   
                   {/* Kontaktní údaje - pouze pro přihlášené */}
                   <div className="listing-detail-page__contact-info">

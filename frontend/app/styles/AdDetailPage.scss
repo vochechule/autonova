@@ -2020,3 +2020,117 @@
     background: rgba(26, 32, 44, 0.8);
   }
 }
+// Add to end of: frontend/app/styles/AdDetailPage.scss
+
+/* ✅ SELLER RATING STYLES */
+.listing-detail-page__seller-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  margin-top: 4px;
+
+  @media (max-width: 768px) {
+    gap: 6px;
+    margin-bottom: 6px;
+    margin-top: 3px;
+  }
+
+  @media (max-width: 400px) {
+    gap: 4px;
+    margin-bottom: 4px;
+    margin-top: 2px;
+  }
+}
+
+.listing-detail-page__stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  @media (max-width: 768px) {
+    gap: 1px;
+  }
+}
+
+.listing-detail-page__star {
+  flex-shrink: 0;
+  transition: fill 0.2s ease;
+
+  @media (max-width: 768px) {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  @media (max-width: 400px) {
+    width: 10px !important;
+    height: 10px !important;
+  }
+}
+
+.listing-detail-page__rating-text {
+  font-size: 13px;
+  color: #718096;
+  font-weight: 500;
+  white-space: nowrap;
+
+  @media (max-width: 768px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 400px) {
+    font-size: 11px;
+  }
+}
+
+/* ✅ DARK MODE for rating */
+[data-theme="dark"] {
+  .listing-detail-page__rating-text {
+    color: #a0aec0;
+  }
+  
+  .listing-detail-page__star {
+    &[fill="#e5e7eb"] {
+      fill: #4a5568;
+    }
+  }
+}
+
+/* ✅ HOVER effect pro hvězdičky */
+.listing-detail-page__stars:hover .listing-detail-page__star {
+  transform: scale(1.05);
+  transition: transform 0.1s ease;
+}
+
+/* ✅ Better spacing pro location s rating */
+.listing-detail-page__seller-location {
+  font-size: 14px;
+  color: #718096;
+  font-weight: 500;
+  margin-bottom: 4px; /* ✅ Menší mezera kvůli rating */
+
+  @media (max-width: 768px) {
+    font-size: 13px;
+    margin-bottom: 3px;
+  }
+
+  @media (max-width: 400px) {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+}
+
+/* ✅ Když není rating, větší mezera u contact info */
+.listing-detail-page__seller-details:not(:has(.listing-detail-page__seller-rating)) {
+  .listing-detail-page__contact-info {
+    margin-top: 8px; /* ✅ Větší mezera když není rating */
+
+    @media (max-width: 768px) {
+      margin-top: 6px;
+    }
+
+    @media (max-width: 400px) {
+      margin-top: 4px;
+    }
+  }
+}
