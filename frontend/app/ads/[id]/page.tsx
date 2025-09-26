@@ -136,11 +136,7 @@ export default function AdDetailPage() {
         
         const data = await response.json()
         
-        // ✅ PŘIDÁNO - debug console log
-        console.log('🔍 Ad data received:', data)
-        console.log('🔍 User data:', data.user)
-        console.log('🔍 Rating:', data.user?.rating)
-        console.log('🔍 Review count:', data.user?.reviewCount)
+      
         
         setAd(data)
       } catch (error) {
@@ -427,13 +423,8 @@ export default function AdDetailPage() {
                   
                   {/* ✅ PŘIDÁNO - hodnocení prodejce */}
                   {(() => {
-                    console.log('🔍 Checking rating display:')
-                    console.log('averageRating:', ad.user?.averageRating)
-                    console.log('reviewCount:', ad.user?.reviewCount)
-                    
-                    // Zkus zobrazit i když nemáme reviewCount
+                
                     const hasRating = ad.user?.averageRating !== undefined && ad.user?.averageRating > 0
-                    console.log('hasRating:', hasRating)
                     
                     return hasRating
                   })() && (

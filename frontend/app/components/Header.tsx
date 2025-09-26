@@ -100,9 +100,7 @@ export default function Header() {
       router.push('/')
       
       // Show success message (optional)
-      setTimeout(() => {
-        console.log('Odhlášení úspěšné')
-      }, 100)
+      // (Optional) You can show a toast or notification here if needed
       
     } catch (error) {
       console.error('Logout error:', error)
