@@ -92,6 +92,7 @@ interface AdType {
   condition?: string;
   firstRegistration?: string;
   euroStandard?: string;
+  isDisabledAdapted?: boolean; // Úprava pro ZTP
   
   // ✅ NOVÉ FIELDS
   safetyFeatures?: string;      // Bezpečnostní systémy
