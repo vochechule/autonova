@@ -1923,7 +1923,6 @@ export default function AdCreateForm({
           <div className="ad-create-upload-modal">
             <div className="ad-create-upload-spinner"></div>
             <div className="ad-create-upload-text">
-              <h3>Ukládám inzerát...</h3>
               <p>{uploadStep || 'Probíhá ukládání, čekejte prosím.'}</p>
               {uploadProgress !== null && (
                 <div className="ad-create-upload-progressbar">
