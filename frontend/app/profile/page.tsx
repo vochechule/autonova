@@ -9,6 +9,7 @@ import { PageLoading, ButtonLoading } from '../components/LoadingStates'
 import { UnauthorizedPage, NetworkErrorPage } from '../components/ErrorPages'
 import { useToast } from '../contexts/ToastContext'
 import { useAuth } from '../hooks/AuthProvider';
+import { KeyRound, Pencil, Trash2, LogOut } from 'lucide-react';
 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -67,6 +68,7 @@ export default function ProfilePage() {
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [showEditProfile, setShowEditProfile] = useState(false)
   const [showDeleteAccount, setShowDeleteAccount] = useState(false)
+  const [showSettings, setShowSettings] = useState(false) // ✅ PŘIDÁNO
 
   const { showSuccess, showError } = useToast()
 
@@ -224,6 +226,32 @@ export default function ProfilePage() {
     setError(null)
     fetchProfileData()
   }
+
+  // Update: frontend/app/profile/page.tsx
+  // Na začátek přidej k ostatním useState:
+
+  // ✅ PŘIDÁNO - Funkce pro refresh profilu po úpravě
+  const handleProfileUpdateSuccess = useCallback(async () => {
+    // Zavři modal
+    setShowEditProfile(false)
+    
+    // Refreshni profile data
+    try {
+      const token = getToken()
+      if (token && user) {
+        const profileRes = await fetch(`${API_URL}/user/${user.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (profileRes.ok) {
+          const updatedProfile = await profileRes.json()
+          setProfile(updatedProfile)
+          showSuccess('Profil aktualizován', 'Vaše údaje byly úspěšně změněny')
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing profile:', error)
+    }
+  }, [getToken, user, showSuccess])
 
   // Show loading only if auth is loading OR we're fetching profile data
   if ((loading || loadingState) && !isLoggingOut) {
@@ -493,38 +521,59 @@ export default function ProfilePage() {
       )}
 
       <section className="profile-page__settings">
-        <h2>Správa účtu</h2>
-        <div className="profile-page__settings-list">
-          <button onClick={() => setShowChangePassword(true)}>
-            Změnit heslo
-          </button>
-          <button onClick={() => setShowEditProfile(true)}>
-            Upravit údaje na profilu
-          </button>
-          <button onClick={() => setShowDeleteAccount(true)}>
-            Smazat účet
-          </button>
+        <div className="profile-page__settings-header">
+          <h2>Správa účtu</h2>
           <button 
-            className="profile-page__logout-btn"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
+            className={`profile-page__settings-toggle ${showSettings ? 'active' : ''}`}
+            onClick={() => setShowSettings(!showSettings)}
           >
-            {isLoggingOut ? 'Odhlašuji...' : 'Odhlásit se'}
+            {showSettings ? 'Skrýt možnosti' : 'Zobrazit možnosti'}
+            <span className={`profile-page__settings-arrow ${showSettings ? 'up' : 'down'}`}>
+              ▼
+            </span>
           </button>
+        </div>
+        
+        <div className={`profile-page__settings-content ${showSettings ? 'expanded' : 'collapsed'}`}>
+            <div className="profile-page__settings-list">
+            <button onClick={() => setShowChangePassword(true)}>
+              <KeyRound size={18} style={{ marginRight: 8 }} />
+              Změnit heslo
+            </button>
+            <button onClick={() => setShowEditProfile(true)}>
+              <Pencil size={18} style={{ marginRight: 8 }} />
+              Upravit údaje na profilu
+            </button>
+            <button onClick={() => setShowDeleteAccount(true)}>
+              <Trash2 size={18} style={{ marginRight: 8 }} />
+              Smazat účet
+            </button>
+            <button
+              className="profile-page__logout-btn"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              <LogOut size={18} style={{ marginRight: 8 }} />
+              {isLoggingOut ? '⏳ Odhlašuji...' : 'Odhlásit se'}
+            </button>
+            </div>
         </div>
       </section>
 
       <ChangePasswordModal
         isOpen={showChangePassword}
         onClose={() => setShowChangePassword(false)}
-        onSuccess={() => {}}
+        onSuccess={() => {
+          setShowChangePassword(false)
+          showSuccess('Heslo změněno', 'Vaše heslo bylo úspěšně změněno')
+        }}
       />
 
       <EditProfileModal
         isOpen={showEditProfile}
         onClose={() => setShowEditProfile(false)}
         user={profile}
-        onSuccess={() => {}}
+        onSuccess={handleProfileUpdateSuccess} // ✅ ZMĚNĚNO - použije refresh funkci
       />
 
       <DeleteAccountModal
