@@ -1,6 +1,6 @@
 'use client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { getModelsList } from '../data/carData'
 import BrandSelect from './BrandSelect'
 import ModelSelect from './ModelSelect'
@@ -29,6 +29,15 @@ export default function FilterSidebar({
   const router = useRouter()
   const searchParams = useSearchParams()
   const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+  
+  // Local state pro search input
+  const [localSearchValue, setLocalSearchValue] = useState('')
+  const [localYearFrom, setLocalYearFrom] = useState('')
+  const [localYearTo, setLocalYearTo] = useState('')
+  const [localDoorCount, setLocalDoorCount] = useState('')
+  const [localSeatCount, setLocalSeatCount] = useState('')
+  const [localPowerFrom, setLocalPowerFrom] = useState('')
+  const [localPowerTo, setLocalPowerTo] = useState('')
 
   // Always read filter values from searchParams
   const selectedBrand = searchParams.get('brand') || ''
@@ -53,11 +62,30 @@ export default function FilterSidebar({
   const powerTo = searchParams.get('powerTo') || ''
   const modelsList = getModelsList(selectedBrand)
 
+  // Sync local state s URL params při načtení
+  useEffect(() => {
+    setLocalSearchValue(searchValue)
+    setLocalYearFrom(yearFrom)
+    setLocalYearTo(yearTo)
+    setLocalDoorCount(doorCount)
+    setLocalSeatCount(seatCount)
+    setLocalPowerFrom(powerFrom)
+    setLocalPowerTo(powerTo)
+  }, [searchValue, yearFrom, yearTo, doorCount, seatCount, powerFrom, powerTo])
+
   // --- Handlers ---
   const updateParams = (callback: (params: URLSearchParams) => void) => {
     const params = new URLSearchParams(searchParams.toString())
     callback(params)
     router.push(`/ads${params.toString() ? `?${params.toString()}` : ''}`, { scroll: false })
+  }
+
+  // Debounced update pro text inputy
+  const debouncedUpdateParams = (callback: (params: URLSearchParams) => void, delay = 500) => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => {
+      updateParams(callback)
+    }, delay)
   }
 
   const handleBrandChange = (brandValue: string) => {
@@ -108,15 +136,80 @@ export default function FilterSidebar({
     })
   }
 
-  const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    if (debounceTimer.current) clearTimeout(debounceTimer.current)
-    debounceTimer.current = setTimeout(() => {
-      updateParams(params => {
-        if (value) params.set(name, value)
-        else params.delete(name)
-      })
-    }, 300)
+  // Search input handler
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setLocalSearchValue(value) // Okamžitě aktualizuj local state
+    
+    // Debounced update URL
+    debouncedUpdateParams(params => {
+      if (value.trim()) params.set('search', value.trim())
+      else params.delete('search')
+    }, 800) // 800ms delay pro vyhledávání
+  }
+
+  // Year input handlers
+  const handleYearFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setLocalYearFrom(value)
+    
+    debouncedUpdateParams(params => {
+      if (value) params.set('yearFrom', value)
+      else params.delete('yearFrom')
+    })
+  }
+
+  const handleYearToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setLocalYearTo(value)
+    
+    debouncedUpdateParams(params => {
+      if (value) params.set('yearTo', value)
+      else params.delete('yearTo')
+    })
+  }
+
+  // Door count handler
+  const handleDoorCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setLocalDoorCount(value)
+    
+    debouncedUpdateParams(params => {
+      if (value) params.set('doorCount', value)
+      else params.delete('doorCount')
+    })
+  }
+
+  // Seat count handler
+  const handleSeatCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setLocalSeatCount(value)
+    
+    debouncedUpdateParams(params => {
+      if (value) params.set('seatCount', value)
+      else params.delete('seatCount')
+    })
+  }
+
+  // Power handlers
+  const handlePowerFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setLocalPowerFrom(value)
+    
+    debouncedUpdateParams(params => {
+      if (value) params.set('powerFrom', value)
+      else params.delete('powerFrom')
+    })
+  }
+
+  const handlePowerToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setLocalPowerTo(value)
+    
+    debouncedUpdateParams(params => {
+      if (value) params.set('powerTo', value)
+      else params.delete('powerTo')
+    })
   }
 
   const handleColorChange = (value: string) => {
@@ -169,8 +262,8 @@ export default function FilterSidebar({
               name="search"
               className="filter-sidebar__input"
               placeholder="Zadejte značku, model..."
-              value={searchValue}
-              onChange={handleTextInputChange}
+              value={localSearchValue}
+              onChange={handleSearchChange}
             />
           </div>
           {/* Location */}
@@ -216,30 +309,80 @@ export default function FilterSidebar({
           {/* Door count */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label" htmlFor="doorCount">Počet dveří</label>
-            <input id="doorCount" name="doorCount" type="number" min={2} max={6} className="filter-sidebar__input" placeholder="Počet dveří" value={doorCount} onChange={handleTextInputChange} />
+            <input 
+              id="doorCount" 
+              name="doorCount" 
+              type="number" 
+              min={2} 
+              max={6} 
+              className="filter-sidebar__input" 
+              placeholder="Počet dveří" 
+              value={localDoorCount} 
+              onChange={handleDoorCountChange} 
+            />
           </div>
           {/* Seat count */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label" htmlFor="seatCount">Počet míst</label>
-            <input id="seatCount" name="seatCount" type="number" min={2} max={9} className="filter-sidebar__input" placeholder="Počet míst" value={seatCount} onChange={handleTextInputChange} />
+            <input 
+              id="seatCount" 
+              name="seatCount" 
+              type="number" 
+              min={2} 
+              max={9} 
+              className="filter-sidebar__input" 
+              placeholder="Počet míst" 
+              value={localSeatCount} 
+              onChange={handleSeatCountChange} 
+            />
           </div>
           {/* Power from */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label" htmlFor="powerFrom">Výkon od (kW)</label>
-            <input id="powerFrom" name="powerFrom" type="number" className="filter-sidebar__input" placeholder="Výkon od" value={powerFrom} onChange={handleTextInputChange} />
+            <input 
+              id="powerFrom" 
+              name="powerFrom" 
+              type="number" 
+              className="filter-sidebar__input" 
+              placeholder="Výkon od" 
+              value={localPowerFrom} 
+              onChange={handlePowerFromChange} 
+            />
           </div>
           {/* Power to */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label" htmlFor="powerTo">Výkon do (kW)</label>
-            <input id="powerTo" name="powerTo" type="number" className="filter-sidebar__input" placeholder="Výkon do" value={powerTo} onChange={handleTextInputChange} />
+            <input 
+              id="powerTo" 
+              name="powerTo" 
+              type="number" 
+              className="filter-sidebar__input" 
+              placeholder="Výkon do" 
+              value={localPowerTo} 
+              onChange={handlePowerToChange} 
+            />
           </div>
           {/* Year Range */}
           <div className="filter-sidebar__section">
             <label className="filter-sidebar__label">Rok výroby</label>
             <div className="filter-sidebar__range">
-              <input type="number" name="yearFrom" className="filter-sidebar__input filter-sidebar__input--small" placeholder="Od" value={yearFrom} onChange={handleTextInputChange} />
+              <input 
+                type="number" 
+                name="yearFrom" 
+                className="filter-sidebar__input filter-sidebar__input--small" 
+                placeholder="Od" 
+                value={localYearFrom} 
+                onChange={handleYearFromChange} 
+              />
               <span className="filter-sidebar__range-separator">-</span>
-              <input type="number" name="yearTo" className="filter-sidebar__input filter-sidebar__input--small" placeholder="Do" value={yearTo} onChange={handleTextInputChange} />
+              <input 
+                type="number" 
+                name="yearTo" 
+                className="filter-sidebar__input filter-sidebar__input--small" 
+                placeholder="Do" 
+                value={localYearTo} 
+                onChange={handleYearToChange} 
+              />
             </div>
           </div>
           {/* Fuel checkboxes */}
