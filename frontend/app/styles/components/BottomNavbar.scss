@@ -135,3 +135,205 @@
     }
   }
 }
+
+/* ✅ USER DROPDOWN STYLES for bottom nav - IMPROVED */
+.bottom-navbar__user-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.bottom-navbar__item.dropdown-active {
+  color: var(--primary-color, #3b82f6);
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 12px;
+}
+
+.bottom-navbar__user-dropdown {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 10001; /* ✅ VYŠŠÍ než back-to-top (10000) */
+  min-width: 180px;
+  animation: bottomDropdownSlideUp 0.2s ease-out;
+
+  /* ✅ RESPONSIVE positioning - zabráníme vyjetí z viewport */
+  @media (max-width: 480px) {
+    /* Když je příliš vpravo, posuneme vlevo */
+    right: 8px;
+    left: auto;
+    transform: none;
+    min-width: 160px;
+  }
+  
+  @media (min-width: 481px) and (max-width: 600px) {
+    /* Pro střední mobily - lehce upravíme pozici */
+    right: 16px;
+    left: auto;
+    transform: none;
+  }
+
+  // ✅ Arrow pointer (dolů) - upraveno pro responsive
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: none;
+    border-left: none;
+    z-index: -1;
+    transform: rotate(45deg);
+    
+    /* Desktop - střed */
+    @media (min-width: 601px) {
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+    }
+    
+    /* Mobile - vpravo od dropdownu */
+    @media (max-width: 600px) {
+      right: 24px;
+      left: auto;
+    }
+  }
+}
+
+.bottom-navbar__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  color: #374151;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background: rgba(59, 130, 246, 0.05);
+    color: #2563eb;
+  }
+  
+  &--logout {
+    color: #dc2626;
+    
+    &:hover {
+      background: rgba(220, 38, 38, 0.05);
+      color: #b91c1c;
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+  
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+/* ✅ ANIMATION - responsive */
+@keyframes bottomDropdownSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pro desktop animaci s translateX */
+@media (min-width: 601px) {
+  @keyframes bottomDropdownSlideUp {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+}
+
+/* ✅ DARK MODE for bottom nav dropdown */
+[data-theme="dark"] {
+  .bottom-navbar__item.dropdown-active {
+    color: var(--primary-color, #60a5fa);
+    background: rgba(96, 165, 250, 0.15);
+  }
+  
+  .bottom-navbar__user-dropdown {
+    background: #1f2937;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    
+    &::after {
+      background: #1f2937;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+  
+  .bottom-navbar__dropdown-item {
+    color: #d1d5db;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    
+    &:hover {
+      background: rgba(59, 130, 246, 0.1);
+      color: #93c5fd;
+    }
+    
+    &--logout {
+      color: #f87171;
+      
+      &:hover {
+        background: rgba(239, 68, 68, 0.1);
+        color: #fca5a5;
+      }
+    }
+  }
+}
+
+/* ✅ BACK-TO-TOP BUTTON adjustment - pokud máš back-to-top */
+.back-to-top {
+  z-index: 9999 !important; /* ✅ NIŽŠÍ než dropdown */
+}
+
+/* ✅ EXTRA safe margin pro velmi malé mobily */
+@media (max-width: 360px) {
+  .bottom-navbar__user-dropdown {
+    right: 4px;
+    min-width: 150px;
+    
+    &::after {
+      right: 20px;
+    }
+  }
+  
+  .bottom-navbar__dropdown-item {
+    padding: 12px 14px;
+    font-size: 0.85rem;
+  }
+}
