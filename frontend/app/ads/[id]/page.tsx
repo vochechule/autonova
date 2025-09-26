@@ -634,9 +634,13 @@ export default function AdDetailPage() {
                   <span className="listing-detail-page__spec-label">Záruka do</span>
                   <span className="listing-detail-page__spec-value">{ad.warrantyUntil ? new Date(ad.warrantyUntil).toLocaleDateString() : '-'}</span>
                 </div>
-                <div className="listing-detail-page__spec-item">
+                {/* <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Ekopoplatek</span>
                   <span className="listing-detail-page__spec-value">{ad.ecoTaxPaid ? 'Zaplacen' : 'Nezaplacen'}</span>
+                </div> */}
+                <div className="listing-detail-page__spec-item">
+                  <span className="listing-detail-page__spec-label">Úprava pro ZTP</span>
+                  <span className="listing-detail-page__spec-value">{ad.isDisabledAdapted ? 'Ano' : 'Ne'}</span>
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Země původu</span>
