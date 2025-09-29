@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma, PrismaClientKnownRequestError } from '@prisma/client'; // ✅ OPRAVENO - přidej PrismaClientKnownRequestError
+import { Prisma } from '@prisma/client'; // ✅ OPRAVENO - jen Prisma
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -93,8 +93,8 @@ export class AuthService {
         token,
       };
     } catch (error) {
-      // ✅ OPRAVENO - použij správný import
-      if (error instanceof PrismaClientKnownRequestError) {
+      // ✅ OPRAVENO - použij Prisma.PrismaClientKnownRequestError
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ConflictException({
             code: 'EMAIL_ALREADY_EXISTS',
