@@ -17,6 +17,26 @@ model User {
   tierUpgradedAt   DateTime?  // Kdy byl tier naposledy změněn
   role             Role      @default(USER)
   ads              Ad[]
+  savedAds         SavedAd[]
+  reviewsWritten   Review[]
+  reviewsReceived  Review[]  @relation("TargetReviews")
+  createdAt        DateTime  @default(now())
+}
+
+model Ad {
+  id                  String         @id @default(uuid())
+  title               String
+  brand               String
+  model               String
+  description         String
+  price               Int
+  mileage             Int
+  year                Int?
+  firstRegistration   Int?
+  bodyType            BodyType
+  doorCount           Int
+  seatCount           Int
+  color               String
   colorFinish         String?
   airbagCount         Int?           // ✅ ZMĚNĚNO - nyní volitelný
   airConditioning     AirConditioning?
