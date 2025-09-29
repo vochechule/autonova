@@ -40,6 +40,7 @@ export const carBrands = {
       'Sharan',
       'Touran',
       'Caddy',
+      'CC',
       'Transporter',
       'Crafter',
       'ID.3',
