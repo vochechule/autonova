@@ -4,7 +4,6 @@ import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { EmailService } from '../email/email.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma } from '@prisma/client'; // ✅ OPRAVENO - jen Prisma
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -39,7 +38,7 @@ export class AuthService {
       });
     }
 
-    // ✅ Check if email already exists
+    // ✅ OPRAVENO - Jednoduchá kontrola existence emailu
     const existingUser = await this.userService.findByEmail(email);
     if (existingUser) {
       throw new ConflictException({
@@ -62,7 +61,6 @@ export class AuthService {
       // Pokud je dealer, nastav tier (defaultně BASIC)
       if (isDealer) {
         const validTiers = ['BASIC', 'PREMIUM', 'ENTERPRISE'];
-        // ✅ OPRAVENO - Přidej type guard a default hodnotu
         const tierToCheck = dealerTier?.toUpperCase() || 'BASIC';
         userData.dealerTier = validTiers.includes(tierToCheck) 
           ? tierToCheck 
@@ -93,17 +91,21 @@ export class AuthService {
         token,
       };
     } catch (error) {
-      // ✅ OPRAVENO - použij Prisma.PrismaClientKnownRequestError
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new ConflictException({
-            code: 'EMAIL_ALREADY_EXISTS',
-            message: 'Email se již používá'
-          });
-        }
+      // ✅ OPRAVENO - Jednoduchý error handling bez Prisma specifics
+      console.error('Registration error:', error);
+      
+      // Pokud obsahuje "unique" nebo "duplicate", je to duplicitní email
+      if (error.message && (
+        error.message.includes('unique') || 
+        error.message.includes('duplicate') ||
+        error.message.includes('Unique constraint')
+      )) {
+        throw new ConflictException({
+          code: 'EMAIL_ALREADY_EXISTS',
+          message: 'Email se již používá'
+        });
       }
       
-      console.error('Registration error:', error);
       throw new BadRequestException({
         code: 'REGISTRATION_FAILED',
         message: 'Registrace se nezdařila'
