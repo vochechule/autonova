@@ -97,8 +97,8 @@ export class AuthService {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ConflictException({
-            code: 'EMAIL_ALREADY_EXISTS',
-            message: 'Email se již používá'
+        code: 'EMAIL_ALREADY_EXISTS',
+        message: 'Email se již používá'
           });
         }
       }
