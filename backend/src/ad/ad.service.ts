@@ -588,18 +588,29 @@ export class AdService {
 
     // Handle image deletion
     if (dto.imagesToDelete && Array.isArray(dto.imagesToDelete)) {
-      
+
       for (const imageId of dto.imagesToDelete) {
         const imageToDelete = await this.prisma.image.findUnique({
           where: { id: imageId }
         });
 
         if (imageToDelete && imageToDelete.adId === id) {
-          // Delete from storage
-          const fileName = imageToDelete.url.split('/').pop();
+          // ✅ OPRAVENO - Smaž ze storage pomocí helper metody
+          const fileName = this.extractFileNameFromUrl(imageToDelete.url);
+          
           if (fileName) {
-            await this.supabase.storage.from('photos').remove([fileName]);
+            
+            const { error } = await this.supabase.storage
+              .from('photos')
+              .remove([fileName]);
+            
+            if (error) {
+              console.error('❌ Chyba při mazání obrázku ze Supabase:', error);
+              // Pokračuj v mazání z databáze i když storage selhalo
+            } else {
+            }
           }
+          
           // Delete from database
           await this.prisma.image.delete({ where: { id: imageId } });
         }
@@ -677,8 +688,62 @@ export class AdService {
   }
 
   async remove(id: string) {
-    await this.prisma.image.deleteMany({ where: { adId: id } });
-    return this.prisma.ad.delete({ where: { id } });
+    try {
+      // ✅ PŘIDÁNO - Nejdřív získej všechny obrázky před smazáním
+      const adWithImages = await this.prisma.ad.findUnique({
+        where: { id },
+        include: { images: true }
+      });
+
+      if (!adWithImages) {
+        throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
+      }
+
+
+      // ✅ PŘIDÁNO - Smaž obrázky ze Supabase storage
+      if (adWithImages.images && adWithImages.images.length > 0) {
+        const filesToDelete: string[] = [];
+
+        for (const image of adWithImages.images) {
+          // Extrahuj název souboru z URL
+          const fileName = this.extractFileNameFromUrl(image.url);
+          if (fileName) {
+            filesToDelete.push(fileName);
+          }
+        }
+
+
+        // Smaž soubory ze Supabase storage
+        if (filesToDelete.length > 0) {
+          const { data, error } = await this.supabase.storage
+            .from('photos')
+            .remove(filesToDelete);
+
+          if (error) {
+            console.error('❌ Chyba při mazání souborů ze Supabase:', error);
+            // Nepřerušuj mazání inzerátu kvůli chybě v storage
+          } else {
+          }
+        }
+      }
+
+      // ✅ PŮVODNÍ - Smaž záznamy z databáze (Cascade automatically deletes images)
+      const deletedAd = await this.prisma.ad.delete({ 
+        where: { id },
+        include: { images: true }
+      });
+
+      return deletedAd;
+
+    } catch (error) {
+      console.error('❌ Chyba při mazání inzerátu:', error);
+      
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      throw new BadRequestException('Nepodařilo se smazat inzerát');
+    }
   }
 
   async findByUser(userId: string) {
@@ -695,5 +760,32 @@ export class AdService {
 
   async deletePhoto(photoId: string) {
     return this.prisma.image.delete({ where: { id: photoId } });
+  }
+
+  
+
+  // ✅ PŘIDÁNO - Helper metoda pro extrakci názvu souboru
+  private extractFileNameFromUrl(url: string): string | null {
+    try {
+      // Supabase URL format: https://xxx.supabase.co/storage/v1/object/public/photos/filename.jpg
+      // Nebo jen filename.jpg pokud je jen název
+    
+      if (url.includes('/storage/v1/object/public/photos/')) {
+        // Plná Supabase URL
+        const parts = url.split('/storage/v1/object/public/photos/');
+        return parts[1] || null;
+      } else if (url.includes('/photos/')) {
+        // Relativní path
+        const parts = url.split('/photos/');
+        return parts[1] || null;
+      } else {
+        // Možná jen název souboru
+        const fileName = url.split('/').pop();
+        return fileName && fileName.includes('.') ? fileName : null;
+      }
+    } catch (error) {
+      console.error('❌ Chyba při extrakci názvu souboru:', url, error);
+      return null;
+    }
   }
 }
