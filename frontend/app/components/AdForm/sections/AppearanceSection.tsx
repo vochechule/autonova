@@ -1,7 +1,7 @@
 // Create: frontend/app/components/AdForm/sections/AppearanceSection.tsx
 import React from 'react'
 import ColorSelect from '../../ColorSelect'
-import { colorFinishes, getColorByValue, getColorFinishByValue } from '../../../data/colorData'
+import { colorFinishes, getColorFinishByValue } from '../../../data/colorData'
 import type { AdData, FieldErrors } from '../types'
 
 const bodyTypeOptions = [

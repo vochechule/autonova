@@ -16,7 +16,6 @@ export const PriceSection: React.FC<PriceSectionProps> = ({
   onFieldChange
 }) => {
   const currentYear = new Date().getFullYear()
-  const today = new Date().toISOString().split('T')[0]
 
   return (
     <div className="form-section">

@@ -22,6 +22,8 @@ import { EngineSection } from './sections/EngineSection'
 import { ConditionSection } from './sections/ConditionSection'
 import { AdditionalInfoSection } from './sections/AdditionalInfoSection'
 import { ImageUploadSection } from './sections/ImageUploadSection'
+  import type { AdData } from './types' // Make sure this type exists and matches your ad data shape
+
 
 // Types and utils
 import type { AdCreateFormProps } from './types'
@@ -38,7 +40,8 @@ export default function AdForm({
   const { showSuccess, showError } = useToast()
 
   // ✅ Add state for fetched data
-  const [fetchedData, setFetchedData] = React.useState<any>(null)
+  // Replace 'AdData' with the correct type if you have a more specific one
+  const [fetchedData, setFetchedData] = React.useState<AdData | null>(null)
   
   // ✅ Determine which data to use
   const currentAdData = mode === 'edit' ? (fetchedData || initialData) : initialData

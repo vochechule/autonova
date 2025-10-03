@@ -1,14 +1,14 @@
 // Create: frontend/app/components/AdForm/hooks/useAdForm.ts
 import { useState, useCallback } from 'react'
 import { validateForm } from '../utils/validation'
-import type { AdData, FieldErrors, FormFieldValue } from '../types'
+import type { AdData, FieldErrors } from '../types'
 
 interface UseAdFormProps {
   mode: 'create' | 'edit'
   initialData?: AdData
 }
 
-export const useAdForm = ({ mode, initialData }: UseAdFormProps) => {
+export const useAdForm = ({ initialData }: UseAdFormProps) => {
   // Form state
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
