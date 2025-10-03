@@ -8,6 +8,7 @@ export interface AdCreateFormProps {
 export interface AdImage {
   id: string
   url: string
+  order: number
 }
 
 export interface AdData {

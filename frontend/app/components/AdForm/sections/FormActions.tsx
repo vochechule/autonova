@@ -4,6 +4,14 @@ import { useRouter } from 'next/navigation'
 import { ButtonLoading, FormLoading } from '../../LoadingStates'
 import type { FieldErrors } from '../types'
 
+interface AdLimits {
+  maxAds: number
+  remainingAds: number
+  currentAds: number
+  isDealer: boolean
+  tier?: string
+}
+
 interface FormActionsProps {
   mode: 'create' | 'edit'
   loading: boolean
@@ -11,10 +19,9 @@ interface FormActionsProps {
   error: string | null
   fieldErrors: FieldErrors
   createdAdId: string | null
-  adId?: string
   showLimitModal: boolean
   showLoginModal: boolean
-  adLimits: any
+  adLimits: AdLimits | null
   onCloseLimitModal: () => void
   onCloseLoginModal: () => void
 }
@@ -26,7 +33,6 @@ export const FormActions: React.FC<FormActionsProps> = ({
   error,
   fieldErrors,
   createdAdId,
-  adId,
   showLimitModal,
   showLoginModal,
   adLimits,

@@ -8,8 +8,8 @@ interface UseImageUploadProps {
   initialImages?: AdImage[]
 }
 
-export const useImageUpload = ({ mode, initialImages = [] }: UseImageUploadProps) => {
-  const { showSuccess, showError, showWarning } = useToast()
+export const useImageUpload = ({ initialImages = [] }: UseImageUploadProps) => {
+  const { showSuccess, showWarning } = useToast()
 
   // Image state
   const [images, setImages] = useState<File[]>([])

@@ -6,8 +6,8 @@ import type { FieldErrors } from '../types'
 interface LocationSectionProps {
   fieldErrors: FieldErrors
   onLocationSelect: (location: {
-    latitude: number
-    longitude: number
+    lat: number
+    lng: number
     address: string
   }) => void
 }

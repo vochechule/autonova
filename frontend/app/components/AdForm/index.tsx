@@ -95,8 +95,8 @@ export default function AdForm({
       
       if (data.latitude && data.longitude && data.address) {
         formState.setLocation({
-          latitude: data.latitude,
-          longitude: data.longitude,
+          lat: data.latitude,
+          lng: data.longitude,
           address: data.address
         })
       }
@@ -128,7 +128,7 @@ export default function AdForm({
     } else if (mode === 'edit' && adId && !fetchedData && !initialData) {
       fetchAdData()
     }
-  }, [mode, adId, fetchAdData, fetchedData, initialData])
+  }, [mode, adId, fetchAdData, fetchedData, initialData, formState])
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -188,9 +188,9 @@ export default function AdForm({
 
       // Add location
       if (formState.location) {
-        submitFormData.append('latitude', formState.location.latitude.toString())
-        submitFormData.append('longitude', formState.location.longitude.toString())
-        submitFormData.append('address', formState.location.address)
+        submitFormData.append('latitude', formState.location.lat.toString())
+        submitFormData.append('longitude', formState.location.lng.toString())
+        submitFormData.append('address', formState.location.address || '')
       }
 
       // Handle images
@@ -511,7 +511,6 @@ export default function AdForm({
             error={formState.error}
             fieldErrors={formState.fieldErrors}
             createdAdId={formState.createdAdId}
-            adId={adId}
             showLimitModal={formState.showLimitModal}
             showLoginModal={formState.showLoginModal}
             adLimits={limitsState.adLimits}

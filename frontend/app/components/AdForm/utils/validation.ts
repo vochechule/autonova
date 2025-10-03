@@ -119,13 +119,25 @@ export const validateField = (name: string, value: FormFieldValue): string | nul
   return null;
 };
 
+interface LocationData {
+  lat: number
+  lng: number
+  address?: string
+}
+
+interface ExistingImage {
+  id: string
+  url: string
+  order: number
+}
+
 export const validateForm = (
   formData: FormData, 
   selectedBrand: string, 
   selectedModel: string, 
   selectedColor: string, 
-  location: any, 
-  existingImages: any[], 
+  location: LocationData | null, 
+  existingImages: ExistingImage[], 
   images: File[]
 ): FieldErrors => {
   const errors: FieldErrors = {};

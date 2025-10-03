@@ -24,14 +24,14 @@ export const useAdForm = ({ initialData }: UseAdFormProps) => {
   
   // Location state
   const [location, setLocation] = useState<{
-    latitude: number
-    longitude: number
+    lat: number
+    lng: number
     address: string
   } | null>(
     initialData?.latitude && initialData?.longitude && initialData?.address 
       ? {
-          latitude: initialData.latitude,
-          longitude: initialData.longitude,
+          lat: initialData.latitude,
+          lng: initialData.longitude,
           address: initialData.address
         }
       : null
@@ -77,8 +77,8 @@ export const useAdForm = ({ initialData }: UseAdFormProps) => {
 
   // Location handler
   const handleLocationSelect = useCallback((selectedLocation: {
-    latitude: number
-    longitude: number
+    lat: number
+    lng: number
     address: string
   }) => {
     setLocation(selectedLocation)
