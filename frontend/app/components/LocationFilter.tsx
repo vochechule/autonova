@@ -65,14 +65,19 @@ export default function LocationFilter({ onLocationChange, initialDistance = 25,
   }
 
   // Handler pro výběr místa na mapě
-  const handleMapLocationSelect = (location: { latitude: number; longitude: number; address: string }) => {
-    setUserLocation(location)
+  const handleMapLocationSelect = (location: { lat: number; lng: number; address: string }) => {
+    const locationData = {
+      latitude: location.lat,
+      longitude: location.lng,
+      address: location.address
+    }
+    setUserLocation(locationData)
     setIsEnabled(true) // Automaticky zapni
     setShowMap(false)
     
     // Okamžitě zavolej callback
     onLocationChange({
-      ...location,
+      ...locationData,
       distance: selectedDistance
     })
   }
@@ -185,8 +190,7 @@ export default function LocationFilter({ onLocationChange, initialDistance = 25,
         onLocationChange(null)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onLocationChange]) // <-- přidáno onLocationChange do dependencies
+  }, [onLocationChange])
 
   return (
     <div className={`location-filter ${className}`}>

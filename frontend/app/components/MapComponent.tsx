@@ -15,8 +15,8 @@ if (typeof window !== 'undefined') {
 
 interface MapComponentProps {
   onLocationSelect: (location: {
-    latitude: number
-    longitude: number
+    lat: number
+    lng: number
     address: string
   }) => void
   initialPosition: [number, number]
@@ -54,15 +54,15 @@ export default function MapComponent({ onLocationSelect, initialPosition }: MapC
       
       // Zavolej callback
       onLocationSelect({
-        latitude: lat,
-        longitude: lng,
+        lat: lat,
+        lng: lng,
         address: fullAddress
       })
     } catch (error) {
       console.error('Geocoding error:', error)
       onLocationSelect({
-        latitude: lat,
-        longitude: lng,
+        lat: lat,
+        lng: lng,
         address: 'Nepodařilo se načíst adresu'
       })
     }
