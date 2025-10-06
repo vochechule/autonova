@@ -4,7 +4,7 @@ import AdDetailServer from './AdDetailServer'
 export { generateMetadata } from './AdDetailServer'
 
 interface AdDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function AdDetailPage({ params }: AdDetailPageProps) {
