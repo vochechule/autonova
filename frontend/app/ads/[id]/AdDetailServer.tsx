@@ -5,7 +5,7 @@ import AdDetailClient from './AdDetailClient'
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 interface AdDetailServerProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 interface Ad {
@@ -57,7 +57,8 @@ async function fetchAdDetail(id: string): Promise<Ad | null> {
 
 // Generate dynamic metadata for SEO
 export async function generateMetadata({ params }: AdDetailServerProps): Promise<Metadata> {
-  const ad = await fetchAdDetail(params.id)
+  const { id } = await params
+  const ad = await fetchAdDetail(id)
 
   if (!ad) {
     return {
@@ -129,7 +130,8 @@ export async function generateMetadata({ params }: AdDetailServerProps): Promise
 }
 
 export default async function AdDetailServer({ params }: AdDetailServerProps) {
-  const ad = await fetchAdDetail(params.id)
+  const { id } = await params
+  const ad = await fetchAdDetail(id)
 
   if (!ad) {
     notFound()
