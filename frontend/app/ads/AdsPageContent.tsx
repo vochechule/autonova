@@ -47,11 +47,19 @@ type Pagination = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-export default function AdsPageContent() {
+interface AdsPageContentProps {
+  initialData?: {
+    ads: Ad[]
+    pagination: Pagination | null
+    totalCount: number
+  }
+}
+
+export default function AdsPageContent({ initialData }: AdsPageContentProps) {
   const searchParams = useSearchParams()
-  const [ads, setAds] = useState<Ad[]>([])
-  const [pagination, setPagination] = useState<Pagination | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [ads, setAds] = useState<Ad[]>(initialData?.ads || [])
+  const [pagination, setPagination] = useState<Pagination | null>(initialData?.pagination || null)
+  const [loading, setLoading] = useState(!initialData)
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
@@ -142,7 +150,7 @@ export default function AdsPageContent() {
   useEffect(() => {
     setCurrentPage(1) // ✅ Reset page when filters change
     fetchAds(true)
-  }, [searchParams]) // ✅ Remove fetchAds from dependencies to prevent infinite loop
+  }, [searchParams, fetchAds]) // ✅ Add fetchAds to dependencies
 
   // ✅ SIMPLIFIED: Load more function
   const loadMore = async () => {
