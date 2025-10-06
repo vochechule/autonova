@@ -4,7 +4,7 @@ import AdsPageServer from './AdsPageServer'
 export { generateMetadata } from './AdsPageServer'
 
 interface AdsPageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export default function AdsPage({ searchParams }: AdsPageProps) {

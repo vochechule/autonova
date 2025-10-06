@@ -41,12 +41,13 @@ async function fetchInitialAds(searchParams: { [key: string]: string | string[] 
 }
 
 // Dynamické generování metadata na základě filtrů
-export async function generateMetadata({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }): Promise<Metadata> {
-  const brand = searchParams.brand as string
-  const model = searchParams.model as string
-  const priceFrom = searchParams.priceFrom as string
-  const priceTo = searchParams.priceTo as string
-  const fuel = searchParams.fuel as string
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams
+  const brand = resolvedSearchParams.brand as string
+  const model = resolvedSearchParams.model as string
+  const priceFrom = resolvedSearchParams.priceFrom as string
+  const priceTo = resolvedSearchParams.priceTo as string
+  const fuel = resolvedSearchParams.fuel as string
   
   let title = 'Všechna auta na prodej - Ojetá i nová vozidla | Carta.cz'
   let description = 'Procházejte kompletní nabídku vozidel na Carta.cz. Filtrujte podle značky, ceny, roku výroby a dalších parametrů. Najděte své ideální auto.'
@@ -105,12 +106,13 @@ export async function generateMetadata({ searchParams }: { searchParams: { [key:
 }
 
 interface AdsPageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export default async function AdsPage({ searchParams }: AdsPageProps) {
   // Načteme initial data na serveru pro SEO
-  const initialData = await fetchInitialAds(searchParams)
+  const resolvedSearchParams = await searchParams
+  const initialData = await fetchInitialAds(resolvedSearchParams)
   
   return (
     <>
