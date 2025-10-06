@@ -46,12 +46,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         createdAt: string;
       }
 
-      const adPages: MetadataRoute.Sitemap = ads.map((ad: Ad) => ({
-        url: `${baseUrl}/ads/${ad.id}`,
-        lastModified: new Date(ad.updatedAt || ad.createdAt),
-        changeFrequency: 'weekly' as const,
-        priority: 0.6,
-      }))
+      const adPages: MetadataRoute.Sitemap = ads.map((ad: Ad) => {
+        const dateStr = ad.updatedAt || ad.createdAt;
+        const date = new Date(dateStr);
+        const lastModified = isNaN(date.getTime()) ? new Date() : date;
+        
+        return {
+          url: `${baseUrl}/ads/${ad.id}`,
+          lastModified: lastModified,
+          changeFrequency: 'weekly' as const,
+          priority: 0.6,
+        };
+      })
 
       return [...staticPages, ...adPages]
     }

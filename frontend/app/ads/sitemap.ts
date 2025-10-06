@@ -18,12 +18,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const ads = data?.ads || []
 
     // Generate sitemap entries for individual ads
-    const adEntries: MetadataRoute.Sitemap = ads.map((ad: { id: number; updatedAt: string }) => ({
-      url: `https://carta.cz/ads/${ad.id}`,
-      lastModified: new Date(ad.updatedAt),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    }))
+    const adEntries: MetadataRoute.Sitemap = ads.map((ad: { id: number; updatedAt: string; createdAt?: string }) => {
+      // Validate and create a proper date
+      let lastModified = new Date()
+      
+      // Try updatedAt first, then createdAt, then fallback to current date
+      if (ad.updatedAt) {
+        const updatedDate = new Date(ad.updatedAt)
+        if (!isNaN(updatedDate.getTime())) {
+          lastModified = updatedDate
+        }
+      } else if (ad.createdAt) {
+        const createdDate = new Date(ad.createdAt)
+        if (!isNaN(createdDate.getTime())) {
+          lastModified = createdDate
+        }
+      }
+      
+      return {
+        url: `https://carta.cz/ads/${ad.id}`,
+        lastModified,
+        changeFrequency: 'weekly' as const,
+        priority: 0.8,
+      }
+    })
 
     // Add main ads page
     const mainEntry: MetadataRoute.Sitemap = [
