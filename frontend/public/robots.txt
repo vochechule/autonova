@@ -3,11 +3,20 @@ Allow: /
 
 # High priority pages
 Allow: /ads
+Allow: /ads/*
 Allow: /about
 
 # Block admin and private pages  
 Disallow: /api/
 Disallow: /dashboard
+Disallow: /admin
+
+# Crawl delay to be respectful
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://carta.cz/sitemap.xml
+Sitemap: https://carta.cz/ads/sitemap.xml
 Disallow: /profile
 Disallow: /_next/
 Disallow: /admin
