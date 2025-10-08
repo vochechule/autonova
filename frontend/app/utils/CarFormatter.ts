@@ -26,12 +26,34 @@ export function formatModel(dbBrand: string, dbModel: string): string {
   if (!brandEntry) return capitalizeFirst(dbModel);
   
   // Najdi model v seznamu modelů této značky
-  const model = brandEntry[1].models.find(m => 
-    m.toLowerCase() === dbModel.toLowerCase() ||
-    m.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') === dbModel.toLowerCase()
-  );
+  const model = brandEntry[1].models.find(m => {
+    const normalizedModel = m.toLowerCase();
+    const normalizedDbModel = dbModel.toLowerCase();
+    
+    // Přímé shodování
+    if (normalizedModel === normalizedDbModel) return true;
+    
+    // Shodování s podtržítky místo mezer a bez diakritiky
+    const modelForDb = normalizedModel
+      .replace(/\s+/g, '_')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // odstraň diakritiku
+      .replace(/[^a-z0-9_]/g, '');
+    
+    if (modelForDb === normalizedDbModel) return true;
+    
+    // Obráceně - z DB formátu zpět na display formát
+    const dbForModel = normalizedDbModel
+      .replace(/_/g, ' ')
+      .replace(/tda/g, 'třída')
+      .replace(/trida/g, 'třída');
+    
+    if (normalizedModel === dbForModel) return true;
+    
+    return false;
+  });
   
-  return model || capitalizeFirst(dbModel);
+  return model || capitalizeFirst(dbModel.replace(/_/g, ' ').replace(/tda/g, 'Třída'));
 }
 
 // Funkce pro formátování celého názvu auta

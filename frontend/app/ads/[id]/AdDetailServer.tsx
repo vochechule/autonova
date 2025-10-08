@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import AdDetailClient from './AdDetailClient'
+import { formatCarTitle } from '../../utils/CarFormatter'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -67,8 +68,19 @@ export async function generateMetadata({ params }: AdDetailServerProps): Promise
     }
   }
 
-  const carTitle = `${ad.brand.name} ${ad.model.name}`
-  const title = `${carTitle} ${ad.year} - ${ad.price.toLocaleString('cs-CZ')} ${ad.currency} | Carta.cz`
+  const getBrandName = (brand: { name: string } | string) => {
+    return typeof brand === 'string' ? brand : brand?.name || 'Neznámá značka'
+  }
+
+  const getModelName = (model: { name: string } | string) => {
+    return typeof model === 'string' ? model : model?.name || 'Neznámý model'
+  }
+
+  const brandName = getBrandName(ad.brand)
+  const modelName = getModelName(ad.model)
+  const carTitle = formatCarTitle(brandName, modelName)
+  const currency = ad.currency || 'Kč'
+  const title = `${carTitle} ${ad.year} - ${ad.price.toLocaleString('cs-CZ')} ${currency} | Carta.cz`
   const description = ad.description 
     ? `${carTitle} ${ad.year}, ${ad.mileage.toLocaleString('cs-CZ')} km, ${ad.fuel}, ${ad.location}. ${ad.description.substring(0, 120)}...`
     : `${carTitle} ${ad.year}, ${ad.mileage.toLocaleString('cs-CZ')} km, ${ad.fuel}, ${ad.location}. Prohlédněte si detaily a kontaktujte prodejce.`
@@ -82,9 +94,9 @@ export async function generateMetadata({ params }: AdDetailServerProps): Promise
     description,
     keywords: [
       carTitle,
-      ad.brand.name,
-      ad.model.name,
-      `${ad.brand.name} ${ad.model.name} ${ad.year}`,
+      brandName,
+      modelName,
+      `${brandName} ${modelName} ${ad.year}`,
       ad.fuel,
       ad.transmission,
       ad.location,
@@ -137,7 +149,17 @@ export default async function AdDetailServer({ params }: AdDetailServerProps) {
     notFound()
   }
 
-  const carTitle = `${ad.brand.name} ${ad.model.name}`
+  const getBrandName = (brand: { name: string } | string) => {
+    return typeof brand === 'string' ? brand : brand?.name || 'Neznámá značka'
+  }
+
+  const getModelName = (model: { name: string } | string) => {
+    return typeof model === 'string' ? model : model?.name || 'Neznámý model'
+  }
+
+  const brandName = getBrandName(ad.brand)
+  const modelName = getModelName(ad.model)
+  const carTitle = formatCarTitle(brandName, modelName)
   
   // Structured data for SEO
   const structuredData = {
@@ -150,9 +172,9 @@ export default async function AdDetailServer({ params }: AdDetailServerProps) {
       .map(img => img.url),
     "brand": {
       "@type": "Brand",
-      "name": ad.brand.name
+      "name": brandName
     },
-    "model": ad.model.name,
+    "model": modelName,
     "vehicleModelDate": ad.year.toString(),
     "mileageFromOdometer": {
       "@type": "QuantitativeValue",

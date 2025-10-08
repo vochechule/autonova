@@ -159,22 +159,38 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
   useEffect(() => {
     if (ad?.images && ad.images.length > 0 && !imagesPreloaded) {
       const preloadImages = async () => {
-        const imagePromises = ad.images.map((image) => {
-          return new Promise<void>((resolve, reject) => {
+        // Preload images immediately without waiting
+        const imagePromises = ad.images.map((image, index) => {
+          return new Promise<void>((resolve) => {
             const img = document.createElement('img')
             img.onload = () => resolve()
-            img.onerror = () => reject()
+            img.onerror = () => resolve() // Don't fail on error, just continue
+            
+            // Set high priority for first few images
+            if (index < 3) {
+              img.loading = 'eager'
+            }
+            
             img.src = image.url
+            
+            // Also add to browser's image cache by setting it
+            const link = document.createElement('link')
+            link.rel = 'preload'
+            link.as = 'image'
+            link.href = image.url
+            document.head.appendChild(link)
           })
         })
 
-        try {
-          await Promise.all(imagePromises)
+        // Don't wait for all to complete, set as preloaded quickly
+        setTimeout(() => {
           setImagesPreloaded(true)
+        }, 100)
+
+        try {
+          await Promise.allSettled(imagePromises) // Use allSettled instead of all
         } catch (error) {
           console.warn('Some images failed to preload:', error)
-          // Still set as preloaded to avoid blocking the UI
-          setImagesPreloaded(true)
         }
       }
 
@@ -217,12 +233,14 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
 
   const handlePrev = () => {
     if (!ad?.images) return
-    setCurrentImageIndex((prev) => prev === 0 ? ad.images.length - 1 : prev - 1)
+    const newIndex = currentImageIndex === 0 ? ad.images.length - 1 : currentImageIndex - 1
+    setCurrentImageIndex(newIndex)
   }
 
   const handleNext = () => {
     if (!ad?.images) return
-    setCurrentImageIndex((prev) => prev === ad.images.length - 1 ? 0 : prev + 1)
+    const newIndex = currentImageIndex === ad.images.length - 1 ? 0 : currentImageIndex + 1
+    setCurrentImageIndex(newIndex)
   }
 
   const handleDotClick = (index: number) => {
@@ -288,18 +306,54 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
             <div className="listing-detail-page__carousel" {...swipeHandlers}>
               {ad.images && ad.images.length > 0 ? (
                 <>
-                  <Image
-                    src={ad.images[currentImageIndex].url}
-                    alt={ad.title}
-                    className="listing-detail-page__carousel-img"
-                    width={800}
-                    height={600}
-                    style={{ 
-                      objectFit: 'cover',
-                      transition: 'opacity 0.2s ease-in-out'
-                    }}
-                    priority={currentImageIndex === 0}
-                  />
+                  <>
+                    {/* Visible current image */}
+                    <Image
+                      src={ad.images[currentImageIndex].url}
+                      alt={ad.title}
+                      className="listing-detail-page__carousel-img"
+                      width={800}
+                      height={600}
+                      style={{ 
+                        objectFit: 'cover'
+                      }}
+                      priority={true}
+                      loading="eager"
+                      unoptimized={true}
+                    />
+                    
+                    {/* Hidden preloaded images for next/prev */}
+                    {ad.images.map((image, index) => {
+                      if (index === currentImageIndex) return null
+                      
+                      // Only preload adjacent images and first few
+                      const isAdjacent = Math.abs(index - currentImageIndex) <= 1 || 
+                                        (currentImageIndex === 0 && index === ad.images.length - 1) ||
+                                        (currentImageIndex === ad.images.length - 1 && index === 0)
+                      const isEarly = index < 3
+                      
+                      if (!isAdjacent && !isEarly) return null
+                      
+                      return (
+                        <Image
+                          key={`preload-${index}`}
+                          src={image.url}
+                          alt=""
+                          width={800}
+                          height={600}
+                          style={{ 
+                            position: 'absolute',
+                            opacity: 0,
+                            pointerEvents: 'none',
+                            zIndex: -1
+                          }}
+                          priority={isAdjacent}
+                          loading="eager"
+                          unoptimized={true}
+                        />
+                      )
+                    })}
+                  </>
                   
                   {ad.images.length > 1 && (
                     <>
