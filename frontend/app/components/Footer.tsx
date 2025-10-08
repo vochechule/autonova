@@ -150,10 +150,6 @@ export default function Footer() {
               <span className="footer__contact-label">Email:</span>
               <a href="mailto:info@carta.cz">info@carta.cz</a>
             </p>
-            <p>
-              <span className="footer__contact-label">Telefon:</span> 
-              <a href="tel:+420733302123" style={{ whiteSpace: 'nowrap' }}>+420 733 302 123</a>
-            </p>
           </div>
         </div>
 

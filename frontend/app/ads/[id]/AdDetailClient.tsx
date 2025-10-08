@@ -123,7 +123,7 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
   const [loading, setLoading] = useState(!initialAd)
   const [error, setError] = useState<string | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [imageLoading, setImageLoading] = useState(false)
+  const [imagesPreloaded, setImagesPreloaded] = useState(false)
   const [showPhone, setShowPhone] = useState(false)
   const [showEmail, setShowEmail] = useState(false)
 
@@ -154,6 +154,33 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
       fetchAdData(params.id as string)
     }
   }, [params?.id, initialAd]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Preload all images when ad data is available
+  useEffect(() => {
+    if (ad?.images && ad.images.length > 0 && !imagesPreloaded) {
+      const preloadImages = async () => {
+        const imagePromises = ad.images.map((image) => {
+          return new Promise<void>((resolve, reject) => {
+            const img = document.createElement('img')
+            img.onload = () => resolve()
+            img.onerror = () => reject()
+            img.src = image.url
+          })
+        })
+
+        try {
+          await Promise.all(imagePromises)
+          setImagesPreloaded(true)
+        } catch (error) {
+          console.warn('Some images failed to preload:', error)
+          // Still set as preloaded to avoid blocking the UI
+          setImagesPreloaded(true)
+        }
+      }
+
+      preloadImages()
+    }
+  }, [ad?.images, imagesPreloaded])
 
   const fetchAdData = async (adId: string) => {
     try {
@@ -189,20 +216,17 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
   }
 
   const handlePrev = () => {
-    if (!ad?.images || imageLoading) return
-    setImageLoading(true)
+    if (!ad?.images) return
     setCurrentImageIndex((prev) => prev === 0 ? ad.images.length - 1 : prev - 1)
   }
 
   const handleNext = () => {
-    if (!ad?.images || imageLoading) return
-    setImageLoading(true)
+    if (!ad?.images) return
     setCurrentImageIndex((prev) => prev === ad.images.length - 1 ? 0 : prev + 1)
   }
 
   const handleDotClick = (index: number) => {
-    if (imageLoading || index === currentImageIndex) return
-    setImageLoading(true)
+    if (index === currentImageIndex) return
     setCurrentImageIndex(index)
   }
 
@@ -264,27 +288,17 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
             <div className="listing-detail-page__carousel" {...swipeHandlers}>
               {ad.images && ad.images.length > 0 ? (
                 <>
-                  {imageLoading && (
-                    <div className="listing-detail-page__image-loading">
-                      <div className="listing-detail-page__image-spinner">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path d="M21 12a9 9 0 11-6.219-8.56"/>
-                        </svg>
-                      </div>
-                    </div>
-                  )}
-                  
                   <Image
                     src={ad.images[currentImageIndex].url}
                     alt={ad.title}
                     className="listing-detail-page__carousel-img"
                     width={800}
                     height={600}
-                    style={{ objectFit: 'cover' }}
+                    style={{ 
+                      objectFit: 'cover',
+                      transition: 'opacity 0.2s ease-in-out'
+                    }}
                     priority={currentImageIndex === 0}
-                    onLoadingComplete={() => setImageLoading(false)}
-                    onLoad={() => setImageLoading(false)}
-                    onError={() => setImageLoading(false)}
                   />
                   
                   {ad.images.length > 1 && (
@@ -293,7 +307,6 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
                         className="listing-detail-page__carousel-btn left" 
                         onClick={handlePrev} 
                         aria-label="Předchozí obrázek"
-                        disabled={imageLoading}
                       >
                         <ChevronLeft size={16} />
                       </button>
@@ -301,7 +314,6 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
                         className="listing-detail-page__carousel-btn right" 
                         onClick={handleNext} 
                         aria-label="Další obrázek"
-                        disabled={imageLoading}
                       >
                         <ChevronRight size={16} />
                       </button>
@@ -321,7 +333,6 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
                             className={`listing-detail-page__carousel-dot${i === currentImageIndex ? ' active' : ''}`}
                             onClick={() => handleDotClick(i)}
                             aria-label={`Obrázek ${i + 1}`}
-                            disabled={imageLoading}
                           />
                         )
                       })}
