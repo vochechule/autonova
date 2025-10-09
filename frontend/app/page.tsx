@@ -44,8 +44,8 @@ export default function Home() {
       />
 
       <main className="home-page">
-        {/* Add SEO-friendly heading structure */}
-        <h1 style={{ position: 'absolute', left: '-9999px' }}>
+        {/* SEO H1 - hidden but accessible to search engines */}
+        <h1 className="sr-only">
           Carta.cz - Jednoduchý a moderní autobazar
         </h1>
         

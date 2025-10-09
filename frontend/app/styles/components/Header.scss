@@ -95,7 +95,7 @@
       }
     }
 
-    h1 {
+    &__logo-text {
       margin: 0;
       font-size: inherit;
       font-weight: inherit;
@@ -116,7 +116,7 @@
     }
 
     @media (max-width: 320px) {
-      h1 {
+      &__logo-text {
         display: none;
       }
     }
@@ -427,7 +427,7 @@
   .header__logo {
     color: #f8fafc;
 
-    h1 {
+    .header__logo-text {
       background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;

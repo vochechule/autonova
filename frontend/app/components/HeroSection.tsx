@@ -33,14 +33,14 @@ export default function HeroSection() {
   return (
     <section className="hero-section">
       <div className="hero-section__container">
-        <h1 className="hero-section__title">
+        <h2 className="hero-section__title">
           <span className="hero-section__brand">Carta.cz</span>
           <span className="hero-section__separator"> - </span>
           <span className="hero-section__description">prodej a koupě aut </span>
           <span className="hero-section__rotating-text">
             {currentText}
           </span>
-        </h1>
+        </h2>
         
         <p className="hero-section__subtitle">
           Nejlepší místo pro nákup a prodej ojetých vozů v České republice
