@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: 'Carta.cz',
   description: 'Jednoduchý a bezplatný prodej a nákup aut online. Nový český autobazar pro všechny, kteří chtějí prodávat nebo hledat auto pohodlně a bez zbytečných poplatků.',
-  url: 'https://carta.cz',
+  url: 'https://carta.cz/', // ✅ FIX: Add trailing slash for consistency
   ogImage: 'https://carta.cz/og-image.png',
   keywords: [
     'autobazar',
