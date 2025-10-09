@@ -63,7 +63,7 @@ export default function AdsPageContent({ initialData }: AdsPageContentProps) {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
-  const [currentPage, setCurrentPage] = useState(1) // ✅ Add state to track current page
+  // ✅ Using ref instead of state to avoid circular dependency
   const { showError: showToastError } = useToast()
 
   // ✅ Add debug logging
@@ -92,25 +92,26 @@ export default function AdsPageContent({ initialData }: AdsPageContentProps) {
     window.history.pushState(null, '', `?${newSearchParams.toString()}`)
   }
 
-  // ✅ FIXED: Proper pagination logic
+  // ✅ FIXED: Use ref to track current page and avoid circular dependency
+  const currentPageRef = useRef(1)
+  
   const fetchAds = useCallback(async (isInitialLoad = false) => {
     try {
       if (isInitialLoad) {
         setLoading(true)
         setAds([])
         setError(null)
-        setCurrentPage(1) // ✅ Reset current page on initial load
+        currentPageRef.current = 1
       } else {
         setLoadingMore(true)
       }
       
       const params = new URLSearchParams(searchParams.toString())
       
-      // ✅ FIXED: Use proper page calculation
-      const pageToFetch = isInitialLoad ? 1 : currentPage + 1
+      // ✅ FIXED: Use ref value for consistent page calculation
+      const pageToFetch = isInitialLoad ? 1 : currentPageRef.current + 1
       params.set('page', pageToFetch.toString())
       params.set('limit', '12')
-
 
       const response = await fetch(`${API_URL}/ad?${params}`)
       
@@ -120,10 +121,9 @@ export default function AdsPageContent({ initialData }: AdsPageContentProps) {
       
       const data = await response.json()
       
-      
       if (isInitialLoad) {
         setAds(data?.ads || [])
-        setCurrentPage(1) // ✅ Set current page to 1
+        currentPageRef.current = 1
       } else {
         setAds(prevAds => {
           const newAds = data?.ads || []
@@ -132,7 +132,7 @@ export default function AdsPageContent({ initialData }: AdsPageContentProps) {
           const uniqueNewAds = newAds.filter((ad: Ad) => !existingIds.has(ad.id))
           return [...prevAds, ...uniqueNewAds]
         })
-        setCurrentPage(pageToFetch) // ✅ Update current page
+        currentPageRef.current = pageToFetch
       }
       
       setPagination(data?.pagination || null)
@@ -144,11 +144,11 @@ export default function AdsPageContent({ initialData }: AdsPageContentProps) {
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [searchParams, currentPage, showToastError]) // ✅ Add currentPage to dependencies
+  }, [searchParams, showToastError]) // ✅ No currentPage dependency to break circular issue
 
   // ✅ FIXED: Reset current page when search params change
   useEffect(() => {
-    setCurrentPage(1) // ✅ Reset page when filters change
+    currentPageRef.current = 1 // ✅ Reset page when filters change
     fetchAds(true)
   }, [searchParams, fetchAds]) // ✅ Add fetchAds to dependencies
 
@@ -160,7 +160,7 @@ export default function AdsPageContent({ initialData }: AdsPageContentProps) {
 
   const handleRetry = () => {
     setError(null)
-    setCurrentPage(1)
+    currentPageRef.current = 1
     fetchAds(true)
   }
 

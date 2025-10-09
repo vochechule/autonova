@@ -13,7 +13,9 @@ import { generateMetadata } from './lib/seo'
 export const metadata = generateMetadata(
   'Carta.cz - Jednoduchý a moderní autobazar',
   'Objevte nový způsob prodeje a nákupu aut. Bez zbytečných poplatků, jednoduše a přehledně. Vyzkoušejte moderní autobazar na Carta.cz.',
-  ['autobazar zdarma', 'nejlepší ceny aut', 'ověření prodejci', 'bezpečný nákup auta', 'carta autobazar']
+  ['autobazar zdarma', 'nejlepší ceny aut', 'ověření prodejci', 'bezpečný nákup auta', 'carta autobazar'],
+  undefined, // ogImage - use default
+  'https://carta.cz/' // ✅ FIX: Explicit canonical URL with trailing slash for homepage
 )
 
 export default function Home() {
