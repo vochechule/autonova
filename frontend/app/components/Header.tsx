@@ -121,7 +121,7 @@ export default function Header() {
             priority
             className="header__logo-image"
           />
-          <h1>Carta.cz</h1>
+          <span className="header__logo-text">Carta.cz</span>
         </Link>
         
         <nav className="header__nav">
