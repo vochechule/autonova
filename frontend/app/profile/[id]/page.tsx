@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
+import AdCard from '../../components/AdCard';
 import '../../styles/ProfilePageView.scss';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -32,16 +32,29 @@ interface Review {
 }
 
 interface Ad {
-  id: string;
+  id: number;
   title: string;
   price: number;
+  mileage: number;
+  year?: number;
   brand?: string;
   model?: string;
-  year?: number;
-  mileage?: number;
-  fuelType?: string;
-  location?: string;
-  images?: { url: string }[];
+  fuel?: string;
+  bodyType?: string;
+  transmission?: string;
+  drivetrain?: string;
+  power?: number;
+  color?: string;
+  description?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  images: { url: string }[];
+  user?: {
+    name: string;
+    averageRating: number;
+  };
+  distance?: number;
 }
 
 export default function UserProfilePage() {
@@ -293,50 +306,7 @@ export default function UserProfilePage() {
         {user.ads && user.ads.length > 0 ? (
           <div className="profile-page__ads-grid">
             {user.ads.map((ad) => (
-              <Link
-                key={ad.id}
-                href={`/ads/${ad.id}`}
-                className="profile-page__ad-card"
-              >
-                <div className="profile-page__ad-image-container">
-                  {ad.images && ad.images.length > 0 ? (
-                    <Image
-                      src={ad.images[0].url}
-                      alt={ad.title}
-                      width={320}
-                      height={180}
-                      className="profile-page__ad-image"
-                    />
-                  ) : (
-                    <div className="profile-page__ad-placeholder">🚗</div>
-                  )}
-                  <div className="profile-page__ad-price-tag">
-                    {ad.price?.toLocaleString('cs-CZ')} Kč
-                  </div>
-                </div>
-
-                <div className="profile-page__ad-content">
-                  <h3 className="profile-page__ad-title">{ad.title}</h3>
-
-                  <div className="profile-page__ad-details">
-                    <div className="profile-page__ad-brand">
-                      {ad.brand} {ad.model}
-                    </div>
-
-                    <div className="profile-page__ad-specs">
-                      {ad.year && <span>{ad.year}</span>}
-                      {ad.mileage && <span>{ad.mileage?.toLocaleString('cs-CZ')} km</span>}
-                      {ad.fuelType && <span>{ad.fuelType}</span>}
-                    </div>
-
-                    {ad.location && (
-                      <div className="profile-page__ad-location">
-                        {ad.location}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Link>
+              <AdCard key={ad.id} ad={ad} />
             ))}
           </div>
         ) : (

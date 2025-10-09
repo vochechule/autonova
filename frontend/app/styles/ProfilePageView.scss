@@ -474,147 +474,12 @@
 
 .profile-page__ads-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 16px;
-  }
-}
-
-.profile-page__ad-card {
-  background: #f7fafc;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  color: inherit;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-    text-decoration: none;
-    color: inherit;
-  }
-}
-
-.profile-page__ad-image-container {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-
-  &:hover img {
-    transform: scale(1.05);
-  }
-}
-
-.profile-page__ad-placeholder {
-  height: 200px;
-  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  color: #a0aec0;
-}
-
-.profile-page__ad-price-tag {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 1rem;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.profile-page__ad-content {
-  padding: 20px;
-}
-
-.profile-page__ad-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 8px;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.profile-page__ad-details {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.profile-page__ad-brand {
-  color: #667eea;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.profile-page__ad-specs {
-  display: flex;
-  gap: 16px;
-  font-size: 0.9rem;
-  color: #718096;
-  font-weight: 500;
-
-  span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    &::before {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: #cbd5e0;
-      content: "";
-    }
-
-    &:first-child::before {
-      display: none;
-    }
-  }
-
-  @media (max-width: 480px) {
-    flex-direction: column;
-    gap: 4px;
-
-    span::before {
-      display: none;
-    }
-  }
-}
-
-.profile-page__ad-location {
-  color: #a0aec0;
-  font-size: 0.85rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  &::before {
-    content: "📍";
-    font-size: 0.8rem;
   }
 }
 
@@ -787,36 +652,6 @@
     h2 {
       color: #e2e8f0;
     }
-  }
-
-  .profile-page__ad-card {
-    background: #2d3748;
-    border-color: #4a5568;
-  }
-
-  .profile-page__ad-placeholder {
-    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-    color: #718096;
-  }
-
-  .profile-page__ad-title {
-    color: #e2e8f0;
-  }
-
-  .profile-page__ad-brand {
-    color: #90cdf4;
-  }
-
-  .profile-page__ad-specs {
-    color: #a0aec0;
-
-    span::before {
-      background: #718096;
-    }
-  }
-
-  .profile-page__ad-location {
-    color: #718096;
   }
 
   .profile-page__ads-empty {

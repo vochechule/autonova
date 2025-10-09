@@ -28,7 +28,8 @@ export class UserService {
         ads: {
           include: {
             images: {
-              take: 1 // Jen první obrázek pro náhled
+              take: 1, // Jen první obrázek pro náhled
+              orderBy: { order: 'asc' } // ✅ OPRAVA - Řaď podle pořadí, aby se vzal skutečně první obrázek
             }
           },
           orderBy: {
