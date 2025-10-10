@@ -147,8 +147,9 @@ export default function Footer() {
           <h4 className="footer__title">Kontakt</h4>
           <div className="footer__contact">
             <p>
-              <span className="footer__contact-label">Email:</span>
-              <a href="mailto:info@carta.cz">info@carta.cz</a>
+              <Link href="/#contact" className="footer__contact-link">
+                📝 Kontaktní formulář
+              </Link>
             </p>
           </div>
         </div>

@@ -135,7 +135,7 @@ export default function ContactForm({
   };
 
   return (
-    <form className="contact-form" onSubmit={handleSubmit}>
+    <form className="contact-form" onSubmit={handleSubmit} id="contact">
       <h2>{title}</h2>
       {description && <div className="contact-form__desc">{description}</div>}
       
