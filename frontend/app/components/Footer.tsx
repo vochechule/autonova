@@ -196,7 +196,7 @@ export default function Footer() {
               © {currentYear} Carta.cz - Startup projektu pro inzerci aut
             </p>
             <div className="footer__startup-badge">
-              <span className="footer__beta">verze 1.0.0.0</span>
+              <span className="footer__beta">verze 1.0.2.4</span>
             </div>
           </div>
         </div>
