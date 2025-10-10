@@ -25,7 +25,7 @@ async function fetchInitialAds(searchParams: { [key: string]: string | string[] 
       }
     })
     
-    const response = await fetch(`${API_URL}/ad/search?${queryParams.toString()}`, {
+    const response = await fetch(`${API_URL}/ad?${queryParams.toString()}`, {
       next: { revalidate: 300 } // 5 minut cache
     })
     
