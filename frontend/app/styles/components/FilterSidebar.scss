@@ -270,6 +270,74 @@
         color: #e2e8f0;
       }
     }
+    
+    // Lokality tlačítka - dark mode
+    &__location {
+      // Obecné styly pro boxy a checkboxy v lokaci
+      .location-checkbox {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+      }
+      
+      // Hlavní tlačítka v lokaci
+      button {
+        background-color: #2d3748;
+        border: 1px solid #4a5568;
+        color: #e2e8f0;
+        
+        &:hover {
+          background-color: #155ab4;
+        }
+        
+        // Pro tlačítko s modrým pozadím zachováme barvy
+        &.btn-primary {
+          background-color: #3b82f6;
+          color: white;
+          border-color: #2563eb;
+          
+          &:hover {
+            background-color: #2563eb;
+          }
+        }
+      }
+      
+      // Další prvky v komponentě LocationFilter
+      .location-input {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+        
+        &::placeholder {
+          color: #718096;
+        }
+      }
+      
+      // Distance slider
+      .distance-slider {
+        background-color: #4a5568;
+        
+        .slider-thumb {
+          background-color: #3b82f6;
+        }
+        
+        .slider-track {
+          background-color: #718096;
+        }
+      }
+      
+      // Dropdown s výběrem lokality
+      .location-dropdown {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        
+        .location-option {
+          &:hover {
+            background-color: #3b4859;
+          }
+        }
+      }
+}
 
     &__label {
       color: #e2e8f0;
