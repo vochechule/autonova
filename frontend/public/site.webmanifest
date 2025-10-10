@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Carta.cz",
+  "short_name": "Carta.cz",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -15,7 +15,12 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#ffffff",
+  "description": "Český inzertní portál pro prodej a nákup automobilů",
+  "start_url": "/",
+  "theme_color": "#007bff",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "cs"
 }
