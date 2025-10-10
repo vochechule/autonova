@@ -15,6 +15,8 @@ import Image from 'next/image'
 import { 
   Car, 
   Calendar,
+  Clock,
+  Gauge,
   Eye,
   Phone,
   Mail,
@@ -26,6 +28,7 @@ import {
   Wrench,
   Lock,
   AlertTriangle,
+  Fuel,
 } from 'lucide-react'
 import AdMap from '../../components/AdMap'
 import { 
@@ -426,9 +429,6 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
               <h1 className="listing-detail-page__title">
                {carTitle}
               </h1>
-              <div className="listing-detail-page__subtitle">
-                {ad.year} &bull; {ad.mileage?.toLocaleString()} km &bull; {ad.fuel ? fuelMap[ad.fuel as string] ?? ad.fuel : '-'}
-              </div>
               
               <div className="listing-detail-page__meta-info">
                 {ad.createdAt && (
@@ -447,6 +447,14 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
               </div>
               
               <div className="listing-detail-page__key-specs">
+                <div className="listing-detail-page__key-spec">
+                  <Gauge className="listing-detail-page__key-spec-icon" size={18} />
+                  <span>{ad.mileage?.toLocaleString()} km</span>
+                </div>
+                <div className="listing-detail-page__key-spec">
+                  <Fuel className="listing-detail-page__key-spec-icon" size={18} />
+                  <span>{ad.fuel ? fuelMap[ad.fuel as string] ?? ad.fuel : '-'}</span>
+                </div>
                 <div className="listing-detail-page__key-spec">
                   <Car className="listing-detail-page__key-spec-icon" size={18} />
                   <span>{ad.bodyType}</span>
