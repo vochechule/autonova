@@ -15,7 +15,6 @@ import Image from 'next/image'
 import { 
   Car, 
   Calendar,
-  Clock,
   Gauge,
   Eye,
   Phone,
