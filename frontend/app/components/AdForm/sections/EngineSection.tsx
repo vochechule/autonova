@@ -8,9 +8,7 @@ const fuelTypeOptions = [
   { value: 'hybrid', label: 'Hybrid' },
   { value: 'electric', label: 'Elektro' },
   { value: 'lpg', label: 'LPG' },
-  { value: 'cng', label: 'CNG' },
-  { value: 'ethanol', label: 'Ethanol (E85)' },
-  { value: 'hydrogen', label: 'Vodík' }
+  { value: 'cng', label: 'CNG' }
 ]
 
 const transmissionOptions = [
@@ -32,8 +30,7 @@ const airConditioningOptions = [
   { value: 'manual', label: 'Manuální klimatizace' },
   { value: 'automatic', label: 'Automatická klimatizace' },
   { value: 'two_zone', label: 'Dvouzónová klimatizace' },
-  { value: 'three_zone', label: 'Třízónová klimatizace' },
-  { value: 'four_zone', label: 'Čtyřzónová klimatizace' }
+  { value: 'three_zone', label: 'Třízónová klimatizace' }
 ]
 
 interface EngineSectionProps {
