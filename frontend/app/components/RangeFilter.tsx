@@ -138,6 +138,60 @@ export default function RangeFilter({
     }
   }
 
+  // ✅ Handle click on slider track
+  const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent event bubbling from range inputs
+    if ((e.target as HTMLInputElement).type === 'range') {
+      return
+    }
+    
+    const trackElement = e.currentTarget
+    const rect = trackElement.getBoundingClientRect()
+    const clickX = e.clientX - rect.left
+    const trackWidth = rect.width
+    const clickPercent = (clickX / trackWidth) * 100
+    
+    // Calculate the value at click position
+    const clickValue = Math.round((clickPercent / 100) * (max - min) + min)
+    const clampedValue = Math.max(min, Math.min(max, clickValue))
+    
+    // Determine which thumb to move based on position and logic
+    const fromDistance = Math.abs(clickPercent - fromPercent)
+    const toDistance = Math.abs(clickPercent - toPercent)
+    
+    // If click is in the middle area and both thumbs are at similar distances,
+    // choose based on which direction makes more sense
+    if (Math.abs(fromDistance - toDistance) < 10) {
+      // If clicking to the left of range, move from thumb
+      // If clicking to the right of range, move to thumb
+      if (clickPercent < fromPercent) {
+        handleFromChange(clampedValue)
+        setFromInputValue(clampedValue.toString())
+      } else if (clickPercent > toPercent) {
+        handleToChange(clampedValue)
+        setToInputValue(clampedValue.toString())
+      } else {
+        // Click is between thumbs, move the closer one
+        if (fromDistance < toDistance) {
+          handleFromChange(clampedValue)
+          setFromInputValue(clampedValue.toString())
+        } else {
+          handleToChange(clampedValue)
+          setToInputValue(clampedValue.toString())
+        }
+      }
+    } else {
+      // Clear case - move the closer thumb
+      if (fromDistance < toDistance) {
+        handleFromChange(clampedValue)
+        setFromInputValue(clampedValue.toString())
+      } else {
+        handleToChange(clampedValue)
+        setToInputValue(clampedValue.toString())
+      }
+    }
+  }
+
   const getDisplayText = () => {
     if (fromValue === min && toValue === max) {
       return `${label}`
@@ -213,7 +267,11 @@ export default function RangeFilter({
 
           {/* Slider */}
           <div className="range-filter__slider">
-            <div className="range-filter__track">
+            <div 
+              className="range-filter__track"
+              onClick={handleTrackClick}
+              style={{ cursor: 'pointer' }}
+            >
               <div 
                 className="range-filter__range"
                 style={{
