@@ -10,7 +10,11 @@ export function formatBrand(dbBrand: string): string {
     brand.name.toLowerCase() === dbBrand.toLowerCase()
   );
   
-  return brandEntry ? brandEntry[1].name : capitalizeFirst(dbBrand);
+  return brandEntry ? brandEntry[1].name : capitalizeFirst(
+    dbBrand
+      .replace(/^koda$/gi, 'Škoda')
+      .replace(/^jine$/gi, 'Jiné')
+  );
 }
 
 // Funkce pro nalezení modelu podle databázové hodnoty
@@ -53,7 +57,14 @@ export function formatModel(dbBrand: string, dbModel: string): string {
     return false;
   });
   
-  return model || capitalizeFirst(dbModel.replace(/_/g, ' ').replace(/tda/g, 'Třída'));
+  return model || capitalizeFirst(
+    dbModel
+      .replace(/_/g, ' ')
+      .replace(/tda/g, 'Třída')
+      .replace(/jiny model/gi, 'Jiný model')
+      .replace(/ada (\d+)/gi, 'Řada $1')
+      .replace(/tida ([abces])/gi, 'Třída $1')
+  );
 }
 
 // Funkce pro formátování celého názvu auta
@@ -66,5 +77,60 @@ export function formatCarTitle(dbBrand: string, dbModel: string): string {
 // Pomocná funkce pro kapitalizaci
 function capitalizeFirst(str: string): string {
   if (!str) return '';
+  
+  // Speciální případy pro správné zobrazení
+  const specialCases: { [key: string]: string } = {
+    // Značky s diakritikou
+    'koda': 'Škoda',
+    'škoda': 'Škoda',
+    'jine': 'Jiné',
+    'jiné': 'Jiné',
+    
+    // Jiný model
+    'jin model': 'Jiný model',
+    'jiny model': 'Jiný model',
+    'jiný model': 'Jiný model',
+    
+    // BMW Řada
+    'ada 1': 'Řada 1',
+    'ada 2': 'Řada 2',
+    'ada 3': 'Řada 3',
+    'ada 4': 'Řada 4',
+    'ada 5': 'Řada 5',
+    'ada 6': 'Řada 6',
+    'ada 7': 'Řada 7',
+    'ada 8': 'Řada 8',
+    'řada 1': 'Řada 1',
+    'řada 2': 'Řada 2',
+    'řada 3': 'Řada 3',
+    'řada 4': 'Řada 4',
+    'řada 5': 'Řada 5',
+    'řada 6': 'Řada 6',
+    'řada 7': 'Řada 7',
+    'řada 8': 'Řada 8',
+    
+    // Mercedes Třída
+    'tida a': 'Třída A',
+    'tida b': 'Třída B',
+    'tida c': 'Třída C',
+    'tida e': 'Třída E',
+    'tida s': 'Třída S',
+    'třída a': 'Třída A',
+    'třída b': 'Třída B',
+    'třída c': 'Třída C',
+    'třída e': 'Třída E',
+    'třída s': 'Třída S',
+    'trida a': 'Třída A',
+    'trida b': 'Třída B',
+    'trida c': 'Třída C',
+    'trida e': 'Třída E',
+    'trida s': 'Třída S'
+  };
+  
+  const lowerStr = str.toLowerCase();
+  if (specialCases[lowerStr]) {
+    return specialCases[lowerStr];
+  }
+  
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
