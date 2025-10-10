@@ -8,6 +8,7 @@ import { NotFoundPage, NetworkErrorPage } from '../../components/ErrorPages'
 import { PageLoading } from '../../components/LoadingStates'
 import FavoriteButton from '../../components/FavoriteButton'
 import ShareButton from '../../components/ShareButton'
+import FullscreenImageGallery from '../../components/FullscreenImageGallery'
 import { formatCarTitle } from '../../utils/CarFormatter'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -38,6 +39,7 @@ import {
 } from '../../utils/labelMaps'
 import { formatBrand, formatModel } from '../../utils/CarFormatter'
 import '../../styles/AdDetailPage.scss'
+import '../../styles/FullscreenImageGallery.scss'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -126,6 +128,7 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
   const [imagesPreloaded, setImagesPreloaded] = useState(false)
   const [showPhone, setShowPhone] = useState(false)
   const [showEmail, setShowEmail] = useState(false)
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false)
 
   const nextImage = () => {
     if (ad?.images?.length) {
@@ -248,6 +251,14 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
     setCurrentImageIndex(index)
   }
 
+  const openGallery = () => {
+    setIsGalleryOpen(true)
+  }
+
+  const closeGallery = () => {
+    setIsGalleryOpen(false)
+  }
+
   if (loading) {
     return <PageLoading />
   }
@@ -308,19 +319,25 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
                 <>
                   <>
                     {/* Visible current image */}
-                    <Image
-                      src={ad.images[currentImageIndex].url}
-                      alt={ad.title}
-                      className="listing-detail-page__carousel-img"
-                      width={800}
-                      height={600}
-                      style={{ 
-                        objectFit: 'cover'
-                      }}
-                      priority={true}
-                      loading="eager"
-                      unoptimized={true}
-                    />
+                    <div 
+                      className="listing-detail-page__carousel-img-container"
+                      onClick={openGallery}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <Image
+                        src={ad.images[currentImageIndex].url}
+                        alt={ad.title}
+                        className="listing-detail-page__carousel-img"
+                        width={800}
+                        height={600}
+                        style={{ 
+                          objectFit: 'cover'
+                        }}
+                        priority={true}
+                        loading="eager"
+                        unoptimized={true}
+                      />
+                    </div>
                     
                     {/* Hidden preloaded images for next/prev */}
                     {ad.images.map((image, index) => {
@@ -805,6 +822,17 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
           </span>
         </footer>
       </main>
+      
+      {/* Fullscreen Image Gallery */}
+      {ad.images && ad.images.length > 0 && (
+        <FullscreenImageGallery
+          images={ad.images}
+          isOpen={isGalleryOpen}
+          onClose={closeGallery}
+          initialIndex={currentImageIndex}
+          adTitle={carTitle}
+        />
+      )}
     </>
   )
 }
