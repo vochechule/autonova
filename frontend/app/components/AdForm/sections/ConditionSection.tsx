@@ -9,19 +9,7 @@ const conditionOptions = [
   { value: 'demo', label: 'Předváděcí' }
 ]
 
-const countryOptions = [
-  'Česká republika',
-  'Slovensko', 
-  'Německo',
-  'Rakousko',
-  'Polsko',
-  'Francie',
-  'Itálie',
-  'Španělsko',
-  'Nizozemsko',
-  'Belgie',
-  'Jiné'
-]
+
 
 const euroStandardOptions = [
   { value: 'euro1', label: 'Euro 1' },
@@ -89,21 +77,16 @@ export const ConditionSection: React.FC<ConditionSectionProps> = ({
           <label htmlFor="countryOfOrigin">
             Země původu <span className="required">*</span>
           </label>
-          <select 
+          <input 
             name="countryOfOrigin" 
             id="countryOfOrigin" 
+            type="text"
             required
             className={fieldErrors.countryOfOrigin ? 'error' : ''}
             onChange={() => onFieldChange('countryOfOrigin')}
             defaultValue={mode === 'edit' ? adData?.countryOfOrigin || '' : ''}
-          >
-            <option value="">Vyberte zemi původu</option>
-            {countryOptions.map(country => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </select>
+            placeholder="Např. Česká republika"
+          />
           {fieldErrors.countryOfOrigin && (
             <div className="field-error">{fieldErrors.countryOfOrigin}</div>
           )}
