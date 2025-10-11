@@ -127,6 +127,10 @@
     gap: 1.5rem;
     align-items: center;
 
+    @media (max-width: 1000px) {
+      gap: 1rem;
+    }
+
     @media (max-width: 768px) {
       gap: 0;
     }
@@ -140,7 +144,7 @@
     min-height: 38px; // ✅ Prevent layout shift
     transition: all 0.2s ease-out;
 
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       display: none;
     }
 
@@ -181,7 +185,12 @@
       }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 1000px) {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
       display: none;
     }
   }

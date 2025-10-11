@@ -43,8 +43,8 @@ body {
   flex: 1;
   min-height: calc(100vh - 60px); /* Subtract header height */
   
-  /* Add bottom padding only on mobile for bottom navbar */
-  @media (max-width: 768px) {
+  /* Add bottom padding when bottom navbar is visible */
+  @media (max-width: 900px) {
     padding-bottom: 2rem; /* Jen základní spacing */
   }
 }
@@ -61,8 +61,8 @@ body {
   100% { transform: rotate(360deg); }
 }
 
-/* ✅ Footer mobile spacing */
-@media (max-width: 768px) {
+/* ✅ Footer spacing when bottom navbar is visible */
+@media (max-width: 900px) {
   .footer {
     margin-bottom: 80px; /* Výška bottom navbar */
   }
@@ -102,8 +102,8 @@ body {
   box-shadow: 0 2px 12px rgba(30,41,59,0.22);
 }
 
-/* Nad bottom navbar na mobilech */
-@media (max-width: 768px) {
+/* Nad bottom navbar když je viditelná */
+@media (max-width: 900px) {
   .scroll-to-top-btn {
     bottom: 100px;
     right: 18px;

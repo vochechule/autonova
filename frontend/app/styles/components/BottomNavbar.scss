@@ -1,3 +1,5 @@
+// Force bottom navbar to be visible on tablets/mobile
+body .bottom-navbar,
 .bottom-navbar {
   position: fixed;
   bottom: 0;
@@ -14,11 +16,15 @@
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.04);
 
-  // Hide on desktop, show only on mobile
-  @media (min-width: 769px) {
-    display: none;
+  // Hide on large desktop, show when header nav is hidden
+  @media (min-width: 901px) {
+    display: none !important;
   }
 
+  // Explicit show rule for tablets and mobile
+  @media (max-width: 900px) {
+    display: flex !important;
+  }
   &__item {
     flex: 1;
     display: flex;
@@ -85,6 +91,27 @@
   }
 }
 
+// Tablet styling (when visible on larger screens)
+@media (min-width: 769px) and (max-width: 900px) {
+  .bottom-navbar {
+    padding: 1rem 0;
+    max-width: 600px;
+    margin: 0 auto;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 16px 16px 0 0;
+    
+    &__icon {
+      width: 24px;
+      height: 24px;
+    }
+    
+    &__label {
+      font-size: 0.8rem;
+    }
+  }
+}
+
 // Mobile responsivity
 @media (max-width: 480px) {
   .bottom-navbar {
@@ -101,8 +128,8 @@
   }
 }
 
-// Content padding
-@media (max-width: 768px) {
+// Content padding - update for new breakpoint
+@media (max-width: 900px) {
   body {
     padding-bottom: 80px;
   }
@@ -133,6 +160,12 @@
         background: var(--primary-color, #60a5fa);
       }
     }
+  }
+
+  // Tablet dark mode
+  @media (min-width: 769px) and (max-width: 900px) {
+    background: rgba(15, 23, 42, 0.98);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -335,5 +368,26 @@
   .bottom-navbar__dropdown-item {
     padding: 12px 14px;
     font-size: 0.85rem;
+  }
+}
+
+/* ✅ FORCE BOTTOM NAVBAR VISIBILITY - High specificity rules */
+@media (max-width: 900px) {
+  body .bottom-navbar,
+  .bottom-navbar {
+    display: flex !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  [data-theme="dark"] body .bottom-navbar,
+  [data-theme="dark"] .bottom-navbar {
+    background: rgba(15, 23, 42, 0.95) !important;
+  }
+}
+
+@media (min-width: 901px) {
+  body .bottom-navbar,
+  .bottom-navbar {
+    display: none !important;
   }
 }
