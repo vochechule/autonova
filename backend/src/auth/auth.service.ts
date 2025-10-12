@@ -189,7 +189,7 @@ export class AuthService {
     }
 
     try {
-      const user = await this.userService.findOne(userId);
+      const user = await this.userService.findOneWithPassword(userId);
       if (!user) {
         throw new UnauthorizedException({
           code: 'USER_NOT_FOUND',
