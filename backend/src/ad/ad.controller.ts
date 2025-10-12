@@ -156,9 +156,13 @@ export class AdController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adService.remove(id);
+  remove(@Param('id') id: string, @Req() req) {
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException('User not authenticated properly');
+    }
+    return this.adService.remove(id, req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)

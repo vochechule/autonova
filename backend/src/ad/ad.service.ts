@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as path from 'path';
 import { createClient } from '@supabase/supabase-js';
@@ -714,9 +714,9 @@ export class AdService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     try {
-      // ✅ PŘIDÁNO - Nejdřív získej všechny obrázky před smazáním
+      // ✅ PŘIDÁNO - Nejdřív získej všechny obrázky před smazáním a zkontroluj vlastnictví
       const adWithImages = await this.prisma.ad.findUnique({
         where: { id },
         include: { images: true }
@@ -724,6 +724,11 @@ export class AdService {
 
       if (!adWithImages) {
         throw new NotFoundException(`Inzerát s ID ${id} nebyl nalezen`);
+      }
+
+      // ✅ SECURITY FIX - Zkontroluj, zda uživatel vlastní tento inzerát
+      if (adWithImages.userId !== userId) {
+        throw new ForbiddenException('Nemáte oprávnění smazat tento inzerát');
       }
 
 
