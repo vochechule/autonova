@@ -118,6 +118,44 @@ interface AdDetailClientProps {
   initialAd?: AdType;
 }
 
+// Helper functions for electric/hybrid vehicle display
+const getEngineVolumeLabel = (fuelType?: string) => {
+  if (fuelType === 'electric') return 'Kapacita baterie'
+  if (fuelType === 'hybrid') return 'Objem motoru'
+  return 'Objem motoru'
+}
+
+const getEngineVolumeValue = (engineVolume?: number, fuelType?: string) => {
+  if (!engineVolume) return '-'
+  if (fuelType === 'electric') return `${engineVolume} kWh`
+  if (fuelType === 'hybrid' && engineVolume < 100) {
+    // If it's a small number for hybrid, it might be battery capacity
+    return `${engineVolume} kWh (baterie)`
+  }
+  return `${(engineVolume / 1000).toFixed(1)}L`
+}
+
+const getConsumptionLabel = (fuelType?: string) => {
+  if (fuelType === 'electric') return 'Spotřeba energie'
+  if (fuelType === 'hybrid') return 'Kombinovaná spotřeba'
+  return 'Spotřeba'
+}
+
+const getConsumptionValue = (avgConsumption?: number, fuelType?: string) => {
+  if (!avgConsumption) return '-'
+  if (fuelType === 'electric') return `${avgConsumption} kWh/100km`
+  return `${avgConsumption} l/100km`
+}
+
+const getKeySpecVolume = (engineVolume?: number, fuelType?: string) => {
+  if (!engineVolume) return '-'
+  if (fuelType === 'electric') return `${engineVolume}kWh`
+  if (fuelType === 'hybrid' && engineVolume < 100) {
+    return `${engineVolume}kWh`
+  }
+  return `${(engineVolume / 1000).toFixed(1)}L`
+}
+
 export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
   const params = useParams()
   const { showError } = useToast()
@@ -473,7 +511,7 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
                 {ad.engineVolume && (
                   <div className="listing-detail-page__key-spec">
                     <Wrench className="listing-detail-page__key-spec-icon" size={18} />
-                    <span>{(ad.engineVolume / 1000).toFixed(1)}L</span>
+                    <span>{getKeySpecVolume(ad.engineVolume, ad.fuel)}</span>
                   </div>
                 )}
               </div>
@@ -643,8 +681,8 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
                   <span className="listing-detail-page__spec-value">{ad.fuel ? fuelMap[ad.fuel as string] ?? ad.fuel : '-'}</span>
                 </div>
                 <div className="listing-detail-page__spec-item">
-                  <span className="listing-detail-page__spec-label">Objem motoru</span>
-                  <span className="listing-detail-page__spec-value">{ad.engineVolume ? (ad.engineVolume / 1000).toFixed(1) + 'L' : '-'}</span>
+                  <span className="listing-detail-page__spec-label">{getEngineVolumeLabel(ad.fuel)}</span>
+                  <span className="listing-detail-page__spec-value">{getEngineVolumeValue(ad.engineVolume, ad.fuel)}</span>
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Výkon</span>
@@ -655,8 +693,8 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
                   </span>
                 </div>
                 <div className="listing-detail-page__spec-item">
-                  <span className="listing-detail-page__spec-label">Spotřeba</span>
-                  <span className="listing-detail-page__spec-value">{ad.avgConsumption ? `${ad.avgConsumption} l/100km` : '-'}</span>
+                  <span className="listing-detail-page__spec-label">{getConsumptionLabel(ad.fuel)}</span>
+                  <span className="listing-detail-page__spec-value">{getConsumptionValue(ad.avgConsumption, ad.fuel)}</span>
                 </div>
                 <div className="listing-detail-page__spec-item">
                   <span className="listing-detail-page__spec-label">Euro norma</span>

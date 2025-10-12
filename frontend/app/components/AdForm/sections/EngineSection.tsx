@@ -1,5 +1,5 @@
 // Create: frontend/app/components/AdForm/sections/EngineSection.tsx
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import type { AdData, FieldErrors } from '../types'
 
 const fuelTypeOptions = [
@@ -46,8 +46,73 @@ export const EngineSection: React.FC<EngineSectionProps> = ({
   mode,
   onFieldChange
 }) => {
+  const [selectedFuel, setSelectedFuel] = useState<string>(mode === 'edit' ? adData?.fuel || '' : '')
+  
+  // Update selected fuel when adData changes
+  useEffect(() => {
+    if (mode === 'edit' && adData?.fuel) {
+      setSelectedFuel(adData.fuel)
+    }
+  }, [mode, adData?.fuel])
+
+  const isElectric = selectedFuel === 'electric'
+  const isHybrid = selectedFuel === 'hybrid'
+
+  // Get dynamic labels based on fuel type
+  const getEngineVolumeLabel = () => {
+    if (isElectric) return 'Kapacita baterie (kWh)'
+    if (isHybrid) return 'Objem motoru (ccm) / Kapacita (kWh)'
+    return 'Objem motoru (ccm)'
+  }
+
+  const getEngineVolumePlaceholder = () => {
+    if (isElectric) return '75'
+    if (isHybrid) return '1598 (pro spalovací motor)'
+    return '1598'
+  }
+
+  const getEngineVolumeHelp = () => {
+    if (isElectric) return 'Kapacita baterie v kilowatthodinách (10-200 kWh)'
+    if (isHybrid) return 'Objem spalovacího motoru v ccm (50-20000) nebo kapacita baterie pro plug-in hybrid'
+    return 'Objem motoru v kubických centimetrech (50-20000 ccm)'
+  }
+
+  const getEngineVolumeMinMax = () => {
+    if (isElectric) return { min: 10, max: 200 }
+    return { min: 50, max: 20000 }
+  }
+
+  const getConsumptionLabel = () => {
+    if (isElectric) return 'Spotřeba energie (kWh/100km)'
+    if (isHybrid) return 'Kombinovaná spotřeba (l/100km)'
+    return 'Průměrná spotřeba (l/100km)'
+  }
+
+  const getConsumptionPlaceholder = () => {
+    if (isElectric) return '18.5'
+    if (isHybrid) return '4.2'
+    return '6.5'
+  }
+
+  const getConsumptionHelp = () => {
+    if (isElectric) return 'Spotřeba energie na 100 km (kombinovaná)'
+    if (isHybrid) return 'Kombinovaná spotřeba paliva hybridního pohonu'
+    return 'Průměrná spotřeba paliva na 100 km (kombinovaná)'
+  }
+
+  const getConsumptionMinMax = () => {
+    if (isElectric) return { min: 5, max: 50, step: 0.1 }
+    return { min: 0.1, max: 100, step: 0.1 }
+  }
+
+  const handleFuelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const fuelValue = e.target.value
+    setSelectedFuel(fuelValue)
+    onFieldChange('fuel')
+  }
+
   return (
-    <div className="form-section">
+    <div className={`form-section ${isElectric ? 'electric-mode' : isHybrid ? 'hybrid-mode' : ''}`}>
       <h3 className="form-section__title">Motor a převodovka</h3>
       <div className="form-grid">
         <div className="form-group">
@@ -59,8 +124,8 @@ export const EngineSection: React.FC<EngineSectionProps> = ({
             id="fuel" 
             required
             className={fieldErrors.fuel ? 'error' : ''}
-            onChange={() => onFieldChange('fuel')}
-            defaultValue={mode === 'edit' ? adData?.fuel || '' : ''}
+            onChange={handleFuelChange}
+            value={selectedFuel}
           >
             <option value="">Vyberte typ paliva</option>
             {fuelTypeOptions.map(option => (
@@ -74,24 +139,24 @@ export const EngineSection: React.FC<EngineSectionProps> = ({
           )}
         </div>
 
-        <div className="form-group">
+        <div className="form-group engine-volume-group">
           <label htmlFor="engineVolume">
-            Objem motoru (ccm) <span className="required">*</span>
+            {getEngineVolumeLabel()} <span className="required">*</span>
           </label>
           <input 
             name="engineVolume" 
             id="engineVolume" 
             type="number" 
-            min="50"
-            max="20000"
+            min={getEngineVolumeMinMax().min}
+            max={getEngineVolumeMinMax().max}
             required 
-            placeholder="1598"
+            placeholder={getEngineVolumePlaceholder()}
             className={fieldErrors.engineVolume ? 'error' : ''}
             onChange={() => onFieldChange('engineVolume')}
             defaultValue={mode === 'edit' ? adData?.engineVolume : ''}
           />
           <small className="form-help">
-            Objem motoru v kubických centimetrech (50-20000 ccm)
+            {getEngineVolumeHelp()}
           </small>
           {fieldErrors.engineVolume && (
             <div className="field-error">{fieldErrors.engineVolume}</div>
@@ -122,25 +187,25 @@ export const EngineSection: React.FC<EngineSectionProps> = ({
           )}
         </div>
 
-        <div className="form-group">
+        <div className="form-group consumption-group">
           <label htmlFor="avgConsumption">
-            Průměrná spotřeba (l/100km) <span className="required">*</span>
+            {getConsumptionLabel()} <span className="required">*</span>
           </label>
           <input 
             name="avgConsumption" 
             id="avgConsumption" 
             type="number" 
-            step="0.1"
-            min="0.1"
-            max="100"
+            step={getConsumptionMinMax().step}
+            min={getConsumptionMinMax().min}
+            max={getConsumptionMinMax().max}
             required 
-            placeholder="6.5"
+            placeholder={getConsumptionPlaceholder()}
             className={fieldErrors.avgConsumption ? 'error' : ''}
             onChange={() => onFieldChange('avgConsumption')}
             defaultValue={mode === 'edit' ? adData?.avgConsumption : ''}
           />
           <small className="form-help">
-            Průměrná spotřeba paliva na 100 km (kombinovaná)
+            {getConsumptionHelp()}
           </small>
           {fieldErrors.avgConsumption && (
             <div className="field-error">{fieldErrors.avgConsumption}</div>
