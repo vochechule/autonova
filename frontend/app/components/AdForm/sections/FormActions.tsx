@@ -1,7 +1,7 @@
 // Create: frontend/app/components/AdForm/sections/FormActions.tsx
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { ButtonLoading, FormLoading } from '../../LoadingStates'
+import { ButtonLoading } from '../../LoadingStates'
 import type { FieldErrors } from '../types'
 
 interface AdLimits {
