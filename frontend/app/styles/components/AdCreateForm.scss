@@ -2241,4 +2241,136 @@ input[type="number"]::placeholder {
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6), 0 0 20px rgba(59, 130, 246, 0.2);
   }
 }
+
+// ✅ Electric vehicle mode styling
+.form-section.electric-mode {
+  .form-group {
+    &.engine-volume-group,
+    &.consumption-group {
+      position: relative;
+      
+      &::before {
+        content: '⚡';
+        position: absolute;
+        top: -5px;
+        right: 10px;
+        font-size: 1.2rem;
+        z-index: 10;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+      }
+      
+      &:hover::before {
+        opacity: 1;
+      }
+      
+      label {
+        color: #10b981;
+        font-weight: 600;
+        
+        .required {
+          color: #10b981;
+        }
+      }
+      
+      input {
+        border-color: #10b981;
+        box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.1);
+        
+        &:focus {
+          border-color: #10b981;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+      }
+      
+      .form-help {
+        color: #065f46;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.form-section.hybrid-mode {
+  .form-group {
+    &.engine-volume-group,
+    &.consumption-group {
+      position: relative;
+      
+      &::before {
+        content: '🔋';
+        position: absolute;
+        top: -5px;
+        right: 10px;
+        font-size: 1.1rem;
+        z-index: 10;
+        opacity: 0.7;
+      }
+      
+      label {
+        color: #0ea5e9;
+        font-weight: 600;
+      }
+      
+      input {
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 1px rgba(14, 165, 233, 0.1);
+        
+        &:focus {
+          border-color: #0ea5e9;
+          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+      }
+    }
+  }
+}
+
+// Dark mode variants
+[data-theme="dark"] {
+  .form-section.electric-mode {
+    .form-group {
+      &.engine-volume-group,
+      &.consumption-group {
+        label {
+          color: #34d399;
+        }
+        
+        input {
+          border-color: #34d399;
+          background: rgba(52, 211, 153, 0.05);
+          
+          &:focus {
+            border-color: #34d399;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+          }
+        }
+        
+        .form-help {
+          color: #6ee7b7;
+        }
+      }
+    }
+  }
+  
+  .form-section.hybrid-mode {
+    .form-group {
+      &.engine-volume-group,
+      &.consumption-group {
+        label {
+          color: #38bdf8;
+        }
+        
+        input {
+          border-color: #38bdf8;
+          background: rgba(56, 189, 248, 0.05);
+          
+          &:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+          }
+        }
+      }
+    }
+  }
+}
   

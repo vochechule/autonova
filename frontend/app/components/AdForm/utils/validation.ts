@@ -141,14 +141,35 @@ export const validateForm = (
   images: File[]
 ): FieldErrors => {
   const errors: FieldErrors = {};
+  const fuel = formData.get('fuel') as string;
+  const isElectric = fuel === 'electric';
 
   Object.keys(validationRules).forEach(fieldName => {
     const value = formData.get(fieldName);
+    
+    // Skip default validation for electric vehicle specific fields
+    if (isElectric && (fieldName === 'engineVolume' || fieldName === 'avgConsumption')) {
+      return;
+    }
+    
     const error = validateField(fieldName, value);
     if (error) {
       errors[fieldName] = error;
     }
   });
+
+  // Custom validation for electric vehicles
+  if (isElectric) {
+    const engineVolume = Number(formData.get('engineVolume'));
+    const avgConsumption = Number(formData.get('avgConsumption'));
+
+    if (!engineVolume || engineVolume < 10 || engineVolume > 200) {
+      errors.engineVolume = 'Kapacita baterie musí být 10-200 kWh';
+    }
+    if (!avgConsumption || avgConsumption < 5 || avgConsumption > 50) {
+      errors.avgConsumption = 'Spotřeba energie musí být 5-50 kWh/100km';
+    }
+  }
 
   if (!selectedBrand) {
     errors.brand = 'Vyberte značku vozidla';
