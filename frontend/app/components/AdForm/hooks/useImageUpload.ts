@@ -21,6 +21,11 @@ export const useImageUpload = ({ initialImages = [] }: UseImageUploadProps) => {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [uploadStep, setUploadStep] = useState<string>('')
+  
+  // Enhanced progress tracking
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0)
+  const [currentImageName, setCurrentImageName] = useState<string>('')
+  const [uploadedImages, setUploadedImages] = useState<number>(0)
 
   // Drag & drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
@@ -207,6 +212,11 @@ export const useImageUpload = ({ initialImages = [] }: UseImageUploadProps) => {
     dragOverIndex,
     draggedExistingIndex,
     dragOverExistingIndex,
+    
+    // Enhanced progress tracking
+    currentImageIndex,
+    currentImageName,
+    uploadedImages,
 
     // Actions
     setImages,
@@ -215,6 +225,9 @@ export const useImageUpload = ({ initialImages = [] }: UseImageUploadProps) => {
     setUploading,
     setUploadProgress,
     setUploadStep,
+    setCurrentImageIndex,
+    setCurrentImageName,
+    setUploadedImages,
 
     // Handlers
     validateAndAddFiles,
