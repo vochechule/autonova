@@ -24,7 +24,13 @@ export class UserService {
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        isDealer: true, // Only for UI display (dealer badge)
+        // ❌ SECURITY: Don't expose internal business data
+        // dealerTier, role are internal business data
+        // ❌ SECURITY: Never include password, email, createdAt
         ads: {
           include: {
             images: {
@@ -226,6 +232,19 @@ export class UserService {
         isDealer: true,
         dealerTier: true,
         tierUpgradedAt: true
+      }
+    });
+  }
+
+  // 🔒 SECURITY: Special method for authentication - includes password for verification only
+  async findOneWithPassword(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        password: true, // Only for auth verification
+        name: true,
       }
     });
   }

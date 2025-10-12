@@ -10,6 +10,15 @@ export class AdService {
   private readonly maxImageSize = 10 * 1024 * 1024; // 10MB
   private readonly allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
+  // 🔒 SECURITY: Safe user projection - MINIMAL public data only
+  private readonly safeUserSelect = {
+    id: true,
+    name: true,
+    isDealer: true, // Only for UI display (dealer badge)
+    // ❌ NEVER INCLUDE: password, email, createdAt, updatedAt, tierUpgradedAt, 
+    // ❌ dealerTier, role (internal business data)
+  }
+
   constructor(private prisma: PrismaService) {
     const supabaseUrl = process.env.SUPABASE_URL || '';
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -273,7 +282,13 @@ export class AdService {
           connect: { id: userId }
         }
       },
-      include: { images: true, user: true, features: true },
+      include: { 
+        images: true, 
+        user: {
+          select: this.safeUserSelect
+        }, 
+        features: true 
+      },
     });
 
     // Upload obrázků
@@ -292,7 +307,9 @@ export class AdService {
         images: {
           orderBy: { order: 'asc' }
         }, 
-        user: true, 
+        user: {
+          select: this.safeUserSelect
+        }, 
         features: true 
       },
     });
@@ -441,7 +458,9 @@ export class AdService {
           images: {
             orderBy: { order: 'asc' }  // ✅ Vždy řaď podle pořadí
           }, 
-          user: true, 
+          user: {
+            select: this.safeUserSelect
+          }, 
           features: true 
         },
         skip,
@@ -513,7 +532,9 @@ export class AdService {
           orderBy: { order: 'asc' },
           take: 1 // Pro listing stačí hlavní obrázek
         }, 
-        user: true 
+        user: {
+          select: this.safeUserSelect
+        }
       },
     });
     
@@ -528,7 +549,9 @@ export class AdService {
         images: {
           orderBy: { order: 'asc' }
         }, 
-        user: true, 
+        user: {
+          select: this.safeUserSelect
+        }, 
         features: true 
       },
     });
@@ -635,7 +658,9 @@ export class AdService {
         images: {
           orderBy: { order: 'asc' }  // ✅ Order by the order field
         }, 
-        user: true, 
+        user: {
+          select: this.safeUserSelect
+        }, 
         features: true 
       },
     });
@@ -670,7 +695,9 @@ export class AdService {
         images: {
           orderBy: { order: 'asc' }  // ✅ Always order by order field
         }, 
-        user: true, 
+        user: {
+          select: this.safeUserSelect
+        }, 
         features: true 
       },
     });
