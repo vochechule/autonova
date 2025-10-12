@@ -233,6 +233,7 @@ export const carBrands = {
     name: 'Opel',
     models: [
       'Corsa',
+      'Cascada', 
       'Astra',
       'Insignia',
       'Crossland',
