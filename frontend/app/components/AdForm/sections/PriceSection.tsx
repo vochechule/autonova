@@ -74,7 +74,7 @@ export const PriceSection: React.FC<PriceSectionProps> = ({
             min="1900"
             max={currentYear}
             required
-            placeholder={currentYear.toString()}
+            placeholder="2018"
             className={fieldErrors.year ? 'error' : ''}
             onChange={() => onFieldChange('year')}
             defaultValue={mode === 'edit' ? adData?.year?.toString() || '' : ''}  // ✅ defaultValue

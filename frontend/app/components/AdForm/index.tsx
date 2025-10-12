@@ -4,14 +4,17 @@ import React, { useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import '../../styles/components/AdCreateForm.scss'
 import '../../styles/components/SuccessMessage.scss'
+import '../../styles/components/ProgressModal.scss'
 import { useToast } from '../../contexts/ToastContext'
 
 // Hooks
 import { useAdForm } from './hooks/useAdForm'
 import { useImageUpload } from './hooks/useImageUpload'
 import { useAdLimits } from './hooks/useAdLimits'
+import { useProgressModal } from './hooks/useProgressModal'
 
 // Components
+import { ProgressModal } from './sections/ProgressModal'
 import { BasicInfoSection } from './sections/BasicInfoSection'
 import { PriceSection } from './sections/PriceSection'
 import { ContactSection } from './sections/ContactSection'
@@ -50,6 +53,7 @@ export default function AdForm({
   const formState = useAdForm({ mode, initialData: currentAdData })
   const imageState = useImageUpload({ mode, initialImages: currentAdData?.images })
   const limitsState = useAdLimits(mode)
+  const progressModal = useProgressModal()
 
   // ✅ Update fetchAdData to use setState
   const fetchAdData = useCallback(async () => {
@@ -142,13 +146,36 @@ export default function AdForm({
 
     try {
       formState.setLoading(true)
-      // ✅ DON'T set formState.setError(null) here - keep loading errors separate
       formState.setFieldErrors({})
+      
+      // Open progress modal
+      const modalTitle = mode === 'create' ? 'Vytvářím inzerát' : 'Ukládám změny'
+      const modalMessage = mode === 'create' 
+        ? 'Prosím počkejte, zpracovávám váš inzerát...' 
+        : 'Prosím počkejte, ukládám změny...'
+      
+      progressModal.openModal(modalTitle, modalMessage)
+      
+      // Initialize progress steps
+      const hasImages = imageState.images.length > 0
+      const steps = [
+        'Validace formuláře',
+        ...(hasImages ? ['Nahrávání obrázků'] : []),
+        mode === 'create' ? 'Vytvoření inzerátu' : 'Uložení změn'
+      ]
+      progressModal.initializeSteps(steps)
+      
+      let currentStep = 1
 
       const form = e.currentTarget
       const formData = new FormData(form)
 
-      // Validate form
+      // Step 1: Validation
+      progressModal.updateCurrentStep('Kontroluji údaje formuláře...')
+      progressModal.updateProgress(10)
+      
+      await new Promise(resolve => setTimeout(resolve, 300)) // Brief pause for UX
+
       const validationErrors = validateForm(
         formData,
         formState.selectedBrand,
@@ -160,8 +187,8 @@ export default function AdForm({
       )
 
       if (Object.keys(validationErrors).length > 0) {
+        progressModal.closeModal()
         formState.setFieldErrors(validationErrors)
-        // ✅ DON'T set formState.setError() - only show toast and field errors
         
         const firstError = Object.values(validationErrors)[0]
         showError('Chyba ve formuláři', firstError)
@@ -172,10 +199,14 @@ export default function AdForm({
           element.scrollIntoView({ behavior: 'smooth', block: 'center' })
         }
         
-        // ✅ Set loading false and return - stay on form
         formState.setLoading(false)
         return
       }
+
+      // Complete validation step
+      progressModal.completeStep(currentStep)
+      currentStep++
+      progressModal.updateProgress(25)
 
       // Build submission data
       const submitFormData = new FormData()
@@ -195,14 +226,35 @@ export default function AdForm({
 
       // Handle images
       if (imageState.images.length > 0) {
-        imageState.setUploading(true)
-        imageState.setUploadStep('Nahrávám obrázky...')
+        progressModal.updateCurrentStep('Připravuji obrázky k nahrání...')
+        progressModal.updateProgress(35)
+        
+        // Initialize image progress
+        progressModal.setImageProgress(0, imageState.images.length)
         
         for (let i = 0; i < imageState.images.length; i++) {
-          imageState.setUploadStep(`Nahrávám obrázek ${i + 1} z ${imageState.images.length}`)
-          imageState.setUploadProgress(Math.round(((i + 1) / imageState.images.length) * 100))
-          submitFormData.append('images', imageState.images[i])
+          const image = imageState.images[i]
+          const imageName = image.name.length > 20 
+            ? image.name.substring(0, 17) + '...' 
+            : image.name
+          
+          progressModal.updateCurrentStep(`Nahrávám obrázek ${i + 1} z ${imageState.images.length}`)
+          progressModal.setImageProgress(i, imageState.images.length, imageName)
+          
+          // Brief pause for better UX
+          await new Promise(resolve => setTimeout(resolve, 200))
+          
+          submitFormData.append('images', image)
+          
+          // Update progress
+          progressModal.setImageProgress(i + 1, imageState.images.length, imageName)
         }
+        
+        // Complete image upload step
+        progressModal.completeStep(currentStep)
+        currentStep++
+        progressModal.clearImageProgress()
+        progressModal.updateProgress(60)
       }
 
       // Handle existing images for edit mode
@@ -239,8 +291,9 @@ export default function AdForm({
         submitFormData.append(field, isChecked.toString())
       })
 
-      imageState.setUploadStep(mode === 'create' ? 'Ukládám inzerát...' : 'Ukládám změny...')
-      imageState.setUploadProgress(null)
+      // Final step - saving to database
+      progressModal.updateCurrentStep(mode === 'create' ? 'Ukládám inzerát do databáze...' : 'Ukládám změny do databáze...')
+      progressModal.updateProgress(75)
 
       // Submit to API
       const token = localStorage.getItem('token')
@@ -270,31 +323,43 @@ export default function AdForm({
       }
 
       const result = await res.json()
+      
+      // Complete final step
+      progressModal.completeStep(currentStep)
+      progressModal.updateProgress(100)
+      progressModal.updateCurrentStep('Dokončeno! ✅')
+      
       formState.setSuccess(true)
       
       if (mode === 'create') {
         formState.setCreatedAdId(result.id)
+        progressModal.updateMessage('Váš inzerát byl úspěšně publikován!')
         showSuccess('Inzerát vytvořen', 'Váš inzerát byl úspěšně publikován')
       } else {
+        progressModal.updateMessage('Všechny změny byly úspěšně uloženy!')
         showSuccess('Inzerát aktualizován', 'Všechny změny byly úspěšně uloženy')
       }
 
-      // Redirect after success
+      // Wait a bit to show completion, then redirect
       setTimeout(() => {
+        progressModal.closeModal()
         const targetId = mode === 'create' ? result.id : adId
         if (targetId) {
           router.push(`/ads/${targetId}`)
         } else {
           router.push('/ads')
         }
-      }, 2000)
+      }, 2500)
 
     } catch (err) {
       console.error('🔍 Submit error:', err)
       const errorMessage = err instanceof Error ? err.message : 'Neznámá chyba'
-      // ✅ Only show toast, don't set formState.setError for submission errors in edit mode
+      
+      // Close progress modal and show error
+      progressModal.closeModal()
+      
       if (mode === 'create') {
-        formState.setError(errorMessage) // Create mode can show error page
+        formState.setError(errorMessage)
       }
       showError('Chyba při ukládání', errorMessage)
     } finally {
@@ -503,6 +568,18 @@ export default function AdForm({
             onLocationSelect={formState.handleLocationSelect}
           />
 
+          {/* Progress Modal */}
+          <ProgressModal
+            isOpen={progressModal.progressState.isOpen}
+            title={progressModal.progressState.title}
+            message={progressModal.progressState.message}
+            progress={progressModal.progressState.progress}
+            currentStep={progressModal.progressState.currentStep}
+            totalSteps={progressModal.progressState.totalSteps}
+            currentStepNumber={progressModal.progressState.currentStepNumber}
+            imageProgress={progressModal.progressState.imageProgress}
+          />
+
           {/* Form Actions */}
           <FormActions
             mode={mode}
@@ -519,25 +596,7 @@ export default function AdForm({
           />
         </form>
 
-        {/* Upload Overlay */}
-        {imageState.uploading && (
-          <div className="ad-create-upload-overlay">
-            <div className="ad-create-upload-modal">
-              <div className="ad-create-upload-spinner"></div>
-              <div className="ad-create-upload-text">
-                <p>{imageState.uploadStep || 'Probíhá ukládání, čekejte prosím.'}</p>
-                {imageState.uploadProgress !== null && (
-                  <div className="ad-create-upload-progressbar">
-                    <div
-                      className="ad-create-upload-progress"
-                      style={{ width: `${imageState.uploadProgress}%` }}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   )

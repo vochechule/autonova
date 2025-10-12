@@ -1,7 +1,7 @@
 // Create: frontend/app/components/AdForm/sections/FormActions.tsx
 import React from 'react'
 import { useRouter } from 'next/navigation'
-import { ButtonLoading, FormLoading } from '../../LoadingStates'
+import { ButtonLoading } from '../../LoadingStates'
 import type { FieldErrors } from '../types'
 
 interface AdLimits {
@@ -111,8 +111,7 @@ export const FormActions: React.FC<FormActionsProps> = ({
         </div>
       )}
 
-      {/* Loading Overlay */}
-      {loading && <FormLoading message={mode === 'create' ? 'Ukládám inzerát...' : 'Ukládám změny...'} />}
+
 
       {/* Limit Modal */}
       {showLimitModal && (
