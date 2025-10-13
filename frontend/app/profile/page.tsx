@@ -292,25 +292,10 @@ export default function ProfilePage() {
     <main className="profile-page">
       <section className="profile-page__header">
         <div className="profile-page__avatar">
-          <Image src={profile.avatar || '/default-avatar.png'} alt="avatar" width={96} height={96} className="profile-page__avatar-img" />
+          <Image src={profile.avatar || '/default-avatar.png'} alt="avatar" width={96} height={96} className="profile-page__avatar-img" quality={85} />
         </div>
         <div className="profile-page__user-info">
           <h1 className="profile-page__name">{profile.name}</h1>
-          <div className="profile-page__email">
-            {(() => {
-              const email = profile.email || '';
-              const [name, domain] = email.split('@');
-              if (!name || !domain) return 'Přihlášen jako -';
-              const masked =
-                name.length > 1
-                  ? `${name[0]}***${name[name.length - 1]}`
-                  : `${name[0]}***`;
-              return `Přihlášen jako ${masked}@${domain}`;
-            })()}
-          </div>
-          <div className="profile-page__meta">
-            {profile.isDealer ? 'Autobazar' : 'Soukromý prodejce'} &middot; Připojen {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' }) : 'N/A'}
-          </div>
         </div>
         
         {/* ✅ PŘESUNUTO SEM - Tier badge pro autobazary */}
@@ -366,7 +351,7 @@ export default function ProfilePage() {
               <tr key={ad.id}>
                 <td>
                   <Link href={`/ads/${ad.id}`}>
-                    <Image src={ad.images?.[0]?.url || '/default-car.png'} alt="" width={80} height={60} className="profile-page__ad-img" />
+                    <Image src={ad.images?.[0]?.url || '/default-car.png'} alt="" width={80} height={60} className="profile-page__ad-img" quality={75} />
                   </Link>
                 </td>
                 <td>
@@ -397,7 +382,7 @@ export default function ProfilePage() {
           {ads.map(ad => (
             <div key={ad.id} className="profile-page__ad-card">
               <Link href={`/ads/${ad.id}`}>
-                <Image src={ad.images?.[0]?.url || '/default-car.png'} alt="" width={120} height={90} className="profile-page__ad-img" />
+                <Image src={ad.images?.[0]?.url || '/default-car.png'} alt="" width={120} height={90} className="profile-page__ad-img" quality={75} />
               </Link>
               <div className="profile-page__ad-info">
                 <Link href={`/ads/${ad.id}`} className="profile-page__ad-title-link">
@@ -435,7 +420,7 @@ export default function ProfilePage() {
           {savedAds.slice(0, 3).map(savedAd => (
             <div key={savedAd.id} className="profile-page__saved-ad">
               <Link href={`/ads/${savedAd.ad.id}`} className="profile-page__saved-link">
-                <Image src={savedAd.ad.images?.[0]?.url || '/default-car.png'} alt="" width={80} height={60} />
+                <Image src={savedAd.ad.images?.[0]?.url || '/default-car.png'} alt="" width={80} height={60} quality={75} />
                 <div className="profile-page__saved-info">
                   <div className="profile-page__saved-title">{savedAd.ad.title}</div>
                   <div className="profile-page__saved-brand">{savedAd.ad.brand} {savedAd.ad.model}</div>

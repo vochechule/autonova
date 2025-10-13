@@ -5,6 +5,7 @@ import FavoriteButton from './FavoriteButton'
 import { formatCarTitle } from '../utils/CarFormatter'
 import '../styles/components/AdCard.scss'
 import { fuelMap } from '../utils/labelMaps'
+import { getImageProps } from '../utils/imageOptimization'
 
 type Ad = {
   id: number
@@ -47,14 +48,11 @@ export default function AdCard({ ad }: AdCardProps) {
             alt={ad.title}
             className="listing-card__image"
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1199px) 50vw, (max-width: 1399px) 33vw, 25vw"
+            {...getImageProps('card')}
             style={{ 
               objectFit: 'cover',
               objectPosition: 'center'
             }}
-            priority={false}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
           />
         </div>
         

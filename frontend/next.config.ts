@@ -6,8 +6,10 @@ const nextConfig: NextConfig = {
       "lfmfxfazzkpvojhhmnhv.supabase.co",
     ],
     formats: ['image/webp', 'image/avif'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    minimumCacheTTL: 86400,
+    dangerouslyAllowSVG: false,
   },
   sassOptions: {
     includePaths: ['./app/styles'],
@@ -36,6 +38,16 @@ const nextConfig: NextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        // Cache optimized images longer to reduce transformations
+        source: '/_next/image/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, s-maxage=31536000, immutable',
           },
         ],
       },
