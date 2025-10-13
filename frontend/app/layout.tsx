@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./styles/components/AdCard.scss";
-import Header from "./components/Header";
-import BottomNavbar from "./components/BottomNavbar";
+// import Header from "./components/Header";
+// import BottomNavbar from "./components/BottomNavbar";
 import { ToastProvider } from "./contexts/ToastContext";
-import Footer from "./components/Footer";
-import CookiesPopup from "./components/CookiesPopup";
+// import Footer from "./components/Footer";
+// import CookiesPopup from "./components/CookiesPopup";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import Script from "next/script";
 import { AuthProvider } from "./hooks/AuthProvider";
@@ -128,11 +128,11 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>
             <div className="app-wrapper">
-              <Header />
+              {/* <Header /> */}
               <main className="main-content">{children}</main>
-              <Footer />
-              <BottomNavbar />
-              <CookiesPopup />
+              {/* <Footer /> */}
+              {/* <BottomNavbar /> */}
+              {/* <CookiesPopup /> */}
             </div>
             <ScrollToTopButton />
           </ToastProvider>
