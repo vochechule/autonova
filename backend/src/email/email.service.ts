@@ -29,7 +29,7 @@ export class EmailService {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Obnovení hesla - AutoNova</title>
+      <title>Obnovení hesla - Carta.cz</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa;">
       <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
@@ -37,7 +37,7 @@ export class EmailService {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); padding: 40px 30px; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-            🚗 AutoNova
+            🚗 Carta.cz
           </h1>
           <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">
             Obnovení hesla
@@ -82,7 +82,7 @@ export class EmailService {
         <!-- Footer -->
         <div style="background: #f8fafc; padding: 24px 30px; border-top: 1px solid #e2e8f0; text-align: center;">
           <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-            © 2025 AutoNova - Váš spolehlivý partner pro prodej aut
+            © 2025 Carta.cz - Váš spolehlivý partner pro prodej aut
           </p>
           <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 12px;">
             Tento email byl odeslán na ${email}
@@ -95,7 +95,7 @@ export class EmailService {
     const mailOptions = {
       from: this.configService.get<string>('EMAIL_FROM'),
       to: email,
-      subject: '🔑 AutoNova - Obnovení hesla',
+      subject: '🔑 Carta.cz - Obnovení hesla',
       html: htmlContent,
     };
 
