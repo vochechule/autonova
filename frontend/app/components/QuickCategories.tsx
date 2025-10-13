@@ -49,9 +49,9 @@ export default function QuickCategories() {
 
   return (
     <div className="home-page__quick-categories minimalist">
-      {quickCategories.map(cat => (
+      {quickCategories.map((cat, idx) => (
         <button
-          key={cat.label}
+          key={idx}
           className="home-page__quick-btn minimalist"
           onClick={() => handleQuickFilter(cat.query)}
         >
