@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react'
+import { Mail, ArrowLeft, CheckCircle, AlertCircle, MessageCircle } from 'lucide-react'
 import { useToast } from '../contexts/ToastContext' // ✅ OPRAVENO - správný import
+import ContactForm from '../components/ContactForm'
 import '../styles/ForgotPassword.scss'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
@@ -13,6 +14,7 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState('')
+  const [showContactForm, setShowContactForm] = useState(false)
   const { showSuccess, showError } = useToast()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -144,9 +146,28 @@ export default function ForgotPasswordPage() {
         <div className="forgot-password-form__help">
           <h3>Potřebujete pomoc?</h3>
           <p>
-            Pokud máte problémy s obnovením hesla, kontaktujte nás na{' '}
-            <a href="mailto:podpora@autonova.cz">podpora@autonova.cz</a>
+            Pokud máte problémy s obnovením hesla, můžete nás kontaktovat přímo.
           </p>
+          <button 
+            type="button"
+            className="forgot-password-form__contact-btn"
+            onClick={() => setShowContactForm(!showContactForm)}
+          >
+            <MessageCircle size={18} />
+            {showContactForm ? 'Skrýt kontaktní formulář' : 'Kontaktovat podporu'}
+          </button>
+          
+          {showContactForm && (
+            <div className="forgot-password-form__contact-form">
+              <ContactForm
+                title="Kontaktujte naši podporu"
+                description="Popište nám váš problém s obnovením hesla a my vám pomůžeme."
+                buttonText="Odeslat dotaz"
+                successMessage="Děkujeme! Odpovíme vám co nejdříve. 📧"
+                placeholder="Popište váš problém s obnovením hesla..."
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
