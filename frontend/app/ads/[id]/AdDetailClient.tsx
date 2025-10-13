@@ -370,43 +370,43 @@ export default function AdDetailClient({ initialAd }: AdDetailClientProps) {
                         className="listing-detail-page__carousel-img"
                         width={800}
                         height={600}
+                        sizes="(max-width: 768px) 100vw, 800px"
                         style={{ 
                           objectFit: 'cover'
                         }}
                         priority={true}
-                        loading="eager"
-                        unoptimized={true}
+                        quality={85}
                       />
                     </div>
                     
-                    {/* Hidden preloaded images for next/prev */}
+                    {/* Preload only next/prev images to reduce transformations */}
                     {ad.images.map((image, index) => {
                       if (index === currentImageIndex) return null
                       
-                      // Only preload adjacent images and first few
-                      const isAdjacent = Math.abs(index - currentImageIndex) <= 1 || 
-                                        (currentImageIndex === 0 && index === ad.images.length - 1) ||
-                                        (currentImageIndex === ad.images.length - 1 && index === 0)
-                      const isEarly = index < 3
+                      // Only preload immediately adjacent images
+                      const isNext = (index === currentImageIndex + 1) || 
+                                   (currentImageIndex === ad.images.length - 1 && index === 0)
+                      const isPrev = (index === currentImageIndex - 1) || 
+                                   (currentImageIndex === 0 && index === ad.images.length - 1)
                       
-                      if (!isAdjacent && !isEarly) return null
+                      if (!isNext && !isPrev) return null
                       
                       return (
                         <Image
                           key={`preload-${index}`}
                           src={image.url}
                           alt=""
-                          width={800}
-                          height={600}
+                          width={200}
+                          height={150}
+                          sizes="200px"
                           style={{ 
                             position: 'absolute',
                             opacity: 0,
                             pointerEvents: 'none',
                             zIndex: -1
                           }}
-                          priority={isAdjacent}
-                          loading="eager"
-                          unoptimized={true}
+                          priority={false}
+                          quality={60}
                         />
                       )
                     })}

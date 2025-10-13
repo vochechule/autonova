@@ -4,9 +4,14 @@ import { useRouter } from 'next/navigation'
 import { PiggyBank, Zap, Users, Crown } from 'lucide-react'
 import '../styles/QuickCategories.scss'
 
-const quickCategories: { label: string; icon: React.ReactElement; query: QuickCategoryQuery }[] = [
+const quickCategories: { label: React.ReactNode; icon: React.ReactElement; query: QuickCategoryQuery }[] = [
   {
-    label: 'Auta do 50 000 Kč',
+    label: (
+      <>
+        Auta do&nbsp;
+        <span style={{ whiteSpace: 'nowrap' }}>50&nbsp;000&nbsp;Kč</span>
+      </>
+    ),
     icon: <PiggyBank color="#2563eb" size={38} strokeWidth={2.2} />,
     query: { priceTo: 50000, condition: 'used' }
   },
@@ -44,9 +49,9 @@ export default function QuickCategories() {
 
   return (
     <div className="home-page__quick-categories minimalist">
-      {quickCategories.map(cat => (
+      {quickCategories.map((cat, idx) => (
         <button
-          key={cat.label}
+          key={idx}
           className="home-page__quick-btn minimalist"
           onClick={() => handleQuickFilter(cat.query)}
         >

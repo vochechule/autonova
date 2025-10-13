@@ -55,7 +55,6 @@ export const useAdLimits = (mode: 'create' | 'edit') => {
 
       setAdLimits(limits)
 
-      console.log('📊 Ad limits loaded:', limits)
 
     } catch (err) {
       console.error('❌ Error fetching ad limits:', err)
