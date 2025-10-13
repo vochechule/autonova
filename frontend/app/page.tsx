@@ -70,11 +70,10 @@ export default function Home() {
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
         }}>
           {/* Logo/Icon */}
-          <div style={{ 
+          <div className="pulse-animation" style={{ 
             marginBottom: '2rem',
             fontSize: '5rem',
-            lineHeight: 1,
-            animation: 'pulse 2s infinite'
+            lineHeight: 1
           }}>
             🚗
           </div>
@@ -129,12 +128,13 @@ export default function Home() {
             {[0, 1, 2].map(i => (
               <div
                 key={i}
+                className="bounce-animation"
                 style={{
                   width: '12px',
                   height: '12px',
                   backgroundColor: 'rgba(255, 255, 255, 0.6)',
                   borderRadius: '50%',
-                  animation: `bounce 1.4s infinite ${i * 0.2}s`
+                  animationDelay: `${i * 0.2}s`
                 }}
               />
             ))}
@@ -149,17 +149,32 @@ export default function Home() {
           </p>
         </div>
         
-        <style jsx>{`
-          @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-          }
-          
-          @keyframes bounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-          }
-        `}</style>
+        {/* CSS animations via style tag */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes pulse {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.05); }
+            }
+            
+            @keyframes bounce {
+              0%, 80%, 100% { transform: translateY(0); }
+              40% { transform: translateY(-10px); }
+            }
+            
+            .pulse-animation {
+              animation: pulse 2s infinite;
+            }
+            
+            .bounce-animation {
+              animation: bounce 1.4s infinite;
+            }
+            
+            .bounce-animation:nth-child(1) { animation-delay: 0s; }
+            .bounce-animation:nth-child(2) { animation-delay: 0.2s; }
+            .bounce-animation:nth-child(3) { animation-delay: 0.4s; }
+          `
+        }} />
       </main>
     </>
   )
