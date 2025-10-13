@@ -29,27 +29,32 @@ export class EmailService {
       console.error('❌ Email service not properly configured - emails will fail');
     }
 
+    // ✅ Railway-optimalizovaná konfigurace
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     this.transporter = nodemailer.createTransport({
       host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465, // true for 465, false for other ports
+      port: Number(smtpPort),
+      secure: Number(smtpPort) === 465, // SSL pro port 465
       auth: {
         user: smtpUser,
         pass: smtpPass,
       },
-      // ✅ Přidáno pro deployment stabilitu
-      connectionTimeout: 10000, // 10 seconds
-      greetingTimeout: 5000, // 5 seconds
-      socketTimeout: 15000, // 15 seconds
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 10,
-      // ✅ Pro deployment platformy jako Vercel/Railway
+      // ✅ Delší timeouty pro Railway
+      connectionTimeout: isProduction ? 60000 : 10000, // 60s pro production
+      greetingTimeout: isProduction ? 30000 : 5000,
+      socketTimeout: isProduction ? 60000 : 15000,
+      // ✅ Bez poolingu na Railway - může způsobovat problémy
+      pool: false,
+      // ✅ Railway-specific TLS konfigurace
       tls: {
         rejectUnauthorized: false,
+        servername: smtpHost,
       },
     });
 
+    console.log(`🔧 SMTP Config: ${smtpHost}:${smtpPort} (secure: ${Number(smtpPort) === 465})`);
+    
     // ✅ Ověření připojení při startu
     void this.verifyConnection();
   }
@@ -162,19 +167,25 @@ export class EmailService {
     } catch (error: any) {
       console.error('❌ Failed to send password reset email:', error);
       
-      // ✅ Specifické error handling pro různé typy chyb
+      // ✅ Railway-specific error handling
+      console.error('❌ SMTP Error Details:', {
+        code: error?.code,
+        errno: error?.errno,
+        command: error?.command,
+        response: error?.response,
+      });
+
       if (error?.code === 'ETIMEDOUT') {
-        throw new Error('Email server timeout - zkuste to prosím za chvíli');
+        console.error('🚫 Railway pravděpodobně blokuje SMTP port - zkuste jiný port nebo email service');
+        throw new Error('Email server timeout - SMTP port může být blokován na Railway');
       } else if (error?.code === 'ECONNREFUSED') {
-        throw new Error(
-          'Email server není dostupný - zkuste to prosím později',
-        );
+        throw new Error('Email server odmítl připojení - zkontrolujte SMTP konfiguraci');
       } else if (error?.code === 'EAUTH') {
-        throw new Error('Email authentication failed - kontaktujte podporu');
+        throw new Error('SMTP autentizace selhala - zkontrolujte přihlašovací údaje');
+      } else if (error?.code === 'ENOTFOUND') {
+        throw new Error('SMTP server nenalezen - zkontrolujte SMTP_HOST');
       } else {
-        throw new Error(
-          'Nepodařilo se odeslat email - zkuste to prosím později',
-        );
+        throw new Error(`SMTP chyba: ${error?.message || 'Neznámá chyba'}`);
       }
     }
   }
