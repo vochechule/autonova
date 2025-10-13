@@ -7,15 +7,31 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
+    const smtpHost = this.configService.get<string>('SMTP_HOST');
+    const smtpPort = this.configService.get<number>('SMTP_PORT');
+    const smtpUser = this.configService.get<string>('SMTP_USER');
+    const smtpPass = this.configService.get<string>('SMTP_PASS');
+    
+    console.log('🔧 SMTP Config:', { host: smtpHost, port: smtpPort, user: smtpUser, hasPass: !!smtpPass });
+    
     // ✅ OPRAVENO - createTransport místo createTransporter
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('SMTP_HOST'),
-      port: this.configService.get<number>('SMTP_PORT'),
+      host: smtpHost,
+      port: smtpPort,
       secure: false, // true for 465, false for other ports
       auth: {
-        user: this.configService.get<string>('SMTP_USER'),
-        pass: this.configService.get<string>('SMTP_PASS'),
+        user: smtpUser,
+        pass: smtpPass,
       },
+    });
+    
+    // Test SMTP connection
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.error('❌ SMTP connection failed:', error);
+      } else {
+        console.log('✅ SMTP connection verified successfully');
+      }
     });
   }
 
@@ -100,9 +116,19 @@ export class EmailService {
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      console.log('📧 Sending email to:', email);
+      console.log('📧 Email options:', { from: mailOptions.from, to: mailOptions.to, subject: mailOptions.subject });
+      
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log('✅ Email sent successfully:', result.messageId);
     } catch (error) {
       console.error('❌ Failed to send password reset email:', error);
+      console.error('❌ Error details:', {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        command: error.command
+      });
       throw new Error('Failed to send password reset email');
     }
   }
