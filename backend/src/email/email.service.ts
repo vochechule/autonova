@@ -1,25 +1,77 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { EmailConfigService } from './email-config.service';
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private transporter: any;
 
-  constructor(private configService: ConfigService) {
-    // ✅ OPRAVENO - createTransport místo createTransporter
+  constructor(
+    private configService: ConfigService,
+    private emailConfigService: EmailConfigService,
+  ) {
+    const smtpHost = this.configService.get<string>('SMTP_HOST');
+    const smtpPort = this.configService.get<number>('SMTP_PORT', 587);
+    const smtpUser = this.configService.get<string>('SMTP_USER');
+    const smtpPass = this.configService.get<string>('SMTP_PASS');
+    
+    // Zkontroluj a vylog konfiguraci
+    this.emailConfigService.logEmailConfig();
+    
+    if (!this.emailConfigService.checkEmailConfiguration()) {
+      console.error('❌ Email service not properly configured - emails will fail');
+    }
+
     this.transporter = nodemailer.createTransport({
-      host: this.configService.get<string>('SMTP_HOST'),
-      port: this.configService.get<number>('SMTP_PORT'),
-      secure: false, // true for 465, false for other ports
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465, // true for 465, false for other ports
       auth: {
-        user: this.configService.get<string>('SMTP_USER'),
-        pass: this.configService.get<string>('SMTP_PASS'),
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      // ✅ Přidáno pro deployment stabilitu
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 5000, // 5 seconds
+      socketTimeout: 15000, // 15 seconds
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 10,
+      // ✅ Pro deployment platformy jako Vercel/Railway
+      tls: {
+        rejectUnauthorized: false,
       },
     });
+
+    // ✅ Ověření připojení při startu
+    void this.verifyConnection();
+  }
+
+  private async verifyConnection() {
+    try {
+      await this.transporter.verify();
+      console.log('✅ SMTP connection verified successfully');
+    } catch (error) {
+      console.error('❌ SMTP connection failed:', error);
+      // Neházeme error při startu - může to být dočasná chyba
+    }
   }
 
   async sendPasswordResetEmail(email: string, resetToken: string) {
+    // Zkontroluj jestli je email service správně nakonfigurovaný
+    if (!this.emailConfigService.checkEmailConfiguration()) {
+      console.error('❌ Email not configured, falling back to console log');
+      this.logPasswordResetToConsole(email, resetToken);
+      throw new Error('Email služba není nakonfigurovaná - kontaktujte administrátora');
+    }
+
     const frontendUrl = this.configService.get<string>('FRONTEND_URL');
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
@@ -29,7 +81,7 @@ export class EmailService {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Obnovení hesla - AutoNova</title>
+      <title>Obnovení hesla - Carta.cz</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa;">
       <div style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
@@ -37,7 +89,7 @@ export class EmailService {
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); padding: 40px 30px; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-            🚗 AutoNova
+            🚗 Carta.cz
           </h1>
           <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 16px;">
             Obnovení hesla
@@ -82,7 +134,7 @@ export class EmailService {
         <!-- Footer -->
         <div style="background: #f8fafc; padding: 24px 30px; border-top: 1px solid #e2e8f0; text-align: center;">
           <p style="margin: 0; color: #94a3b8; font-size: 14px;">
-            © 2025 AutoNova - Váš spolehlivý partner pro prodej aut
+            © 2025 Carta.cz - Váš spolehlivý partner pro prodej aut
           </p>
           <p style="margin: 8px 0 0 0; color: #94a3b8; font-size: 12px;">
             Tento email byl odeslán na ${email}
@@ -95,15 +147,46 @@ export class EmailService {
     const mailOptions = {
       from: this.configService.get<string>('EMAIL_FROM'),
       to: email,
-      subject: '🔑 AutoNova - Obnovení hesla',
+      subject: '🔑 Carta.cz - Obnovení hesla',
       html: htmlContent,
     };
 
     try {
-      await this.transporter.sendMail(mailOptions);
-    } catch (error) {
+      console.log('📧 Attempting to send password reset email to:', email);
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log(
+        '✅ Password reset email sent successfully:',
+        result.messageId,
+      );
+      return result;
+    } catch (error: any) {
       console.error('❌ Failed to send password reset email:', error);
-      throw new Error('Failed to send password reset email');
+      
+      // ✅ Specifické error handling pro různé typy chyb
+      if (error?.code === 'ETIMEDOUT') {
+        throw new Error('Email server timeout - zkuste to prosím za chvíli');
+      } else if (error?.code === 'ECONNREFUSED') {
+        throw new Error(
+          'Email server není dostupný - zkuste to prosím později',
+        );
+      } else if (error?.code === 'EAUTH') {
+        throw new Error('Email authentication failed - kontaktujte podporu');
+      } else {
+        throw new Error(
+          'Nepodařilo se odeslat email - zkuste to prosím později',
+        );
+      }
     }
+  }
+
+  private logPasswordResetToConsole(email: string, resetToken: string) {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+    
+    console.log('🔗 PASSWORD RESET LINK (EMAIL SERVICE NOT CONFIGURED):');
+    console.log(`📧 Email: ${email}`);
+    console.log(`🔗 Reset Link: ${resetLink}`);
+    console.log('⚠️  Copy this link and send it manually to the user');
+    console.log('='.repeat(80));
   }
 }
