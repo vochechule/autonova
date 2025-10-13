@@ -187,6 +187,7 @@ export class EmailService {
       } else {
         throw new Error(`SMTP chyba: ${error?.message || 'Neznámá chyba'}`);
       }
+
     }
   }
 
