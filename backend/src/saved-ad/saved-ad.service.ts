@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { JsonDbService } from '../database/json-db.service';
 import { SaveAdDto } from './dto/save-ad.dto';
 import { SavedAdResponseDto } from './dto/saved-ad-response.dto';
 

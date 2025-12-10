@@ -1,11 +1,11 @@
 import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
-import { PrismaService } from '../../prisma/prisma.service';
+import { JsonDbService } from '../database/json-db.service';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
 export class AdminController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: JsonDbService) {}
 
   @Get('ads')
   async getAllAds() {

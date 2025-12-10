@@ -12,6 +12,12 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(path.join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
 
+  // Seed database with sample data if empty
+  const { seedDatabase } = await import('./database/seed');
+  const { JsonDbService } = await import('./database/json-db.service');
+  const dbService = app.get(JsonDbService);
+  await seedDatabase(dbService);
+
   // ✅ Enhanced validation pipe
   app.useGlobalPipes(new ValidationPipe({
     transform: true,

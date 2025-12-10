@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service'; // uprav cestu dle projektu
+import { JsonDbService } from '../database/json-db.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: JsonDbService) {}
 
   async create(userData: any) {
     return this.prisma.user.create({ 

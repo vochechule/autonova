@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { JsonDbService } from '../database/json-db.service';
 import * as path from 'path';
 import { createClient } from '@supabase/supabase-js';
 
@@ -19,7 +19,7 @@ export class AdService {
     // ❌ dealerTier, role (internal business data)
   }
 
-  constructor(private prisma: PrismaService) {
+  constructor(private prisma: JsonDbService) {}
     const supabaseUrl = process.env.SUPABASE_URL || '';
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
     this.supabase = createClient(supabaseUrl, supabaseKey);

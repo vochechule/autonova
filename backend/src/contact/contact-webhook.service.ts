@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { JsonDbService } from '../database/json-db.service';
 
 @Injectable()
 export class ContactWebhookService {
   private readonly logger = new Logger(ContactWebhookService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: JsonDbService) {}
 
   async saveAndNotify(name: string, email: string, message: string) {
     try {

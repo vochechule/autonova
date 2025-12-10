@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { EmailService } from '../email/email.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { JsonDbService } from '../database/json-db.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class AuthService {
     private userService: UserService, 
     private jwt: JwtService,
     private emailService: EmailService,
-    private prisma: PrismaService
+    private prisma: JsonDbService
   ) {}
 
   async register(email: string, password: string, name: string, isDealer?: boolean, dealerTier?: string) {

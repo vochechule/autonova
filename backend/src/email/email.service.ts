@@ -7,32 +7,9 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
-    const smtpHost = this.configService.get<string>('SMTP_HOST');
-    const smtpPort = this.configService.get<number>('SMTP_PORT');
-    const smtpUser = this.configService.get<string>('SMTP_USER');
-    const smtpPass = this.configService.get<string>('SMTP_PASS');
-    
-    console.log('🔧 SMTP Config:', { host: smtpHost, port: smtpPort, user: smtpUser, hasPass: !!smtpPass });
-    
-    // ✅ OPRAVENO - createTransport místo createTransporter
-    this.transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
-    
-    // Test SMTP connection
-    this.transporter.verify((error, success) => {
-      if (error) {
-        console.error('❌ SMTP connection failed:', error);
-      } else {
-        console.log('✅ SMTP connection verified successfully');
-      }
-    });
+    // For local showcase - we'll log emails to console instead of sending
+    console.log('📧 Email Service initialized (Local Mode - emails logged to console)');
+    this.transporter = null; // Not needed for local showcase
   }
 
   async sendPasswordResetEmail(email: string, resetToken: string) {
@@ -115,21 +92,15 @@ export class EmailService {
       html: htmlContent,
     };
 
-    try {
-      console.log('📧 Sending email to:', email);
-      console.log('📧 Email options:', { from: mailOptions.from, to: mailOptions.to, subject: mailOptions.subject });
-      
-      const result = await this.transporter.sendMail(mailOptions);
-      console.log('✅ Email sent successfully:', result.messageId);
-    } catch (error) {
-      console.error('❌ Failed to send password reset email:', error);
-      console.error('❌ Error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code,
-        command: error.command
-      });
-      throw new Error('Failed to send password reset email');
-    }
+    // For local showcase - log email details to console
+    console.log('\n=== 📧 PASSWORD RESET EMAIL (Local Showcase) ===');
+    console.log('To:', email);
+    console.log('Subject:', mailOptions.subject);
+    console.log('Reset Link:', resetLink);
+    console.log('From:', mailOptions.from);
+    console.log('==============================================\n');
+    
+    // Email "sent" successfully (logged to console)
+    return Promise.resolve();
   }
 }
