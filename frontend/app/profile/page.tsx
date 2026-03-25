@@ -49,7 +49,7 @@ interface UserProfile {
 }
 
 // Bezpečná validace ratingu
-const getSafeRating = (rating: any): number => {
+const getSafeRating = (rating: unknown): number => {
   const num = Number(rating);
   if (isNaN(num) || num < 0) return 0;
   if (num > 5) return 5;
