@@ -57,6 +57,14 @@ interface Ad {
   distance?: number;
 }
 
+// Bezpečná validace ratingu
+const getSafeRating = (rating: any): number => {
+  const num = Number(rating);
+  if (isNaN(num) || num < 0) return 0;
+  if (num > 5) return 5;
+  return Math.round(num);
+};
+
 export default function UserProfilePage() {
   const params = useParams();
   const userId = params.id as string;
@@ -189,8 +197,7 @@ export default function UserProfilePage() {
               {avgRating !== null ? avgRating.toFixed(1) : "-"}
             </span>
             <div className="profile-page__stars">
-              {"★".repeat(Math.round(Number(avgRating) || 0))}
-              {"☆".repeat(5 - Math.round(Number(avgRating) || 0))}
+              {(() => { const rating = getSafeRating(avgRating); return "★".repeat(rating) + "☆".repeat(5 - rating); })()}
             </div>
             <div className="profile-page__rating-count">
               {reviews.length} {reviews.length === 1 ? 'hodnocení' : 'hodnocení'}
@@ -287,7 +294,7 @@ export default function UserProfilePage() {
                       </div>
                     </div>
                     <div className="profile-page__review-stars">
-                      {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}
+                      {(() => { const rating = getSafeRating(r.rating); return "★".repeat(rating) + "☆".repeat(5 - rating); })()}
                     </div>
                   </div>
                   {r.comment && (

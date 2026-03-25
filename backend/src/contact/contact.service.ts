@@ -18,13 +18,13 @@ export class ContactService {
         },
         // ✅ Add timeout settings
         connectionTimeout: 60000, // 60 seconds
-        greetingTimeout: 30000,   // 30 seconds
-        socketTimeout: 60000,     // 60 seconds
+        greetingTimeout: 30000, // 30 seconds
+        socketTimeout: 60000, // 60 seconds
         // ✅ Add TLS options for production
         tls: {
           ciphers: 'SSLv3',
-          rejectUnauthorized: false // Only if you have certificate issues
-        }
+          rejectUnauthorized: false, // Only if you have certificate issues
+        },
       });
 
       // ✅ Verify connection before sending
@@ -39,12 +39,11 @@ export class ContactService {
         text: message,
         html: `<p><strong>Jméno:</strong> ${name}</p>
                <p><strong>Email:</strong> ${email}</p>
-               <p><strong>Zpráva:</strong><br/>${message.replace(/\n/g, "<br/>")}</p>`,
+               <p><strong>Zpráva:</strong><br/>${message.replace(/\n/g, '<br/>')}</p>`,
       });
 
       this.logger.log(`Email sent successfully: ${result.messageId}`);
       return result;
-
     } catch (error) {
       this.logger.error('Failed to send email:', error);
       throw new Error(`Email sending failed: ${error.message}`);

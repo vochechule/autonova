@@ -15,9 +15,9 @@ export class LocalStorageService {
     const fileExt = path.extname(filename);
     const uniqueFilename = `${uuidv4()}${fileExt}`;
     const filePath = path.join(UPLOADS_DIR, uniqueFilename);
-    
+
     fs.writeFileSync(filePath, file);
-    
+
     // Return URL path that will be served by Express
     return `/uploads/${uniqueFilename}`;
   }
@@ -26,7 +26,7 @@ export class LocalStorageService {
     try {
       const filename = path.basename(fileUrl);
       const filePath = path.join(UPLOADS_DIR, filename);
-      
+
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }

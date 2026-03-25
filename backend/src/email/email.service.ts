@@ -8,7 +8,9 @@ export class EmailService {
 
   constructor(private configService: ConfigService) {
     // For local showcase - we'll log emails to console instead of sending
-    console.log('📧 Email Service initialized (Local Mode - emails logged to console)');
+    console.log(
+      '📧 Email Service initialized (Local Mode - emails logged to console)',
+    );
     this.transporter = null; // Not needed for local showcase
   }
 
@@ -99,7 +101,7 @@ export class EmailService {
     console.log('Reset Link:', resetLink);
     console.log('From:', mailOptions.from);
     console.log('==============================================\n');
-    
+
     // Email "sent" successfully (logged to console)
     return Promise.resolve();
   }

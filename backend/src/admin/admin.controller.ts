@@ -1,25 +1,25 @@
 import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
-import { JsonDbService } from '../database/json-db.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
 export class AdminController {
-  constructor(private prisma: JsonDbService) {}
+  constructor(private prisma: PrismaService) {}
 
   @Get('ads')
   async getAllAds() {
     return this.prisma.ad.findMany({
       include: {
         user: {
-          select: { id: true, name: true, email: true, isDealer: true }
+          select: { id: true, name: true, email: true, isDealer: true },
         },
         images: true,
         _count: {
-          select: { savedBy: true }
-        }
+          select: { savedBy: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -27,16 +27,16 @@ export class AdminController {
   async deleteAd(@Param('id') id: string) {
     // Nejdříve smažeme související záznamy
     await this.prisma.savedAd.deleteMany({
-      where: { adId: id }
+      where: { adId: id },
     });
-    
+
     await this.prisma.image.deleteMany({
-      where: { adId: id }
+      where: { adId: id },
     });
 
     // Pak smažeme samotný inzerát
     return this.prisma.ad.delete({
-      where: { id }
+      where: { id },
     });
   }
 
@@ -51,14 +51,14 @@ export class AdminController {
         isDealer: true,
         createdAt: true,
         _count: {
-          select: { 
+          select: {
             ads: true,
             savedAds: true,
-            reviewsReceived: true
-          }
-        }
+            reviewsReceived: true,
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -69,14 +69,14 @@ export class AdminController {
       this.prisma.user.count(),
       this.prisma.ad.count(),
       this.prisma.review.count(),
-      this.prisma.ad.count({ where: { isVisible: true } }) // Místo 'status' používáme 'isVisible'
+      this.prisma.ad.count({ where: { isVisible: true } }), // Místo 'status' používáme 'isVisible'
     ]);
 
     return {
       totalUsers,
       totalAds,
       totalReviews,
-      visibleAds // Přejmenováno z 'activeAds' na 'visibleAds'
+      visibleAds, // Přejmenováno z 'activeAds' na 'visibleAds'
     };
   }
 }

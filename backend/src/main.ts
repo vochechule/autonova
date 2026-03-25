@@ -10,23 +10,21 @@ import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useStaticAssets(path.join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
-
-  // Seed database with sample data if empty
-  const { seedDatabase } = await import('./database/seed');
-  const { JsonDbService } = await import('./database/json-db.service');
-  const dbService = app.get(JsonDbService);
-  await seedDatabase(dbService);
+  app.useStaticAssets(path.join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads',
+  });
 
   // ✅ Enhanced validation pipe
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,
-    whitelist: true,
-    forbidNonWhitelisted: true, // ✅ Reject unknown properties
-    transformOptions: {
-      enableImplicitConversion: true, // ✅ Auto-convert types
-    },
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true, // ✅ Reject unknown properties
+      transformOptions: {
+        enableImplicitConversion: true, // ✅ Auto-convert types
+      },
+    }),
+  );
 
   // ✅ Add global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());

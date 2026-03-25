@@ -44,4 +44,4 @@ export class SavedAdController {
     const isSaved = await this.savedAdService.isAdSaved(req.user.id, adId);
     return { isSaved };
   }
-} 
+}

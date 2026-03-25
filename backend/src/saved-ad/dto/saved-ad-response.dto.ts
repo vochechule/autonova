@@ -1,4 +1,10 @@
-import { IsString, IsNumber, IsDate, IsOptional, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsDate,
+  IsOptional,
+  IsObject,
+} from 'class-validator';
 
 export class SavedAdResponseDto {
   @IsString()

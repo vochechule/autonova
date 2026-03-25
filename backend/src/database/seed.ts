@@ -53,7 +53,8 @@ export async function seedDatabase(db: JsonDbService) {
       title: 'Škoda Octavia 2.0 TDI Combi',
       brand: 'Škoda',
       model: 'Octavia',
-      description: 'Perfektní rodinné auto v top stavu. Servisní kniha, pravidelný servis. Nehavarované, garáž ováno.',
+      description:
+        'Perfektní rodinné auto v top stavu. Servisní kniha, pravidelný servis. Nehavarované, garáž ováno.',
       price: 450000,
       mileage: 85000,
       year: 2019,
@@ -91,7 +92,8 @@ export async function seedDatabase(db: JsonDbService) {
       title: 'BMW 320d xDrive Touring',
       brand: 'BMW',
       model: '3 Series',
-      description: 'Luxusní kombi s pohonem všech kol. Bohatá výbava, kožené sedačky, navigace.',
+      description:
+        'Luxusní kombi s pohonem všech kol. Bohatá výbava, kožené sedačky, navigace.',
       price: 720000,
       mileage: 62000,
       year: 2020,
@@ -129,7 +131,8 @@ export async function seedDatabase(db: JsonDbService) {
       title: 'Volkswagen Golf 1.4 TSI',
       brand: 'Volkswagen',
       model: 'Golf',
-      description: 'Ekonomický hatchback, první majitel, servisní kniha. Ideální do města.',
+      description:
+        'Ekonomický hatchback, první majitel, servisní kniha. Ideální do města.',
       price: 280000,
       mileage: 45000,
       year: 2018,

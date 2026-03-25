@@ -1,6 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { JsonDbService } from '../database/json-db.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -11,23 +16,23 @@ export class AdminGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    
 
     const token = request.headers.authorization?.split(' ')[1];
-    
-   
+
     if (!token) {
       throw new ForbiddenException('Token not provided');
     }
 
     try {
       const payload = this.jwtService.verify(token);
-      
+
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
-        select: { id: true, email: true, name: true, role: true }
+        select: {
+          id: true,
+          role: true,
+        },
       });
-
 
       if (!user || user.role !== 'ADMIN') {
         throw new ForbiddenException('Admin access required');

@@ -8,9 +8,22 @@ import {
   CarCondition,
   Color,
   ColorFinish,
-} from '../enums/ad.enums'
-import { Transform, Type } from 'class-transformer'
-import { IsEnum, IsInt, IsString, IsOptional, IsBoolean, IsDateString, IsArray, IsNumber, IsEmail, IsPhoneNumber, Min, Max } from 'class-validator'
+} from '../enums/ad.enums';
+import { Transform, Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsInt,
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsDateString,
+  IsArray,
+  IsNumber,
+  IsEmail,
+  IsPhoneNumber,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class CreateAdDto {
   @IsString()
@@ -67,7 +80,7 @@ export class CreateAdDto {
   @IsInt({ message: 'Počet airbagů musí být celé číslo' })
   @Min(0, { message: 'Počet airbagů nemůže být záporný' })
   @Max(20, { message: 'Počet airbagů nemůže být více než 20' })
-  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
+  @Transform(({ value }) => (value ? parseInt(value, 10) : undefined))
   airbagCount?: number;
 
   @IsOptional()
@@ -170,17 +183,17 @@ export class CreateAdDto {
   // ✅ NOVÉ TEXTOVÉ FIELDS
   @IsOptional()
   @IsString()
-  safetyFeatures?: string;     // Bezpečnostní systémy
+  safetyFeatures?: string; // Bezpečnostní systémy
 
   @IsOptional()
   @IsString()
-  assistSystems?: string;      // Asistenční systémy
+  assistSystems?: string; // Asistenční systémy
 
   @IsOptional()
   @IsString()
-  securityFeatures?: string;   // Zabezpečení vozidla
+  securityFeatures?: string; // Zabezpečení vozidla
 
   @IsOptional()
   @IsString()
-  interiorComfort?: string;    // Vnitřní výbava a komfort
+  interiorComfort?: string; // Vnitřní výbava a komfort
 }

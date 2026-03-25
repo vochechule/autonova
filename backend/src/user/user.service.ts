@@ -1,12 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { JsonDbService } from '../database/json-db.service';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: JsonDbService) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(userData: any) {
-    return this.prisma.user.create({ 
+    return this.prisma.user.create({
       data: userData,
       select: {
         id: true,
@@ -17,31 +21,16 @@ export class UserService {
         role: true,
         createdAt: true,
         // Don't return password
-      }
+      },
     });
   }
 
   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        isDealer: true, // Only for UI display (dealer badge)
-        // ❌ SECURITY: Don't expose internal business data
-        // dealerTier, role are internal business data
-        // ❌ SECURITY: Never include password, email, createdAt
-        ads: {
-          include: {
-            images: {
-              take: 1, // Jen první obrázek pro náhled
-              orderBy: { order: 'asc' } // ✅ OPRAVA - Řaď podle pořadí, aby se vzal skutečně první obrázek
-            }
-          },
-          orderBy: {
-            createdAt: 'desc'
-          }
-        }
+      include: {
+        ads: true,
+        savedAds: true,
       },
     });
 
@@ -49,7 +38,9 @@ export class UserService {
       throw new NotFoundException(`Uživatel s ID ${id} nebyl nalezen`);
     }
 
-    return user;
+    // Remove password from response
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   async findByEmail(email: string) {
@@ -62,7 +53,12 @@ export class UserService {
     });
   }
 
-  async upsertReview(raterId: string, targetId: string, rating: number, comment?: string) {
+  async upsertReview(
+    raterId: string,
+    targetId: string,
+    rating: number,
+    comment?: string,
+  ) {
     // Only allow rating if target has posted at least one ad
     const adCount = await this.prisma.ad.count({ where: { userId: targetId } });
     if (adCount === 0) {
@@ -97,15 +93,13 @@ export class UserService {
   }
 
   async updatePassword(userId: string, hashedPassword: string) {
-    return this.prisma.user.update({
+    const user = await this.prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-      }
     });
+    
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   async updateProfile(userId: string, name: string, email: string) {
@@ -121,16 +115,10 @@ export class UserService {
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: { name, email },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        isDealer: true,
-        createdAt: true,
-      },
     });
 
-    return updatedUser;
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
   }
 
   async deleteAccount(userId: string, password: string) {
@@ -160,7 +148,11 @@ export class UserService {
   async getUserAdLimits(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { isDealer: true, dealerTier: true }
+      select: {
+        id: true,
+        isDealer: true,
+        dealerTier: true,
+      },
     });
 
     if (!user) {
@@ -168,7 +160,7 @@ export class UserService {
     }
 
     const currentAdsCount = await this.prisma.ad.count({
-      where: { userId }
+      where: { userId },
     });
 
     // Soukromí uživatelé - 10 inzerátů
@@ -178,7 +170,7 @@ export class UserService {
         currentAds: currentAdsCount,
         remainingAds: Math.max(0, 10 - currentAdsCount),
         tier: 'PRIVATE',
-        isDealer: false
+        isDealer: false,
       };
     }
 
@@ -186,7 +178,7 @@ export class UserService {
     const tierLimits = {
       BASIC: 25,
       PREMIUM: 75,
-      ENTERPRISE: 150
+      ENTERPRISE: 150,
     };
 
     const maxAds = tierLimits[user.dealerTier] || 25;
@@ -196,14 +188,17 @@ export class UserService {
       currentAds: currentAdsCount,
       remainingAds: Math.max(0, maxAds - currentAdsCount),
       tier: user.dealerTier,
-      isDealer: true
+      isDealer: true,
     };
   }
 
   // ✅ ADMIN - Upgrade/downgrade dealer tier
-  async updateDealerTier(userId: string, newTier: 'BASIC' | 'PREMIUM' | 'ENTERPRISE') {
+  async updateDealerTier(
+    userId: string,
+    newTier: 'BASIC' | 'PREMIUM' | 'ENTERPRISE',
+  ) {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user) {
@@ -219,33 +214,22 @@ export class UserService {
       throw new BadRequestException('Neplatný tier');
     }
 
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: {
         dealerTier: newTier,
-        tierUpgradedAt: new Date()
+        tierUpgradedAt: new Date(),
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        isDealer: true,
-        dealerTier: true,
-        tierUpgradedAt: true
-      }
     });
+    
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
   }
 
   // 🔒 SECURITY: Special method for authentication - includes password for verification only
   async findOneWithPassword(id: string) {
     return this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        email: true,
-        password: true, // Only for auth verification
-        name: true,
-      }
     });
   }
 }

@@ -28,7 +28,6 @@ export class UpdateAdDto extends PartialType(CreateAdDto) {
   @IsArray()
   @IsString({ each: true })
   @Transform(({ value }) => {
-
     if (!value) return undefined;
 
     // Pokud je už array, vrať ho

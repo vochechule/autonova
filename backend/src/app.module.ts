@@ -6,7 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { AdModule } from './ad/ad.module';
 import { SavedAdModule } from './saved-ad/saved-ad.module';
-import { DatabaseModule } from './database/database.module';
+import { PrismaModule } from './prisma/prisma.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { AdminModule } from './admin/admin.module';
 import { ContactModule } from './contact/contact.module';
@@ -16,7 +16,7 @@ import { ContactModule } from './contact/contact.module';
     ConfigModule.forRoot({
       isGlobal: true, // Udělá config dostupný všude
     }),
-    DatabaseModule,
+    PrismaModule,
     AuthModule,
     UserModule,
     AdminModule,

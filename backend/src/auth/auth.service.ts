@@ -1,40 +1,52 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from '../user/user.service';
 import { EmailService } from '../email/email.service';
-import { JsonDbService } from '../database/json-db.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService, 
+    private userService: UserService,
     private jwt: JwtService,
     private emailService: EmailService,
-    private prisma: JsonDbService
+    private prisma: PrismaService,
   ) {}
 
-  async register(email: string, password: string, name: string, isDealer?: boolean, dealerTier?: string) {
+  async register(
+    email: string,
+    password: string,
+    name: string,
+    isDealer?: boolean,
+    dealerTier?: string,
+  ) {
     // ✅ Input validation
     if (!email || !email.includes('@')) {
       throw new BadRequestException({
         code: 'INVALID_EMAIL',
-        message: 'Neplatný formát emailu'
+        message: 'Neplatný formát emailu',
       });
     }
 
     if (!name || name.trim().length < 2) {
       throw new BadRequestException({
         code: 'INVALID_NAME',
-        message: 'Jméno musí mít alespoň 2 znaky'
+        message: 'Jméno musí mít alespoň 2 znaky',
       });
     }
 
     if (!password || password.length < 8) {
       throw new BadRequestException({
         code: 'PASSWORD_TOO_SHORT',
-        message: 'Heslo musí mít alespoň 8 znaků'
+        message: 'Heslo musí mít alespoň 8 znaků',
       });
     }
 
@@ -43,13 +55,13 @@ export class AuthService {
     if (existingUser) {
       throw new ConflictException({
         code: 'EMAIL_ALREADY_EXISTS',
-        message: 'Email se již používá'
+        message: 'Email se již používá',
       });
     }
 
     try {
       const hashed = await bcrypt.hash(password, 10);
-      
+
       // ✅ PŘIDÁNO - Dealer registrace s tier
       const userData: any = {
         email,
@@ -62,8 +74,8 @@ export class AuthService {
       if (isDealer) {
         const validTiers = ['BASIC', 'PREMIUM', 'ENTERPRISE'];
         const tierToCheck = dealerTier?.toUpperCase() || 'BASIC';
-        userData.dealerTier = validTiers.includes(tierToCheck) 
-          ? tierToCheck 
+        userData.dealerTier = validTiers.includes(tierToCheck)
+          ? tierToCheck
           : 'BASIC';
         userData.tierUpgradedAt = new Date();
       }
@@ -71,44 +83,45 @@ export class AuthService {
       const user = await this.userService.create(userData);
 
       // Vygenerovat token po registraci (automatické přihlášení)
-      const payload = { 
-        sub: user.id, 
+      const payload = {
+        sub: user.id,
         email: user.email,
         role: user.role,
         isDealer: user.isDealer,
-        dealerTier: user.dealerTier
+        dealerTier: user.dealerTier,
       };
       const token = this.jwt.sign(payload);
 
       return {
-        user: { 
-          id: user.id, 
-          email: user.email, 
+        user: {
+          id: user.id,
+          email: user.email,
           name: user.name,
           isDealer: user.isDealer,
-          dealerTier: user.dealerTier
+          dealerTier: user.dealerTier,
         },
         token,
       };
     } catch (error) {
       // ✅ OPRAVENO - Jednoduchý error handling bez Prisma specifics
       console.error('Registration error:', error);
-      
+
       // Pokud obsahuje "unique" nebo "duplicate", je to duplicitní email
-      if (error.message && (
-        error.message.includes('unique') || 
-        error.message.includes('duplicate') ||
-        error.message.includes('Unique constraint')
-      )) {
+      if (
+        error.message &&
+        (error.message.includes('unique') ||
+          error.message.includes('duplicate') ||
+          error.message.includes('Unique constraint'))
+      ) {
         throw new ConflictException({
           code: 'EMAIL_ALREADY_EXISTS',
-          message: 'Email se již používá'
+          message: 'Email se již používá',
         });
       }
-      
+
       throw new BadRequestException({
         code: 'REGISTRATION_FAILED',
-        message: 'Registrace se nezdařila'
+        message: 'Registrace se nezdařila',
       });
     }
   }
@@ -118,24 +131,24 @@ export class AuthService {
     if (!email) {
       throw new BadRequestException({
         code: 'INVALID_EMAIL',
-        message: 'Email je povinný'
+        message: 'Email je povinný',
       });
     }
 
     if (!password) {
       throw new BadRequestException({
         code: 'INVALID_PASSWORD',
-        message: 'Heslo je povinné'
+        message: 'Heslo je povinné',
       });
     }
 
     try {
       const user = await this.userService.findByEmail(email);
-      
+
       if (!user) {
         throw new UnauthorizedException({
           code: 'INVALID_CREDENTIALS',
-          message: 'Neplatný email nebo heslo'
+          message: 'Neplatný email nebo heslo',
         });
       }
 
@@ -143,7 +156,7 @@ export class AuthService {
       if (!isPasswordValid) {
         throw new UnauthorizedException({
           code: 'INVALID_CREDENTIALS',
-          message: 'Neplatný email nebo heslo'
+          message: 'Neplatný email nebo heslo',
         });
       }
 
@@ -156,14 +169,17 @@ export class AuthService {
       };
     } catch (error) {
       // ✅ Re-throw known errors
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      
+
       console.error('Login error:', error);
       throw new UnauthorizedException({
         code: 'LOGIN_FAILED',
-        message: 'Přihlášení se nezdařilo'
+        message: 'Přihlášení se nezdařilo',
       });
     }
   }
@@ -172,19 +188,23 @@ export class AuthService {
     return this.userService.findOne(id);
   }
 
-  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
     // ✅ Input validation
     if (!currentPassword) {
       throw new BadRequestException({
         code: 'CURRENT_PASSWORD_REQUIRED',
-        message: 'Současné heslo je povinné'
+        message: 'Současné heslo je povinné',
       });
     }
 
     if (!newPassword || newPassword.length < 8) {
       throw new BadRequestException({
         code: 'PASSWORD_TOO_SHORT',
-        message: 'Nové heslo musí mít alespoň 8 znaků'
+        message: 'Nové heslo musí mít alespoň 8 znaků',
       });
     }
 
@@ -193,36 +213,42 @@ export class AuthService {
       if (!user) {
         throw new UnauthorizedException({
           code: 'USER_NOT_FOUND',
-          message: 'Uživatel nebyl nalezen'
+          message: 'Uživatel nebyl nalezen',
         });
       }
 
       // Verify current password
-      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
       if (!isCurrentPasswordValid) {
         throw new UnauthorizedException({
           code: 'INVALID_CURRENT_PASSWORD',
-          message: 'Současné heslo není správné'
+          message: 'Současné heslo není správné',
         });
       }
 
       // Hash new password
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-      
+
       // Update password in database
       await this.userService.updatePassword(userId, hashedNewPassword);
-      
+
       return { message: 'Heslo bylo úspěšně změněno' };
     } catch (error) {
       // ✅ Re-throw known errors
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
+      if (
+        error instanceof UnauthorizedException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      
+
       console.error('Change password error:', error);
       throw new BadRequestException({
         code: 'PASSWORD_CHANGE_FAILED',
-        message: 'Změna hesla se nezdařila'
+        message: 'Změna hesla se nezdařila',
       });
     }
   }
@@ -232,7 +258,7 @@ export class AuthService {
     if (!email || !email.includes('@')) {
       throw new BadRequestException({
         code: 'INVALID_EMAIL',
-        message: 'Neplatný formát emailu'
+        message: 'Neplatný formát emailu',
       });
     }
 
@@ -242,13 +268,14 @@ export class AuthService {
       if (!user) {
         // ✅ Bezpečnostní opatření - neříkáme že user neexistuje
         return {
-          message: 'Pokud email existuje v našem systému, poslali jsme instrukce pro obnovení hesla.'
+          message:
+            'Pokud email existuje v našem systému, poslali jsme instrukce pro obnovení hesla.',
         };
       }
 
       // Smaž staré tokeny pro tento email
       await this.prisma.passwordResetToken.deleteMany({
-        where: { email }
+        where: { email },
       });
 
       // Vygeneruj nový token
@@ -261,20 +288,21 @@ export class AuthService {
           email,
           token: resetToken,
           expiresAt,
-        }
+        },
       });
 
       // Pošli email
       await this.emailService.sendPasswordResetEmail(email, resetToken);
 
       return {
-        message: 'Pokud email existuje v našem systému, poslali jsme instrukce pro obnovení hesla.'
+        message:
+          'Pokud email existuje v našem systému, poslali jsme instrukce pro obnovení hesla.',
       };
     } catch (error) {
       console.error('Password reset request error:', error);
       throw new BadRequestException({
         code: 'PASSWORD_RESET_FAILED',
-        message: 'Nepodařilo se odeslat email pro obnovení hesla'
+        message: 'Nepodařilo se odeslat email pro obnovení hesla',
       });
     }
   }
@@ -283,27 +311,27 @@ export class AuthService {
     if (!token) {
       throw new BadRequestException({
         code: 'TOKEN_REQUIRED',
-        message: 'Token je povinný'
+        message: 'Token je povinný',
       });
     }
 
     if (!newPassword || newPassword.length < 8) {
       throw new BadRequestException({
         code: 'PASSWORD_TOO_SHORT',
-        message: 'Heslo musí mít alespoň 8 znaků'
+        message: 'Heslo musí mít alespoň 8 znaků',
       });
     }
 
     try {
       // Najdi token v databázi
       const resetToken = await this.prisma.passwordResetToken.findUnique({
-        where: { token }
+        where: { token },
       });
 
       if (!resetToken) {
         throw new BadRequestException({
           code: 'INVALID_TOKEN',
-          message: 'Neplatný nebo expirovaný token'
+          message: 'Neplatný nebo expirovaný token',
         });
       }
 
@@ -311,7 +339,7 @@ export class AuthService {
       if (resetToken.expiresAt < new Date()) {
         throw new BadRequestException({
           code: 'TOKEN_EXPIRED',
-          message: 'Token již expiroval'
+          message: 'Token již expiroval',
         });
       }
 
@@ -319,7 +347,7 @@ export class AuthService {
       if (resetToken.used) {
         throw new BadRequestException({
           code: 'TOKEN_ALREADY_USED',
-          message: 'Token již byl použit'
+          message: 'Token již byl použit',
         });
       }
 
@@ -328,7 +356,7 @@ export class AuthService {
       if (!user) {
         throw new NotFoundException({
           code: 'USER_NOT_FOUND',
-          message: 'Uživatel nebyl nalezen'
+          message: 'Uživatel nebyl nalezen',
         });
       }
 
@@ -340,22 +368,25 @@ export class AuthService {
         this.userService.updatePassword(user.id, hashedPassword),
         this.prisma.passwordResetToken.update({
           where: { token },
-          data: { used: true }
-        })
+          data: { used: true },
+        }),
       ]);
 
       return {
-        message: 'Heslo bylo úspěšně změněno'
+        message: 'Heslo bylo úspěšně změněno',
       };
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
-      
+
       console.error('Password reset error:', error);
       throw new BadRequestException({
         code: 'PASSWORD_RESET_FAILED',
-        message: 'Nepodařilo se změnit heslo'
+        message: 'Nepodařilo se změnit heslo',
       });
     }
   }

@@ -4,4 +4,4 @@ export class SaveAdDto {
   @IsString()
   @IsUUID()
   adId: string;
-} 
+}

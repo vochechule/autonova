@@ -6,6 +6,8 @@ import { Metadata } from 'next'
 async function fetchInitialAds(searchParams: { [key: string]: string | string[] | undefined }) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL
   
+  console.log('🔍 fetchInitialAds called, API_URL:', API_URL)
+  
   try {
     // Vytvoř query string z search params
     const queryParams = new URLSearchParams()
@@ -25,17 +27,23 @@ async function fetchInitialAds(searchParams: { [key: string]: string | string[] 
       }
     })
     
-    const response = await fetch(`${API_URL}/ad?${queryParams.toString()}`, {
+    const url = `${API_URL}/ad?${queryParams.toString()}`
+    console.log('📡 Fetching:', url)
+    
+    const response = await fetch(url, {
       next: { revalidate: 300 } // 5 minut cache
     })
     
     if (!response.ok) {
+      console.log('❌ Response not OK:', response.status, response.statusText)
       return { ads: [], pagination: null, totalCount: 0 }
     }
     
-    return await response.json()
+    const data = await response.json()
+    console.log('✅ Fetched ads:', data.ads?.length || 0)
+    return data
   } catch (error) {
-    console.error('Failed to fetch initial ads:', error)
+    console.error('❌ Failed to fetch initial ads:', error)
     return { ads: [], pagination: null, totalCount: 0 }
   }
 }

@@ -1,11 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { JsonDbService } from '../database/json-db.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import * as path from 'path';
-import { createClient } from '@supabase/supabase-js';
+import { LocalStorageService } from '../local-storage.service';
 
 @Injectable()
 export class AdService {
-  private supabase;
   private readonly maxImages = 15;
   private readonly maxImageSize = 10 * 1024 * 1024; // 10MB
   private readonly allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -19,10 +18,8 @@ export class AdService {
     // ❌ dealerTier, role (internal business data)
   }
 
-  constructor(private prisma: JsonDbService) {}
-    const supabaseUrl = process.env.SUPABASE_URL || '';
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+  constructor(private prisma: PrismaService) {
+    console.log('🚀 AdService initialized with Prisma');
   }
 
   // ✅ HELPER METHODS
@@ -137,27 +134,13 @@ export class AdService {
       const fileExtension = path.extname(file.originalname || '.jpg');
       const filename = `ad_${Date.now()}_${i + 1}${fileExtension}`;
       
-      const { data, error } = await this.supabase
-        .storage
-        .from('photos')
-        .upload(filename, file.buffer, {
-          contentType: file.mimetype,
-          upsert: true
-        });
-
-      if (error) {
-        throw new BadRequestException(`Upload failed: ${error.message}`);
-      }
-
-      const { data: urlData } = this.supabase
-        .storage
-        .from('photos')
-        .getPublicUrl(filename);
+      // Use local storage instead of Supabase
+      const fileUrl = await LocalStorageService.uploadFile(file.buffer, filename);
 
       // ✅ AKTUALIZOVÁNO - zachování pořadí s startOrder
       await this.prisma.image.create({
         data: {
-          url: urlData?.publicUrl || `https://lfmfxfazzkpvojhhmnhv.supabase.co/storage/v1/object/public/photos/${filename}`,
+          url: fileUrl,
           adId: adId,
           order: startOrder + i, // ✅ Zachování správného pořadí
         },
@@ -200,7 +183,7 @@ export class AdService {
     // ✅ AKTUALIZOVANÁ kontrola limitů podle tier
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { isDealer: true, dealerTier: true }
+      // select not supported in JSON DB - returns all fields
     });
 
     if (!user) {
@@ -366,14 +349,9 @@ export class AdService {
         ORDER BY distance ASC
       `;
 
-      try {
-        const nearbyAds = await this.prisma.$queryRawUnsafe(
-          distanceQuery, lat, lng, distance
-        ) as { id: string; distance: number }[];
-        distanceFilteredAds = nearbyAds.map(ad => ad.id);
-      } catch (error) {
-        distanceFilteredAds = null;
-      }
+      // Nearby ads feature disabled for local JSON database
+      // This feature requires PostGIS or similar geographic database support
+      distanceFilteredAds = null;
     }
 
     // Build where clause
@@ -499,7 +477,7 @@ export class AdService {
 
     await this.attachUserRatings(ads);
 
-    return {
+    const result: any = {
       ads,
       pagination: {
         page,
@@ -509,19 +487,24 @@ export class AdService {
         hasNext: page < Math.ceil(total / limit),
         hasPrev: page > 1
       },
-      sortInfo: { sortBy, sortOrder },
-      ...(distanceFilteredAds && {
-        distanceInfo: {
-          centerLatitude: parseFloat(nearLatitude),
-          centerLongitude: parseFloat(nearLongitude),
-          radiusKm: parseFloat(nearDistance),
-          foundAds: distanceFilteredAds.length
-        }
-      })
+      sortInfo: { sortBy, sortOrder }
     };
+
+    if (distanceFilteredAds && Array.isArray(distanceFilteredAds)) {
+      const adsArray: string[] = distanceFilteredAds;
+      result.distanceInfo = {
+        centerLatitude: parseFloat(nearLatitude),
+        centerLongitude: parseFloat(nearLongitude),
+        radiusKm: parseFloat(nearDistance),
+        foundAds: adsArray.length
+      };
+    }
+
+    return result;
   }
 
   async findAll(query?: any) {
+    console.log('🔍 AdService.findAll CALLED with query:', JSON.stringify(query));
     const sortBy = query?.sortBy || 'newest';
     const sortOrder = query?.sortOrder || 'desc';
     
@@ -538,6 +521,7 @@ export class AdService {
       },
     });
     
+    console.log(`✅ AdService.findAll found ${ads.length} ads`);
     await this.attachUserRatings(ads);
     return ads;
   }
@@ -618,20 +602,12 @@ export class AdService {
         });
 
         if (imageToDelete && imageToDelete.adId === id) {
-          // ✅ OPRAVENO - Smaž ze storage pomocí helper metody
-          const fileName = this.extractFileNameFromUrl(imageToDelete.url);
-          
-          if (fileName) {
-            
-            const { error } = await this.supabase.storage
-              .from('photos')
-              .remove([fileName]);
-            
-            if (error) {
-              console.error('❌ Chyba při mazání obrázku ze Supabase:', error);
-              // Pokračuj v mazání z databáze i když storage selhalo
-            } else {
-            }
+          // Delete from local storage
+          try {
+            await LocalStorageService.deleteFile(imageToDelete.url);
+          } catch (error) {
+            console.error('❌ Chyba při mazání obrázku:', error);
+            // Pokračuj v mazání z databáze i když storage selhalo
           }
           
           // Delete from database
@@ -654,14 +630,11 @@ export class AdService {
     const updatedAd = await this.prisma.ad.update({
       where: { id },
       data: transformedData,
-      include: { 
-        images: {
-          orderBy: { order: 'asc' }  // ✅ Order by the order field
-        }, 
+      include: {
+        images: true,
         user: {
-          select: this.safeUserSelect
-        }, 
-        features: true 
+          select: this.safeUserSelect,
+        },
       },
     });
 
@@ -673,7 +646,7 @@ export class AdService {
       const maxOrder = await this.prisma.image.findFirst({
         where: { adId: id },
         orderBy: { order: 'desc' },
-        select: { order: true }
+        select: { order: true },
       });
       
       const startOrder = maxOrder ? maxOrder.order + 1 : 0;
@@ -732,37 +705,21 @@ export class AdService {
       }
 
 
-      // ✅ PŘIDÁNO - Smaž obrázky ze Supabase storage
+      // Delete images from local storage
       if (adWithImages.images && adWithImages.images.length > 0) {
-        const filesToDelete: string[] = [];
-
-        for (const image of adWithImages.images) {
-          // Extrahuj název souboru z URL
-          const fileName = this.extractFileNameFromUrl(image.url);
-          if (fileName) {
-            filesToDelete.push(fileName);
-          }
-        }
-
-
-        // Smaž soubory ze Supabase storage
-        if (filesToDelete.length > 0) {
-          const { data, error } = await this.supabase.storage
-            .from('photos')
-            .remove(filesToDelete);
-
-          if (error) {
-            console.error('❌ Chyba při mazání souborů ze Supabase:', error);
-            // Nepřerušuj mazání inzerátu kvůli chybě v storage
-          } else {
-          }
+        const fileUrls = adWithImages.images.map(img => img.url);
+        try {
+          await LocalStorageService.deleteFiles(fileUrls);
+        } catch (error) {
+          console.error('❌ Chyba při mazání obrázků:', error);
+          // Nepřerušuj mazání inzerátu kvůli chybě v storage
         }
       }
 
       // ✅ PŮVODNÍ - Smaž záznamy z databáze (Cascade automatically deletes images)
       const deletedAd = await this.prisma.ad.delete({ 
         where: { id },
-        include: { images: true }
+
       });
 
       return deletedAd;
@@ -793,31 +750,5 @@ export class AdService {
   async deletePhoto(photoId: string) {
     return this.prisma.image.delete({ where: { id: photoId } });
   }
-
-  
-
-  // ✅ PŘIDÁNO - Helper metoda pro extrakci názvu souboru
-  private extractFileNameFromUrl(url: string): string | null {
-    try {
-      // Supabase URL format: https://xxx.supabase.co/storage/v1/object/public/photos/filename.jpg
-      // Nebo jen filename.jpg pokud je jen název
-    
-      if (url.includes('/storage/v1/object/public/photos/')) {
-        // Plná Supabase URL
-        const parts = url.split('/storage/v1/object/public/photos/');
-        return parts[1] || null;
-      } else if (url.includes('/photos/')) {
-        // Relativní path
-        const parts = url.split('/photos/');
-        return parts[1] || null;
-      } else {
-        // Možná jen název souboru
-        const fileName = url.split('/').pop();
-        return fileName && fileName.includes('.') ? fileName : null;
-      }
-    } catch (error) {
-      console.error('❌ Chyba při extrakci názvu souboru:', url, error);
-      return null;
-    }
-  }
 }
+

@@ -1,4 +1,17 @@
-import { Controller, Get, UseGuards, Req, Body, Param, Post, BadRequestException, NotFoundException, Logger, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Req,
+  Body,
+  Param,
+  Post,
+  BadRequestException,
+  NotFoundException,
+  Logger,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UserService } from './user.service';
 
@@ -21,13 +34,22 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/review')
-  async upsertReview(@Req() req, @Param('id') targetId: string, @Body() body: { rating: number; comment?: string }) {
+  async upsertReview(
+    @Req() req,
+    @Param('id') targetId: string,
+    @Body() body: { rating: number; comment?: string },
+  ) {
     const raterId = req.user.id;
     if (raterId === targetId) {
       throw new BadRequestException('You cannot rate yourself.');
     }
     try {
-      return await this.userService.upsertReview(raterId, targetId, body.rating, body.comment);
+      return await this.userService.upsertReview(
+        raterId,
+        targetId,
+        body.rating,
+        body.comment,
+      );
     } catch (e) {
       throw new BadRequestException(e.message);
     }
@@ -52,7 +74,7 @@ export class UserController {
       Logger.warn(`User not found: ${id}`);
       throw new NotFoundException('User not found');
     }
-    
+
     // ✅ OPRAVENO - Vraťte celého uživatele včetně inzerátů
     Logger.log(`User found: ${user.id}, ads count: ${user.ads?.length || 0}`);
     return user; // Vrátit celý objekt místo jen vybraných polí
@@ -60,9 +82,12 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Put('update-profile')
-  async updateProfile(@Req() req, @Body() body: { name: string; email: string }) {
+  async updateProfile(
+    @Req() req,
+    @Body() body: { name: string; email: string },
+  ) {
     const { name, email } = body;
-    
+
     if (!name || !email) {
       throw new BadRequestException('Name and email are required');
     }
@@ -72,7 +97,11 @@ export class UserController {
     }
 
     try {
-      const updatedUser = await this.userService.updateProfile(req.user.id, name, email);
+      const updatedUser = await this.userService.updateProfile(
+        req.user.id,
+        name,
+        email,
+      );
       Logger.log(`Profile updated for user: ${req.user.id}`);
       return updatedUser;
     } catch (error) {
@@ -87,13 +116,16 @@ export class UserController {
   @Delete('delete-account')
   async deleteAccount(@Req() req, @Body() body: { password: string }) {
     const { password } = body;
-    
+
     if (!password) {
       throw new BadRequestException('Password is required');
     }
 
     try {
-      const result = await this.userService.deleteAccount(req.user.id, password);
+      const result = await this.userService.deleteAccount(
+        req.user.id,
+        password,
+      );
       Logger.log(`Account deleted for user: ${req.user.id}`);
       return result;
     } catch (error) {

@@ -114,7 +114,7 @@ export enum Color {
   PINK = 'pink',
 
   // Always keep "other" last
-  OTHER = 'other'
+  OTHER = 'other',
 }
 
 export enum ColorFinish {
@@ -122,7 +122,7 @@ export enum ColorFinish {
   METALLIC = 'metallic',
   PEARL = 'pearl',
   MATTE = 'matte',
-  SATIN = 'satin',     // ✅ Added satin finish
-  GLOSS = 'gloss',     // ✅ Added high gloss
-  SPECIAL = 'special'
+  SATIN = 'satin', // ✅ Added satin finish
+  GLOSS = 'gloss', // ✅ Added high gloss
+  SPECIAL = 'special',
 }
