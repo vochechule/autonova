@@ -291,8 +291,10 @@ export class AuthService {
         },
       });
 
-      // Pošli email
+      // Pošli email s lepším error handlingem
+      console.log('📧 Attempting to send password reset email for:', email);
       await this.emailService.sendPasswordResetEmail(email, resetToken);
+      console.log('✅ Password reset email sent successfully');
 
       return {
         message:

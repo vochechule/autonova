@@ -1,9 +1,11 @@
-// Create: backend/src/email/email.module.ts
 import { Module } from '@nestjs/common';
 import { EmailService } from './email.service';
+import { EmailConfigService } from './email-config.service';
+import { EmailController } from './email.controller';
 
 @Module({
-  providers: [EmailService],
-  exports: [EmailService],
+  controllers: [EmailController],
+  providers: [EmailService, EmailConfigService],
+  exports: [EmailService, EmailConfigService],
 })
 export class EmailModule {}
