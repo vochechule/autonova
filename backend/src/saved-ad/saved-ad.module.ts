@@ -9,4 +9,4 @@ import { PrismaModule } from '../prisma/prisma.module';
   providers: [SavedAdService],
   exports: [SavedAdService],
 })
-export class SavedAdModule {} 
+export class SavedAdModule {}

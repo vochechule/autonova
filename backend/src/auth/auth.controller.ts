@@ -1,14 +1,14 @@
-import { 
-  Controller, 
-  Post, 
-  Body, 
-  Get, 
-  UseGuards, 
-  Req, 
-  Request, 
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Req,
+  Request,
   BadRequestException,
   UsePipes,
-  ValidationPipe
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from '../user/dto/register.dto';
@@ -21,15 +21,24 @@ export class AuthController {
 
   @Post('register')
   @UsePipes(new ValidationPipe({ transform: true }))
-  async register(@Body() body: { 
-    email: string; 
-    password: string; 
-    name: string; 
-    isDealer?: boolean;
-    dealerTier?: string;
-  }) {
+  async register(
+    @Body()
+    body: {
+      email: string;
+      password: string;
+      name: string;
+      isDealer?: boolean;
+      dealerTier?: string;
+    },
+  ) {
     const { email, password, name, isDealer, dealerTier } = body;
-    return this.authService.register(email, password, name, isDealer, dealerTier);
+    return this.authService.register(
+      email,
+      password,
+      name,
+      isDealer,
+      dealerTier,
+    );
   }
 
   @Post('login')
@@ -46,18 +55,29 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('change-password')
-  async changePassword(@Request() req, @Body() body: { currentPassword: string; newPassword: string }) {
+  async changePassword(
+    @Request() req,
+    @Body() body: { currentPassword: string; newPassword: string },
+  ) {
     const { currentPassword, newPassword } = body;
-    
+
     if (!currentPassword || !newPassword) {
-      throw new BadRequestException('Current password and new password are required');
+      throw new BadRequestException(
+        'Current password and new password are required',
+      );
     }
-    
+
     if (newPassword.length < 6) {
-      throw new BadRequestException('New password must be at least 6 characters long');
+      throw new BadRequestException(
+        'New password must be at least 6 characters long',
+      );
     }
-    
-    return this.authService.changePassword(req.user.id, currentPassword, newPassword);
+
+    return this.authService.changePassword(
+      req.user.id,
+      currentPassword,
+      newPassword,
+    );
   }
 
   @Post('forgot-password')

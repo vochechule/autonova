@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SaveAdDto } from './dto/save-ad.dto';
 import { SavedAdResponseDto } from './dto/saved-ad-response.dto';
@@ -7,7 +11,10 @@ import { SavedAdResponseDto } from './dto/saved-ad-response.dto';
 export class SavedAdService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async saveAd(userId: string, saveAdDto: SaveAdDto): Promise<SavedAdResponseDto> {
+  async saveAd(
+    userId: string,
+    saveAdDto: SaveAdDto,
+  ): Promise<SavedAdResponseDto> {
     // Check if ad exists
     const ad = await this.prisma.ad.findUnique({
       where: { id: saveAdDto.adId },
@@ -88,8 +95,7 @@ export class SavedAdService {
       },
     });
 
-    
-  return savedAds;
+    return savedAds;
   }
 
   async isAdSaved(userId: string, adId: string): Promise<boolean> {
@@ -104,4 +110,4 @@ export class SavedAdService {
 
     return !!savedAd;
   }
-} 
+}

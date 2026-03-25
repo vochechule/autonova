@@ -16,12 +16,12 @@ import { ContactModule } from './contact/contact.module';
     ConfigModule.forRoot({
       isGlobal: true, // Udělá config dostupný všude
     }),
+    PrismaModule,
     AuthModule,
     UserModule,
     AdminModule,
     AdModule,
     SavedAdModule,
-    PrismaModule,
     MulterModule.register({
       dest: './uploads',
     }),

@@ -48,6 +48,13 @@ interface UserProfile {
   [key: string]: unknown;
 }
 
+// Bezpečná validace ratingu
+const getSafeRating = (rating: any): number => {
+  const num = Number(rating);
+  if (isNaN(num) || num < 0) return 0;
+  if (num > 5) return 5;
+  return Math.round(num);
+};
 
 export default function ProfilePage() {
   const { user, loading, getToken, logout } = useAuth(); // ✅ Add logout from useAuth
@@ -452,8 +459,7 @@ export default function ProfilePage() {
             <div className="profile-page__rating-main">
               <span className="profile-page__rating-number">{avgRating !== null ? avgRating.toFixed(1) : '-'}</span>
               <span className="profile-page__stars">
-                {'★'.repeat(Math.round(Number(avgRating) || 0))}
-                {'☆'.repeat(5 - Math.round(Number(avgRating) || 0))}
+                {(() => { const rating = getSafeRating(avgRating); return "★".repeat(rating) + "☆".repeat(5 - rating); })()}
               </span>
             </div>
             <div className="profile-page__rating-count">{reviews.length} reviews</div>
@@ -487,7 +493,7 @@ export default function ProfilePage() {
                   <div className="profile-page__review-author">{r.user?.name || 'Unknown'}</div>
                   <div className="profile-page__review-date">{new Date(r.createdAt).toLocaleDateString()}</div>
                   <div className="profile-page__review-stars">
-                    {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                    {(() => { const rating = getSafeRating(r.rating); return "★".repeat(rating) + "☆".repeat(5 - rating); })()}
                   </div>
                 </div>
                 {r.comment && <div className="profile-page__review-text">{r.comment}</div>}

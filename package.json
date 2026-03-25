@@ -1,0 +1,15 @@
+{
+  "name": "carta-autobazar-local",
+  "version": "1.0.0",
+  "description": "Carta Autobazar - Local Showcase Version",
+  "scripts": {
+    "start": "npm run start:backend & npm run start:frontend",
+    "start:backend": "cd backend && npm install && npm run start:dev",
+    "start:frontend": "cd frontend && npm install && npm run dev",
+    "reset-data": "node -e \"require('fs').writeFileSync('backend/src/database/db.json', JSON.stringify({users:[],ads:[],images:[],carFeatures:[],reviews:[],savedAds:[],contactSubmissions:[],passwordResetTokens:[]}, null, 2))\"",
+    "clean": "rm -rf backend/node_modules backend/dist frontend/node_modules frontend/.next"
+  },
+  "keywords": ["autobazar", "cars", "marketplace", "showcase"],
+  "author": "Your Name",
+  "license": "MIT"
+}

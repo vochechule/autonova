@@ -16,7 +16,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // ✅ Get the exception response
     const exceptionResponse = exception.getResponse();
-    
+
     let errorResponse;
 
     if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
@@ -24,7 +24,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       errorResponse = {
         statusCode: status,
         timestamp: new Date().toISOString(),
-        ...(exceptionResponse as object),
+        ...exceptionResponse,
       };
     } else {
       // ✅ Create structured error for simple messages
