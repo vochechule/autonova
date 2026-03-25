@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -10,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { AdminModule } from './admin/admin.module';
 import { ContactModule } from './contact/contact.module';
+import { PublicAssetUrlInterceptor } from './common/interceptors/public-asset-url.interceptor';
 
 @Module({
   imports: [
@@ -28,6 +30,12 @@ import { ContactModule } from './contact/contact.module';
     ContactModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: PublicAssetUrlInterceptor,
+    },
+  ],
 })
 export class AppModule {}

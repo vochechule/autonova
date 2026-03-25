@@ -1,10 +1,29 @@
 import type { NextConfig } from "next";
 
+const imageDomains = new Set(["lfmfxfazzkpvojhhmnhv.supabase.co"]);
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+if (apiUrl) {
+  try {
+    const { hostname } = new URL(apiUrl);
+    imageDomains.add(hostname);
+
+    if (
+      hostname.includes(".") &&
+      hostname !== "localhost" &&
+      !hostname.startsWith("www.")
+    ) {
+      imageDomains.add(`www.${hostname}`);
+    }
+  } catch {
+    // Ignore invalid env values and keep static host allowlist.
+  }
+}
+
 const nextConfig: NextConfig = {
   images: {
-    domains: [
-      "lfmfxfazzkpvojhhmnhv.supabase.co",
-    ],
+    domains: Array.from(imageDomains),
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
