@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://carta.cz'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
   
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -31,10 +32,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   ]
 
+  if (!apiUrl) {
+    return staticPages
+  }
+
   try {
     // Get all ads for dynamic pages
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
-    const response = await fetch(`${API_URL}/ad?limit=1000`)
+    const response = await fetch(`${apiUrl}/ad?limit=1000`)
     
     if (response.ok) {
       const data = await response.json()
@@ -61,8 +65,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       return [...staticPages, ...adPages]
     }
-  } catch (error) {
-    console.error('Error generating sitemap:', error)
+  } catch {
+    return staticPages
   }
 
   return staticPages

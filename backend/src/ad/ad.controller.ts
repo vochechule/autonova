@@ -12,7 +12,6 @@ import {
   UseInterceptors,
   BadRequestException,
   Query,
-  UploadedFile,
   UnauthorizedException,
   NotFoundException,
 } from '@nestjs/common';
@@ -20,10 +19,10 @@ import { AdService } from './ad.service';
 import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { FilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { randomUUID } from 'crypto';
 import multer from 'multer';
 import { supabase } from '../supabaseClient';
-import { v4 as uuidv4 } from 'uuid';
 
 const memoryStorage = multer.memoryStorage();
 
@@ -54,7 +53,10 @@ export class AdController {
   // ✅ Sloučeno filtrování i bez filtrů do jednoho GET
   @Get()
   findAll(@Query() query: any) {
-    console.log('📋 AdController.findAll called with query:', JSON.stringify(query));
+    console.log(
+      '📋 AdController.findAll called with query:',
+      JSON.stringify(query),
+    );
     // Log příchozích query parametrů pro debugging
 
     // Normalizuj multi-select filtry
@@ -198,11 +200,15 @@ export class AdController {
       throw new BadRequestException('Žádné soubory nebyly přiloženy');
     }
 
+    if (!supabase) {
+      throw new BadRequestException('Image storage is not configured');
+    }
+
     const uploadedPhotos: any[] = [];
 
     for (const file of files) {
       const fileExt = file.originalname.split('.').pop();
-      const fileName = `ads/${id}/${uuidv4()}.${fileExt}`;
+      const fileName = `ads/${id}/${randomUUID()}.${fileExt}`;
 
       const { error } = await supabase.storage
         .from('photos')

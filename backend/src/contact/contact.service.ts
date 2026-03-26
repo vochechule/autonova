@@ -46,7 +46,10 @@ export class ContactService {
       return result;
     } catch (error) {
       this.logger.error('Failed to send email:', error);
-      throw new Error(`Email sending failed: ${error.message}`);
+      throw new Error(
+        `Email sending failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { cause: error },
+      );
     }
   }
 }

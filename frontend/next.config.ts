@@ -1,20 +1,29 @@
 import type { NextConfig } from "next";
 
-const imageDomains = new Set(["lfmfxfazzkpvojhhmnhv.supabase.co"]);
+const imageHosts = new Map<string, Set<string>>();
+
+const addImageHost = (protocol: string, hostname: string) => {
+  const normalizedProtocol = protocol.replace(":", "");
+  const protocolHosts = imageHosts.get(normalizedProtocol) ?? new Set<string>();
+  protocolHosts.add(hostname);
+  imageHosts.set(normalizedProtocol, protocolHosts);
+};
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+addImageHost("https", "lfmfxfazzkpvojhhmnhv.supabase.co");
+
 if (apiUrl) {
   try {
-    const { hostname } = new URL(apiUrl);
-    imageDomains.add(hostname);
+    const { protocol, hostname } = new URL(apiUrl);
+    addImageHost(protocol, hostname);
 
     if (
       hostname.includes(".") &&
       hostname !== "localhost" &&
       !hostname.startsWith("www.")
     ) {
-      imageDomains.add(`www.${hostname}`);
+      addImageHost(protocol, `www.${hostname}`);
     }
   } catch {
     // Ignore invalid env values and keep static host allowlist.
@@ -23,7 +32,14 @@ if (apiUrl) {
 
 const nextConfig: NextConfig = {
   images: {
-    domains: Array.from(imageDomains),
+    remotePatterns: Array.from(imageHosts.entries()).flatMap(
+      ([protocol, hostnames]) =>
+        Array.from(hostnames).map((hostname) => ({
+          protocol: protocol as "http" | "https",
+          hostname,
+          pathname: "/**",
+        })),
+    ),
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
@@ -36,7 +52,7 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
-  
+
   async headers() {
     return [
       {
@@ -60,24 +76,7 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        // Cache optimized images longer to reduce transformations
-        source: '/_next/image/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, s-maxage=31536000, immutable',
-          },
-        ],
-      },
-    ]
-  },
-  
-  // ✅ Remove problematic experimental features
-  experimental: {
-    // ❌ Remove this - it's causing the critters error
-    // optimizeCss: true,
-    scrollRestoration: true,
+    ];
   },
 };
 

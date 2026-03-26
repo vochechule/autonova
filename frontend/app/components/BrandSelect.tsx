@@ -7,7 +7,7 @@ import './BrandSelect.scss'
 interface BrandSelectProps {
   value: string
   onChange: (value: string) => void
-  required?: boolean // eslint-disable-line @typescript-eslint/no-unused-vars
+  required?: boolean
   disabled?: boolean
   className?: string // ✅ Add className prop
 }

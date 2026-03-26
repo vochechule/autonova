@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 
 interface Database {
   users: any[];
@@ -67,7 +67,7 @@ export class JsonDbService {
 
   // Generic CRUD operations
   create(table: keyof Database, data: any) {
-    const id = data.id || uuidv4();
+    const id = data.id || randomUUID();
     const createdAt = data.createdAt || new Date().toISOString();
     const updatedAt = data.updatedAt || new Date().toISOString();
     const newRecord = { ...data, id, createdAt, updatedAt };
@@ -136,16 +136,16 @@ export class JsonDbService {
       // Support both formats: direct data or { data: {...}, select: {...} }
       const data = params.data || params;
       const user = this.create('users', data);
-      
+
       // If select is specified, return only selected fields
       if (params.select && params.data) {
         const selected: any = {};
-        Object.keys(params.select).forEach(key => {
+        Object.keys(params.select).forEach((key) => {
           if (params.select[key]) selected[key] = user[key];
         });
         return selected;
       }
-      
+
       return user;
     },
     findMany: (filter?: any) => this.findMany('users', filter?.where || filter),
@@ -168,23 +168,23 @@ export class JsonDbService {
   ad = {
     create: (params: any) => {
       // Support both formats: direct data or { data: {...}, include: {...} }
-      let adData = params.data || params;
-      
+      const adData = params.data || params;
+
       // Handle Prisma relations (user: { connect: { id } })
       if (adData.user?.connect?.id) {
         adData.userId = adData.user.connect.id;
         delete adData.user;
       }
-      
+
       const ad = this.create('ads', adData);
-      
+
       // Handle images if provided
       if (adData.images?.create) {
         adData.images.create.forEach((img: any) => {
           this.image.create({ ...img, adId: ad.id });
         });
       }
-      
+
       // Include relations if requested
       if (params.include) {
         if (params.include.images) {
@@ -195,7 +195,7 @@ export class JsonDbService {
           // Apply select if specified
           if (params.include.user.select && user) {
             const selected: any = {};
-            Object.keys(params.include.user.select).forEach(key => {
+            Object.keys(params.include.user.select).forEach((key) => {
               if (params.include.user.select[key]) selected[key] = user[key];
             });
             ad.user = selected;
@@ -207,7 +207,7 @@ export class JsonDbService {
           ad.features = this.findMany('carFeatures', { adId: ad.id });
         }
       }
-      
+
       return ad;
     },
     findMany: (filter?: any) => {
@@ -234,34 +234,35 @@ export class JsonDbService {
       if (filter?.include) {
         ads = ads.map((ad: any) => {
           const adCopy = { ...ad };
-          
+
           if (filter.include.images) {
             let images = this.findMany('images', { adId: ad.id });
-            
+
             // Apply images orderBy if specified
             if (filter.include.images.orderBy) {
               const orderKey = Object.keys(filter.include.images.orderBy)[0];
               const orderDir = filter.include.images.orderBy[orderKey];
               images.sort((a: any, b: any) => {
-                if (orderDir === 'desc') return b[orderKey] > a[orderKey] ? 1 : -1;
+                if (orderDir === 'desc')
+                  return b[orderKey] > a[orderKey] ? 1 : -1;
                 return a[orderKey] > b[orderKey] ? 1 : -1;
               });
             }
-            
+
             // Apply images take if specified
             if (filter.include.images.take) {
               images = images.slice(0, filter.include.images.take);
             }
-            
+
             adCopy.images = images;
           }
-          
+
           if (filter.include.user) {
             const user = this.findById('users', ad.userId);
             // Apply select if specified
             if (filter.include.user.select && user) {
               const selected: any = {};
-              Object.keys(filter.include.user.select).forEach(key => {
+              Object.keys(filter.include.user.select).forEach((key) => {
                 if (filter.include.user.select[key]) selected[key] = user[key];
               });
               adCopy.user = selected;
@@ -269,11 +270,11 @@ export class JsonDbService {
               adCopy.user = user;
             }
           }
-          
+
           if (filter.include.features) {
             adCopy.features = this.findMany('carFeatures', { adId: ad.id });
           }
-          
+
           return adCopy;
         });
       }
@@ -287,27 +288,28 @@ export class JsonDbService {
       // Include relations
       if (filter.include) {
         if (filter.include.images) {
-          let images = this.findMany('images', { adId: ad.id });
-          
+          const images = this.findMany('images', { adId: ad.id });
+
           // Apply images orderBy if specified
           if (filter.include.images.orderBy) {
             const orderKey = Object.keys(filter.include.images.orderBy)[0];
             const orderDir = filter.include.images.orderBy[orderKey];
             images.sort((a: any, b: any) => {
-              if (orderDir === 'desc') return b[orderKey] > a[orderKey] ? 1 : -1;
+              if (orderDir === 'desc')
+                return b[orderKey] > a[orderKey] ? 1 : -1;
               return a[orderKey] > b[orderKey] ? 1 : -1;
             });
           }
-          
+
           ad.images = images;
         }
-        
+
         if (filter.include.user) {
           const user = this.findById('users', ad.userId);
           // Apply select if specified
           if (filter.include.user.select && user) {
             const selected: any = {};
-            Object.keys(filter.include.user.select).forEach(key => {
+            Object.keys(filter.include.user.select).forEach((key) => {
               if (filter.include.user.select[key]) selected[key] = user[key];
             });
             ad.user = selected;
@@ -315,7 +317,7 @@ export class JsonDbService {
             ad.user = user;
           }
         }
-        
+
         if (filter.include.features) {
           ad.features = this.findMany('carFeatures', { adId: ad.id });
         }
@@ -361,7 +363,8 @@ export class JsonDbService {
     create: (data: any) => this.create('images', data),
     findMany: (filter?: any) => this.findMany('images', filter),
     deleteMany: (filter: any) => this.deleteMany('images', filter),
-    findUnique: (filter: { where: any }) => this.findOne('images', filter.where),
+    findUnique: (filter: { where: any }) =>
+      this.findOne('images', filter.where),
     findFirst: (filter: { where: any; orderBy?: any }) => {
       const images = this.findMany('images', filter.where);
       if (filter.orderBy && images.length > 0) {
@@ -451,7 +454,8 @@ export class JsonDbService {
             .filter((val: any) => typeof val === 'number');
           result._avg[field] =
             values.length > 0
-              ? values.reduce((sum: number, val: number) => sum + val, 0) / values.length
+              ? values.reduce((sum: number, val: number) => sum + val, 0) /
+                values.length
               : null;
         }
       }
