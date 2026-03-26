@@ -258,9 +258,18 @@ export default function AdForm({
       }
 
       // Handle existing images for edit mode
-      if (mode === 'edit' && imageState.existingImages.length > 0) {
+      if (mode === 'edit') {
         const existingImageIds = imageState.existingImages.map(img => img.id)
+        const initialExistingImageIds = (currentAdData?.images || []).map(img => img.id)
+        const imagesToDelete = initialExistingImageIds.filter(
+          imageId => !existingImageIds.includes(imageId)
+        )
+
         submitFormData.append('existingImagesOrder', JSON.stringify(existingImageIds))
+
+        if (imagesToDelete.length > 0) {
+          submitFormData.append('imagesToDelete', JSON.stringify(imagesToDelete))
+        }
       }
 
       // Add all form fields to submitFormData
