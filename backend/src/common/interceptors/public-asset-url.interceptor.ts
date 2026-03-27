@@ -26,27 +26,27 @@ export class PublicAssetUrlInterceptor implements NestInterceptor {
   }
 
   private resolvePublicBaseUrl(): string | null {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-
-    if (frontendUrl) {
-      return frontendUrl.replace(/\/+$/, '');
-    }
-
     const apiUrl = this.configService.get<string>('NEXT_PUBLIC_API_URL');
 
-    if (!apiUrl) {
+    if (apiUrl) {
+      try {
+        const parsedUrl = new URL(apiUrl);
+        parsedUrl.pathname = parsedUrl.pathname.replace(/\/api\/?$/, '') || '/';
+        parsedUrl.search = '';
+        parsedUrl.hash = '';
+        return parsedUrl.toString().replace(/\/+$/, '');
+      } catch {
+        return apiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+      }
+    }
+
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+
+    if (!frontendUrl) {
       return null;
     }
 
-    try {
-      const parsedUrl = new URL(apiUrl);
-      parsedUrl.pathname = parsedUrl.pathname.replace(/\/api\/?$/, '') || '/';
-      parsedUrl.search = '';
-      parsedUrl.hash = '';
-      return parsedUrl.toString().replace(/\/+$/, '');
-    } catch {
-      return apiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
-    }
+    return frontendUrl.replace(/\/+$/, '');
   }
 
   private normalizeAssetUrls(value: unknown): unknown {

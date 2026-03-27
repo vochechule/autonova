@@ -30,7 +30,11 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   const allowedOrigins = [
+    'http://127.0.0.1:3100',
+    'http://localhost:3100',
+    'http://127.0.0.1:3001',
     'http://localhost:3001',
+    'http://127.0.0.1:3000',
     'http://localhost:3000',
     'https://carta.cz',
     'https://www.carta.cz',
