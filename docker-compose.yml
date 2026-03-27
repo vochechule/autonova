@@ -5,7 +5,7 @@ services:
     image: postgres:17-bookworm
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-carta_images}
+      POSTGRES_DB: ${POSTGRES_DB:-carta}
       POSTGRES_USER: ${POSTGRES_USER:-carta}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-carta}
     healthcheck:
@@ -24,8 +24,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: ${DATABASE_URL:-postgresql://carta:carta@postgres:5432/${POSTGRES_DB:-carta_images}?schema=public}
-      IMAGE_DATABASE_URL: ${IMAGE_DATABASE_URL:-postgresql://carta:carta@postgres:5432/carta_images}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://carta:carta@postgres:5432/${POSTGRES_DB:-carta}?schema=public}
+      IMAGE_DATABASE_URL: ${IMAGE_DATABASE_URL:-postgresql://carta:carta@postgres:5432/${POSTGRES_DB:-carta}}
       JWT_SECRET: ${JWT_SECRET}
       FRONTEND_URL: ${FRONTEND_URL}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
