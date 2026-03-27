@@ -4,6 +4,7 @@ import { beforeEach, describe, it } from 'node:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdService } from './ad.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ImageStorageService } from '../image-storage.service';
 
 describe('AdService', () => {
   let service: AdService;
@@ -14,6 +15,10 @@ describe('AdService', () => {
         AdService,
         {
           provide: PrismaService,
+          useValue: {},
+        },
+        {
+          provide: ImageStorageService,
           useValue: {},
         },
       ],

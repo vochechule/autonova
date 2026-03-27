@@ -20,9 +20,7 @@ import { CreateAdDto } from './dto/create-ad.dto';
 import { UpdateAdDto } from './dto/update-ad.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { randomUUID } from 'crypto';
 import multer from 'multer';
-import { supabase } from '../supabaseClient';
 
 const memoryStorage = multer.memoryStorage();
 
@@ -130,16 +128,14 @@ export class AdController {
     @Req() req,
   ) {
     try {
-      // ✅ OPRAVENO - Proper parsing of imagesToDelete
       let imagesToDelete: string[] = [];
+      let existingImagesOrder: string[] = [];
 
       if (req.body.imagesToDelete) {
         if (typeof req.body.imagesToDelete === 'string') {
           try {
-            // Try to parse as JSON first
             imagesToDelete = JSON.parse(req.body.imagesToDelete);
           } catch {
-            // If JSON parsing fails, treat as single string
             imagesToDelete = [req.body.imagesToDelete];
           }
         } else if (Array.isArray(req.body.imagesToDelete)) {
@@ -147,10 +143,23 @@ export class AdController {
         }
       }
 
-      // ✅ Create clean DTO with properly parsed imagesToDelete
+      if (req.body.existingImagesOrder) {
+        if (typeof req.body.existingImagesOrder === 'string') {
+          try {
+            existingImagesOrder = JSON.parse(req.body.existingImagesOrder);
+          } catch {
+            existingImagesOrder = [req.body.existingImagesOrder];
+          }
+        } else if (Array.isArray(req.body.existingImagesOrder)) {
+          existingImagesOrder = req.body.existingImagesOrder;
+        }
+      }
+
       const cleanDto = {
         ...dto,
         imagesToDelete: imagesToDelete.length > 0 ? imagesToDelete : undefined,
+        existingImagesOrder:
+          existingImagesOrder.length > 0 ? existingImagesOrder : undefined,
       };
 
       if (!req.user || !req.user.id) {
@@ -195,50 +204,18 @@ export class AdController {
   async uploadPhotos(
     @Param('id') id: string,
     @UploadedFiles() files: Express.Multer.File[],
+    @Req() req,
   ) {
     if (!files || files.length === 0) {
       throw new BadRequestException('Žádné soubory nebyly přiloženy');
     }
 
-    if (!supabase) {
-      throw new BadRequestException('Image storage is not configured');
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException('User not authenticated properly');
     }
 
-    const uploadedPhotos: any[] = [];
-
-    for (const file of files) {
-      const fileExt = file.originalname.split('.').pop();
-      const fileName = `ads/${id}/${randomUUID()}.${fileExt}`;
-
-      const { error } = await supabase.storage
-        .from('photos')
-        .upload(fileName, file.buffer, {
-          contentType: file.mimetype,
-          upsert: false,
-        });
-
-      if (error) {
-        console.error('Supabase upload error:', error);
-        throw new BadRequestException(
-          error.message || 'Chyba při uploadu fotek',
-        );
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from('photos')
-        .getPublicUrl(fileName);
-
-      const publicURL = publicUrlData.publicUrl;
-
-      const photo = await this.adService.createPhoto({
-        url: publicURL,
-        adId: id, // použij přímo id (string)
-      });
-
-      uploadedPhotos.push(photo);
-    }
-
-    return { photos: uploadedPhotos };
+    const photos = await this.adService.addPhotos(id, req.user.id, files);
+    return { photos };
   }
 
   @Post(':adId/photos')
@@ -254,8 +231,13 @@ export class AdController {
   async deletePhoto(
     @Param('id') id: string,
     @Param('photoId') photoId: string,
+    @Req() req,
   ) {
-    await this.adService.deletePhoto(photoId);
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException('User not authenticated properly');
+    }
+
+    await this.adService.deletePhoto(photoId, id, req.user.id);
     return { ok: true };
   }
 

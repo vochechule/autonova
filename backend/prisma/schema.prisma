@@ -94,11 +94,19 @@ model CarFeature {
 }
 
 model Image {
-  id      String @id @default(uuid())
-  url     String
-  order   Int    @default(0)  // ✅ PŘIDÁNO - pořadí obrázku
-  ad      Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
-  adId    String
+  id           String @id @default(uuid())
+  storageKey   String @unique @default(uuid())
+  url          String
+  filename     String?
+  mimeType     String?
+  size         Int?
+  originalSize Int?
+  width        Int?
+  height       Int?
+  data         Bytes?
+  order        Int    @default(0)  // ✅ PŘIDÁNO - pořadí obrázku
+  ad           Ad     @relation(fields: [adId], references: [id], onDelete: Cascade)
+  adId         String
   
   @@index([adId, order])  // ✅ Index pro rychlé řazení
 }

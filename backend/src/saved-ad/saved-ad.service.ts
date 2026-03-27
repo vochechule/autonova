@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { SaveAdDto } from './dto/save-ad.dto';
 import { SavedAdResponseDto } from './dto/saved-ad-response.dto';
+import { publicImageSelect } from '../public-image.select';
 
 @Injectable()
 export class SavedAdService {
@@ -47,7 +48,9 @@ export class SavedAdService {
       include: {
         ad: {
           include: {
-            images: true,
+            images: {
+              select: publicImageSelect,
+            },
           },
         },
       },
@@ -86,7 +89,9 @@ export class SavedAdService {
       include: {
         ad: {
           include: {
-            images: true,
+            images: {
+              select: publicImageSelect,
+            },
           },
         },
       },

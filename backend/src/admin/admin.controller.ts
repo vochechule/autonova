@@ -1,6 +1,7 @@
 import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
 import { PrismaService } from '../../prisma/prisma.service';
+import { publicImageSelect } from '../public-image.select';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -14,7 +15,9 @@ export class AdminController {
         user: {
           select: { id: true, name: true, email: true, isDealer: true },
         },
-        images: true,
+        images: {
+          select: publicImageSelect,
+        },
         _count: {
           select: { savedBy: true },
         },

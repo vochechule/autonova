@@ -5,8 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as path from 'path';
-import { LocalStorageService } from '../local-storage.service';
+import { ImageStorageService } from '../image-storage.service';
+import { publicImageSelect } from '../public-image.select';
 
 @Injectable()
 export class AdService {
@@ -28,7 +28,21 @@ export class AdService {
     // ❌ dealerTier, role (internal business data)
   };
 
-  constructor(private prisma: PrismaService) {
+  private readonly orderedImagesInclude = {
+    orderBy: { order: 'asc' as const },
+    select: publicImageSelect,
+  };
+
+  private readonly listingImagesInclude = {
+    orderBy: { order: 'asc' as const },
+    take: 1,
+    select: publicImageSelect,
+  };
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly imageStorageService: ImageStorageService,
+  ) {
     console.log('🚀 AdService initialized with Prisma');
   }
 
@@ -160,25 +174,9 @@ export class AdService {
       if (!file || !file.buffer) {
         throw new BadRequestException(`Soubor ${i + 1} je poškozený`);
       }
-
-      const fileExtension = path.extname(file.originalname || '.jpg');
-      const filename = `ad_${Date.now()}_${i + 1}${fileExtension}`;
-
-      // Use local storage instead of Supabase
-      const fileUrl = await LocalStorageService.uploadFile(
-        file.buffer,
-        filename,
-      );
-
-      // ✅ AKTUALIZOVÁNO - zachování pořadí s startOrder
-      await this.prisma.image.create({
-        data: {
-          url: fileUrl,
-          adId: adId,
-          order: startOrder + i, // ✅ Zachování správného pořadí
-        },
-      });
     }
+
+    await this.imageStorageService.storeImages(files, adId, startOrder);
   }
 
   private async attachUserRatings(ads: any[]) {
@@ -313,7 +311,9 @@ export class AdService {
         },
       },
       include: {
-        images: true,
+        images: {
+          select: publicImageSelect,
+        },
         user: {
           select: this.safeUserSelect,
         },
@@ -334,9 +334,7 @@ export class AdService {
     return this.prisma.ad.findUnique({
       where: { id: ad.id },
       include: {
-        images: {
-          orderBy: { order: 'asc' },
-        },
+        images: this.orderedImagesInclude,
         user: {
           select: this.safeUserSelect,
         },
@@ -511,9 +509,7 @@ export class AdService {
         where,
         orderBy,
         include: {
-          images: {
-            orderBy: { order: 'asc' }, // ✅ Vždy řaď podle pořadí
-          },
+          images: this.orderedImagesInclude,
           user: {
             select: this.safeUserSelect,
           },
@@ -595,10 +591,7 @@ export class AdService {
     const ads = await this.prisma.ad.findMany({
       orderBy: this.getOrderBy(sortBy, sortOrder),
       include: {
-        images: {
-          orderBy: { order: 'asc' },
-          take: 1, // Pro listing stačí hlavní obrázek
-        },
+        images: this.listingImagesInclude,
         user: {
           select: this.safeUserSelect,
         },
@@ -614,9 +607,7 @@ export class AdService {
     const ad = await this.prisma.ad.findUnique({
       where: { id },
       include: {
-        images: {
-          orderBy: { order: 'asc' },
-        },
+        images: this.orderedImagesInclude,
         user: {
           select: this.safeUserSelect,
         },
@@ -631,9 +622,11 @@ export class AdService {
     if (!ad.images || ad.images.length === 0) {
       const defaultImage = await this.prisma.image.create({
         data: {
+          storageKey: `placeholder-${ad.id}`,
           url: 'https://via.placeholder.com/800x600?text=No+Image+Available',
           adId: ad.id,
         },
+        select: publicImageSelect,
       });
       ad.images = [defaultImage];
     }
@@ -655,7 +648,11 @@ export class AdService {
   ) {
     const existingAd = await this.prisma.ad.findUnique({
       where: { id },
-      include: { images: true },
+      include: {
+        images: {
+          select: publicImageSelect,
+        },
+      },
     });
 
     if (!existingAd) {
@@ -702,19 +699,20 @@ export class AdService {
       for (const imageId of imagesToDelete) {
         const imageToDelete = await this.prisma.image.findUnique({
           where: { id: imageId },
+          select: publicImageSelect,
         });
 
         if (imageToDelete && imageToDelete.adId === id) {
-          // Delete from local storage
           try {
-            await LocalStorageService.deleteFile(imageToDelete.url);
+            await this.imageStorageService.cleanupImage(imageToDelete);
           } catch (error) {
             console.error('❌ Chyba při mazání obrázku:', error);
-            // Pokračuj v mazání z databáze i když storage selhalo
           }
 
-          // Delete from database
-          await this.prisma.image.delete({ where: { id: imageId } });
+          await this.prisma.image.delete({
+            where: { id: imageId },
+            select: { id: true },
+          });
         }
       }
     }
@@ -738,7 +736,9 @@ export class AdService {
       where: { id },
       data: transformedData,
       include: {
-        images: true,
+        images: {
+          select: publicImageSelect,
+        },
         user: {
           select: this.safeUserSelect,
         },
@@ -774,9 +774,7 @@ export class AdService {
     return this.prisma.ad.findUnique({
       where: { id },
       include: {
-        images: {
-          orderBy: { order: 'asc' }, // ✅ Always order by order field
-        },
+        images: this.orderedImagesInclude,
         user: {
           select: this.safeUserSelect,
         },
@@ -801,7 +799,11 @@ export class AdService {
       // ✅ PŘIDÁNO - Nejdřív získej všechny obrázky před smazáním a zkontroluj vlastnictví
       const adWithImages = await this.prisma.ad.findUnique({
         where: { id },
-        include: { images: true },
+        include: {
+          images: {
+            select: publicImageSelect,
+          },
+        },
       });
 
       if (!adWithImages) {
@@ -813,14 +815,11 @@ export class AdService {
         throw new ForbiddenException('Nemáte oprávnění smazat tento inzerát');
       }
 
-      // Delete images from local storage
       if (adWithImages.images && adWithImages.images.length > 0) {
-        const fileUrls = adWithImages.images.map((img) => img.url);
         try {
-          await LocalStorageService.deleteFiles(fileUrls);
+          await this.imageStorageService.cleanupImages(adWithImages.images);
         } catch (error) {
           console.error('❌ Chyba při mazání obrázků:', error);
-          // Nepřerušuj mazání inzerátu kvůli chybě v storage
         }
       }
 
@@ -844,16 +843,79 @@ export class AdService {
   async findByUser(userId: string) {
     return this.prisma.ad.findMany({
       where: { userId },
-      include: { images: true },
+      include: { images: this.orderedImagesInclude },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async createPhoto(data: { url: string; adId: string }) {
-    return this.prisma.image.create({ data });
+    return this.prisma.image.create({
+      data,
+      select: publicImageSelect,
+    });
   }
 
-  async deletePhoto(photoId: string) {
-    return this.prisma.image.delete({ where: { id: photoId } });
+  async addPhotos(adId: string, userId: string, files: Express.Multer.File[]) {
+    const ad = await this.prisma.ad.findUnique({
+      where: { id: adId },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    if (!ad) {
+      throw new NotFoundException(`Inzerát s ID ${adId} nebyl nalezen`);
+    }
+
+    if (ad.userId !== userId) {
+      throw new ForbiddenException('Nemáte oprávnění upravovat tento inzerát');
+    }
+
+    this.validateImages(files, 0);
+
+    const maxOrder = await this.prisma.image.findFirst({
+      where: { adId },
+      orderBy: { order: 'desc' },
+      select: { order: true },
+    });
+
+    const startOrder = maxOrder ? maxOrder.order + 1 : 0;
+    await this.uploadImages(files, adId, startOrder);
+
+    return this.prisma.image.findMany({
+      where: { adId },
+      orderBy: { order: 'asc' },
+      select: publicImageSelect,
+    });
+  }
+
+  async deletePhoto(photoId: string, adId: string, userId: string) {
+    const image = await this.prisma.image.findUnique({
+      where: { id: photoId },
+      select: publicImageSelect,
+    });
+
+    if (!image || image.adId !== adId) {
+      throw new NotFoundException('Obrázek nebyl nalezen');
+    }
+
+    const ad = await this.prisma.ad.findUnique({
+      where: { id: adId },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (!ad || ad.userId !== userId) {
+      throw new ForbiddenException('Nemáte oprávnění upravovat tento inzerát');
+    }
+
+    await this.imageStorageService.cleanupImage(image);
+
+    return this.prisma.image.delete({
+      where: { id: photoId },
+      select: publicImageSelect,
+    });
   }
 }

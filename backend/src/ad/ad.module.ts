@@ -2,11 +2,13 @@ import { Module } from '@nestjs/common';
 import { AdService } from './ad.service';
 import { AdController } from './ad.controller';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ImageStorageService } from '../image-storage.service';
+import { ImageController } from '../image.controller';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [AdController],
-  providers: [AdService],
+  controllers: [AdController, ImageController],
+  providers: [AdService, ImageStorageService],
   exports: [AdService],
 })
 export class AdModule {}
