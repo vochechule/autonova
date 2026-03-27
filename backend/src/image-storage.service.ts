@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import * as path from 'path';
 import sharp from 'sharp';
 import { PrismaService } from '../prisma/prisma.service';
+import { ImageBlobDatabaseService } from './image-blob-database.service';
 import { publicImageSelect } from './public-image.select';
 import { LocalStorageService } from './local-storage.service';
 
@@ -16,6 +17,7 @@ export class ImageStorageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    private readonly imageBlobDatabaseService: ImageBlobDatabaseService,
   ) {}
 
   async storeImages(
@@ -40,46 +42,54 @@ export class ImageStorageService {
     const storageKey = randomUUID();
     const optimizedImage = await this.optimizeImage(file);
 
-    return this.prisma.image.create({
-      data: {
-        storageKey,
-        url: this.buildPublicUrl(storageKey),
-        filename: this.buildFilename(file.originalname),
-        mimeType: optimizedImage.mimeType,
-        size: optimizedImage.size,
-        originalSize: file.size ?? file.buffer.length,
-        width: optimizedImage.width,
-        height: optimizedImage.height,
-        data: optimizedImage.buffer,
-        adId,
-        order,
-      },
-      select: publicImageSelect,
+    await this.imageBlobDatabaseService.storeBlob({
+      storageKey,
+      data: optimizedImage.buffer,
+      mimeType: optimizedImage.mimeType,
+      size: optimizedImage.size,
     });
+
+    try {
+      return await this.prisma.image.create({
+        data: {
+          storageKey,
+          url: this.buildPublicUrl(storageKey),
+          filename: this.buildFilename(file.originalname),
+          mimeType: optimizedImage.mimeType,
+          size: optimizedImage.size,
+          originalSize: file.size ?? file.buffer.length,
+          width: optimizedImage.width,
+          height: optimizedImage.height,
+          adId,
+          order,
+        },
+        select: publicImageSelect,
+      });
+    } catch (error) {
+      await this.imageBlobDatabaseService.deleteBlob(storageKey);
+      throw error;
+    }
   }
 
   async getImagePayload(storageKey: string) {
-    const image = await this.prisma.image.findUnique({
-      where: { storageKey },
-      select: {
-        data: true,
-        mimeType: true,
-        size: true,
-      },
-    });
+    const image = await this.imageBlobDatabaseService.getBlob(storageKey);
 
-    if (!image || !image.data) {
+    if (!image) {
       throw new NotFoundException('Image not found');
     }
 
     return {
       buffer: Buffer.from(image.data),
-      mimeType: image.mimeType ?? 'image/webp',
-      size: image.size ?? image.data.length,
+      mimeType: image.mime_type,
+      size: image.size,
     };
   }
 
-  async cleanupImage(image: { url: string }) {
+  async cleanupImage(image: { url: string; storageKey?: string | null }) {
+    if (image.storageKey) {
+      await this.imageBlobDatabaseService.deleteBlob(image.storageKey);
+    }
+
     if (!LocalStorageService.isLegacyLocalFileUrl(image.url)) {
       return;
     }
@@ -87,7 +97,15 @@ export class ImageStorageService {
     await LocalStorageService.deleteFile(image.url);
   }
 
-  async cleanupImages(images: Array<{ url: string }>) {
+  async cleanupImages(
+    images: Array<{ url: string; storageKey?: string | null }>,
+  ) {
+    for (const image of images) {
+      if (image.storageKey) {
+        await this.imageBlobDatabaseService.deleteBlob(image.storageKey);
+      }
+    }
+
     const legacyUrls = images
       .map((image) => image.url)
       .filter((url) => LocalStorageService.isLegacyLocalFileUrl(url));
