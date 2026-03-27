@@ -1,8 +1,20 @@
 import { MetadataRoute } from 'next'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+const FALLBACK_SITEMAP: MetadataRoute.Sitemap = [
+  {
+    url: 'https://carta.cz/ads',
+    lastModified: new Date(),
+    changeFrequency: 'daily',
+    priority: 0.9,
+  },
+]
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  if (!API_URL) {
+    return FALLBACK_SITEMAP
+  }
+
   try {
     // Fetch all ads for sitemap
     const response = await fetch(`${API_URL}/ad?limit=1000&status=active`, {
@@ -10,8 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
 
     if (!response.ok) {
-      console.error('Failed to fetch ads for sitemap:', response.status)
-      return []
+      return FALLBACK_SITEMAP
     }
 
     const data = await response.json()
@@ -54,15 +65,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]
 
     return [...mainEntry, ...adEntries]
-  } catch (error) {
-    console.error('Error generating ads sitemap:', error)
-    return [
-      {
-        url: 'https://carta.cz/ads',
-        lastModified: new Date(),
-        changeFrequency: 'daily' as const,
-        priority: 0.9,
-      }
-    ]
+  } catch {
+    return FALLBACK_SITEMAP
   }
 }

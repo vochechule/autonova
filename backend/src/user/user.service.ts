@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -97,7 +98,7 @@ export class UserService {
       where: { id: userId },
       data: { password: hashedPassword },
     });
-    
+
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
@@ -131,7 +132,6 @@ export class UserService {
     }
 
     // Verify password before deletion
-    const bcrypt = require('bcrypt');
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error('Password is incorrect');
@@ -221,7 +221,7 @@ export class UserService {
         tierUpgradedAt: new Date(),
       },
     });
-    
+
     const { password, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
   }

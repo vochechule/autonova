@@ -139,7 +139,6 @@ export default function AdminMap({ ads }: AdminMapProps) {
                 <Popup className="admin-map-popup">
                   <div className="admin-popup-content">
                     <div className="popup-image">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         src={ad.images[0]?.url || '/default-car.png'} 
                         alt={ad.title}
