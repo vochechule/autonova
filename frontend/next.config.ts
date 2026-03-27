@@ -11,8 +11,6 @@ const addImageHost = (protocol: string, hostname: string) => {
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-addImageHost("https", "lfmfxfazzkpvojhhmnhv.supabase.co");
-
 if (apiUrl) {
   try {
     const { protocol, hostname } = new URL(apiUrl);

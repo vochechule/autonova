@@ -122,7 +122,6 @@ export default function RootLayout({
 
         {/* Preconnect to important domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://lfmfxfazzkpvojhhmnhv.supabase.co" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AuthProvider>
